@@ -24,6 +24,7 @@ contract NTTTest is Test {
             assertEq(res[i], nttf[i]);
         }
     }
+    
     function testiterativeNTT() public {
         uint256[] memory t = new uint[](512);
         for (uint i = 0; i < 512; i++) {

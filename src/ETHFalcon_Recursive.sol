@@ -28,6 +28,7 @@ contract Falcon {
         return res;
     }
 
+    //note: an expandable function version of poseidon, does it exist ?
     function hashToPoint(
         bytes memory salt,
         bytes memory msgHash
