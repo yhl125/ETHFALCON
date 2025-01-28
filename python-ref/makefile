@@ -1,8 +1,15 @@
 PY = python3
+VENV = myenv
+PIP = $(VENV)/bin/pip
+PYTHON = $(VENV)/bin/python
 AUX = *.pyc *.cprof */*.pyc
 
+install:
+	$(PY) -m venv $(VENV)
+	$(PIP) install pandas pycryptodome scipy matplotlib
+
 test:
-	$(PY) test.py
+	$(PYTHON) test.py
 
 profile:
 	rm -f $(AUX)
@@ -14,4 +21,5 @@ profile:
 clean:
 	rm -f $(AUX)
 	rm -rf __pycache__ */__pycache__
+	rm -rf scripts/*.sage.py
 	@echo "Clean done"
