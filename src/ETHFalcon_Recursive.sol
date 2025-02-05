@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.25;
 import {NTT} from "./NTT_Recursive.sol";
+import {NTT_iterative} from "./NTT_iterative.sol";
 import {Test, console} from "forge-std/Test.sol";
+
 
 // TODO: make it a library (aka unfuck constants/data)
 contract Falcon {
@@ -10,6 +12,7 @@ contract Falcon {
     uint256 constant sigBytesLen = 666;
     uint256 constant q = 12289;
     NTT  ntt;
+    NTT_iterative ntt_iterative;
 
     struct Signature {
         bytes salt;
@@ -18,6 +21,7 @@ contract Falcon {
 
     constructor() {
         ntt = new NTT();
+        ntt_iterative= new NTT_iterative();
     }
 
     function splitToHex(bytes32 x) public pure returns (uint16[16] memory) {
@@ -140,5 +144,50 @@ contract Falcon {
         }
         require(norm < sigBound, "Signature is invalid");
     }
+
+     //a version optimized by precomputing the NTT for of the public key
+     function verify_nttpub_iterative(
+        bytes memory msgs,
+        Signature memory signature,
+        uint[] memory ntt_h // public key, ntt form
+    ) public view returns (address) {
+        require(ntt_h.length == 512, "Invalid public key length");
+        require(signature.s1.length == 512, "Invalid signature length");
+        uint256[] memory s1 = new uint256[](512);
+        for (uint i = 0; i < 512; i++) {
+            if (signature.s1[i] < 0) {
+                s1[i] = uint256(int256(q) + signature.s1[i]);
+            } else {
+                s1[i] = uint256(signature.s1[i]);
+            }
+        }
+        uint256[] memory hashed = hashToPoint(msgs, signature.salt);
+        uint256[] memory s0 = ntt_iterative.subZQ(hashed, ntt_iterative.mul_halfNTTPoly(s1, ntt_h));
+        uint qs1 = 6144; // q >> 1;
+        // normalize s0 // to positive cuz you'll **2 anyway?
+        for (uint i = 0; i < n; i++) {
+            if (s0[i] > qs1) {
+                s0[i] = q - s0[i];
+            } else {
+                s0[i] = s0[i];
+            }
+        }
+        // normalize s1
+        for (uint i = 0; i < n; i++) {
+            if (s1[i] > qs1) {
+                s1[i] = q - s1[i];
+            } else {
+                s1[i] = s1[i];
+            }
+        }
+        uint norm = 0;
+        for (uint i = 0; i < n; i++) {
+            norm += s0[i] * s0[i];
+            norm += s1[i] * s1[i];
+        }
+         require(norm < sigBound, "Signature is invalid");
+    }
+
+
 }
 

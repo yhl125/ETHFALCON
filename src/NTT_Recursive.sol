@@ -133,96 +133,6 @@ s = int(v/2)
             v = s
 */
 
-    // Iterative Radix-2 Decimation-in-Frequency (DIF) (GS) NTT - NR
-    // A: input polynomial (standard order)
-    // W: nth unity root factor
-    // q: modulus
-    // B: output polynomial (bit-reversed order)
-    function iterativeNTT(uint[] memory A) public view returns(uint[] memory){
-        uint256  m = 1;
-        uint256 v = A.length;
-        while(v>1){
-             uint s=v>>1;
-            for(uint k=0;k<m;k++)
-            {
-                uint jf=k*v;
-                uint jl = jf + s - 1;
-                uint jt = 0;
-                for(uint j=jf;j<jl+1;j++){
-                    uint TW=(uint)(w[512][jt]);//w^jt
-                    uint temp=A[j];
-                    A[j] = addmod(temp , A[j+s],q) ;
-                    A[j+s] = addmod(temp, q-mulmod(A[j+s], TW,q),q);//(temp - A[j+s])*TW % q;
-                    jt = jt + m;
-                }
-            }
-        m = 2*m;
-        v = s;
-        }
-      return A;
-    }
-
-    /*
- def Radix2_DIT_Iterative_NTT_RN(self,A,W,q):
-        N = len(A)
-        B = [_ for _ in A]
-
-        v = int(N/2)
-        m = 1
-        d = 1
-
-        while m<N:
-            np = 2*m
-            lp = np*(v-1)
-            for k in range(m):
-                j = k
-                jl = k + lp
-                jt = k*v
-                TW = pow(W,jt,q)
-                while j < (jl+1):
-                    temp = (TW*B[j+d]) % q
-                    B[j+d] = (B[j] - temp) % q
-                    B[j]   = (B[j] + temp) % q
-                    j = j+np
-            v = int(v/2)
-            m = 2*m
-            d = 2*d
-
-        return B
-    */
-    //# Iterative Radix-2 Decimation-in-Time (DIT) (CT) NTT - RN
-    //# A: input polynomial (bit-reversed order)
-    //# W: twiddle factor
-    //# q: modulus
-    //# B: output polynomial (standard order)
-    function iterativeINTT(uint[] memory A) public view returns(uint[] memory){
-        uint256  m = 1;
-        uint256  d = 1;
-        
-        uint256 v = A.length>>1;
-
-        while(m<A.length){
-            uint np=m<<1;
-            uint lp=np*(v-1);
-            for(uint k=0;k<m;k++){
-                uint j=k;
-                uint jl=k+lp;
-                uint jt=k*v;
-                uint TW=(uint)(w[512][jt]);
-                while(j<(jl+1)){
-                    uint temp=mulmod(TW,A[j+d],q);
-                    A[j+d] = addmod(A[j],q - temp,q) ;
-                    A[j]   = addmod(A[j] , temp,q) ;
-                    j=j+np;
-
-                }
-            }
-            v = v>>1;
-            m = 2*m;
-            d = 2*d;
-        }
-        return A;
-    }
 
     function mergeNTT(
         uint[] memory p0,
@@ -268,7 +178,7 @@ s = int(v/2)
         uint[] memory res = new uint[](a.length);
         for (uint i = 0; i < a.length; i++) {
             // assume a < q for all a
-            res[i] = (q - a[i]) % q;
+            res[i] = (q - a[i]) ;
         }
         return res;
     }

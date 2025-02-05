@@ -25,16 +25,6 @@ contract NTTTest is Test {
         }
     }
     
-    function testiterativeNTT() public {
-        uint256[] memory t = new uint[](512);
-        for (uint i = 0; i < 512; i++) {
-            t[i] = f[i];
-        }
-        uint256[] memory res = ntt.iterativeNTT(t);
-        for (uint i = 0; i < 512; i++) {
-            //assertEq(res[i], nttf[i]);
-        }
-    }
 
     function testINTT() public {
         uint256[] memory t = new uint[](512);

@@ -27,11 +27,12 @@ The following optimizations are still WIP:
 | falcon.verify       | original gas cost from [falcon-solidity](https://github.com/Tetration-Lab/falcon-solidity/blob/main/src/Falcon.sol)         | 24M | OK|
 | falcon.verify      | ZKNOX fork, recursive NTT | 20.8 M| OK|
 | falcon.verify_opt         | Use of precomputed NTT public key form, recursive NTT | 14.6 M| OK|
-| falcon.verify_iterative         | Use of precomputed NTT public key form, custom iterative NTT | 8.3 M| KO|
+| falcon.verify_iterative         | Use of precomputed NTT public key form, custom iterative NTT | 8.3 M| OK|
 
 
 
 ## REFERENCES
-
+- [FALCON](https://falcon-sign.info/falcon.pdf) Falcon: Fast-Fourier Lattice-based
+Compact Signatures over NTRU
 - [NTT-EIP]() NTT-EIP as a building block for FALCON, DILITHIUM and Stark verifiers 
 - [Tetration](https://github.com/Tetration-Lab/falcon-solidity/blob/main/src/Falcon.sol) Falcon solidity.
