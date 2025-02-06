@@ -7,6 +7,7 @@ AUX = *.pyc *.cprof */*.pyc
 install:
 	$(PY) -m venv $(VENV)
 	$(PIP) install pandas pycryptodome scipy matplotlib
+	$(PIP) install -e ../../NTT/assets/pythonref/
 
 test:
 	$(PYTHON) test.py
