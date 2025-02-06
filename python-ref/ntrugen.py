@@ -3,7 +3,9 @@ This file implements the section 3.8.2 of Falcon's documentation.
 """
 from fft import fft, ifft, add_fft, mul_fft, adj_fft, div_fft
 from fft import add, mul, div, adj
-from ntt import ntt
+from polyntt.ntt_recursive import NTTRecursive
+from polyntt.ntt_iterative import NTTIterative
+from polyntt.poly import Poly
 from common import sqnorm
 from samplerz import samplerz
 
@@ -110,17 +112,19 @@ def reduce(f, g, F, G):
     Corresponds to algorithm 7 (Reduce) of Falcon's documentation.
     """
     n = len(f)
-    size = max(53, bitsize(min(f)), bitsize(max(f)), bitsize(min(g)), bitsize(max(g)))
+    size = max(53, bitsize(min(f)), bitsize(max(f)),
+               bitsize(min(g)), bitsize(max(g)))
 
     f_adjust = [elt >> (size - 53) for elt in f]
     g_adjust = [elt >> (size - 53) for elt in g]
     fa_fft = fft(f_adjust)
     ga_fft = fft(g_adjust)
 
-    while(1):
+    while (1):
         # Because we work in finite precision to reduce very large polynomials,
         # we may need to perform the reduction several times.
-        Size = max(53, bitsize(min(F)), bitsize(max(F)), bitsize(min(G)), bitsize(max(G)))
+        Size = max(53, bitsize(min(F)), bitsize(max(F)),
+                   bitsize(min(G)), bitsize(max(G)))
         if Size < size:
             break
 
@@ -129,8 +133,10 @@ def reduce(f, g, F, G):
         Fa_fft = fft(F_adjust)
         Ga_fft = fft(G_adjust)
 
-        den_fft = add_fft(mul_fft(fa_fft, adj_fft(fa_fft)), mul_fft(ga_fft, adj_fft(ga_fft)))
-        num_fft = add_fft(mul_fft(Fa_fft, adj_fft(fa_fft)), mul_fft(Ga_fft, adj_fft(ga_fft)))
+        den_fft = add_fft(mul_fft(fa_fft, adj_fft(fa_fft)),
+                          mul_fft(ga_fft, adj_fft(ga_fft)))
+        num_fft = add_fft(mul_fft(Fa_fft, adj_fft(fa_fft)),
+                          mul_fft(Ga_fft, adj_fft(ga_fft)))
         k_fft = div_fft(num_fft, den_fft)
         k = ifft(k_fft)
         k = [int(round(elt)) for elt in k]
@@ -201,7 +207,7 @@ def gs_norm(f, g, q):
     return max(sqnorm_fg, sqnorm_FG)
 
 
-def gen_poly(n):
+def gen_poly(n, ntt='NTTIterative'):
     """
     Generate a polynomial of degree at most (n - 1), with coefficients
     following a discrete Gaussian distribution D_{Z, 0, sigma_fg} with
@@ -209,7 +215,7 @@ def gen_poly(n):
     """
     # 1.17 * sqrt(12289 / 8192)
     sigma = 1.43300980528773
-    assert(n < 4096)
+    assert (n < 4096)
     f0 = [samplerz(0, sigma, sigma - 0.001) for _ in range(4096)]
     f = [0] * n
     k = 4096 // n
@@ -217,21 +223,25 @@ def gen_poly(n):
         # We use the fact that adding k Gaussian samples of std. dev. sigma
         # gives a Gaussian sample of std. dev. sqrt(k) * sigma.
         f[i] = sum(f0[i * k + j] for j in range(k))
-    return f
+    return Poly(f, q, ntt=ntt)
 
 
-def ntru_gen(n):
+def ntru_gen(n, ntt='NTTIterative'):
     """
     Implement the algorithm 5 (NTRUGen) of Falcon's documentation.
     At the end of the function, polynomials f, g, F, G in Z[x]/(x ** n + 1)
     are output, which verify f * G - g * F = q mod (x ** n + 1).
     """
     while True:
-        f = gen_poly(n)
-        g = gen_poly(n)
+        f = gen_poly(n).coeffs
+        g = gen_poly(n).coeffs
         if gs_norm(f, g, q) > (1.17 ** 2) * q:
             continue
-        f_ntt = ntt(f)
+        if ntt == 'NTTRecursive':
+            T = NTTRecursive(q)
+        else:
+            T = NTTIterative(q)
+        f_ntt = T.ntt(f)
         if any((elem == 0) for elem in f_ntt):
             continue
         try:

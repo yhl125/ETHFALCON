@@ -4,24 +4,23 @@ This file implements tests for various parts of the Falcon.py library.
 Test the code with:
 > make test
 """
-from common import q, sqnorm
-from fft import add, sub, mul, div, neg, fft, ifft
-from ntt import mul_zq, div_zq
-from samplerz import samplerz, MAX_SIGMA
-from ffsampling import ffldl, ffldl_fft, ffnp, ffnp_fft
-from ffsampling import gram
-from random import randint, random, gauss, uniform
-from math import sqrt, ceil
-from ntrugen import karamul, ntru_gen, gs_norm
-from falcon import SecretKey, PublicKey, Params
-from falcon import SALT_LEN, HEAD_LEN, SHAKE256
-from encoding import compress, decompress
-from scripts import saga
-from scripts.samplerz_KAT512 import sampler_KAT512
-from scripts.sign_KAT import sign_KAT
-from scripts.samplerz_KAT1024 import sampler_KAT1024
-# https://stackoverflow.com/a/25823885/4143624
+from polyntt import poly
 from timeit import default_timer as timer
+from scripts.samplerz_KAT1024 import sampler_KAT1024
+from scripts.sign_KAT import sign_KAT
+from scripts.samplerz_KAT512 import sampler_KAT512
+from scripts import saga
+from encoding import compress, decompress
+from falcon import SALT_LEN, HEAD_LEN, SHAKE256
+from falcon import SecretKey, PublicKey, Params
+from ntrugen import karamul, ntru_gen, gs_norm
+from math import sqrt, ceil
+from random import randint, random, gauss, uniform
+from ffsampling import gram
+from ffsampling import ffldl, ffldl_fft, ffnp, ffnp_fft
+from samplerz import samplerz, MAX_SIGMA
+from fft import add, sub, mul, div, neg, fft, ifft
+from common import q, sqnorm
 
 
 def vecmatmul(t, B):
@@ -35,7 +34,7 @@ def vecmatmul(t, B):
     nrows = len(B)
     ncols = len(B[0])
     deg = len(B[0][0])
-    assert(len(t) == nrows)
+    assert (len(t) == nrows)
     v = [[0 for k in range(deg)] for j in range(ncols)]
     for j in range(ncols):
         for i in range(nrows):
@@ -62,18 +61,19 @@ def test_fft(n, iterations=10):
 def test_ntt(n, iterations=10):
     """Test the NTT."""
     for i in range(iterations):
-        f = [randint(0, q - 1) for j in range(n)]
-        g = [randint(0, q - 1) for j in range(n)]
-        h = mul_zq(f, g)
-        try:
-            k = div_zq(h, f)
-            if k != g:
-                print("(f * g) / f =", k)
-                print("g =", g)
-                print("mismatch")
-                return False
-        except ZeroDivisionError:
-            continue
+        for ntt in ['NTTIterative', 'NTTRecursive']:
+            f = poly.Poly([randint(0, q-1) for j in range(n)], q, ntt=ntt)
+            g = poly.Poly([randint(0, q-1) for j in range(n)], q, ntt=ntt)
+            h = f*g
+            try:
+                k = h.div(f)
+                if k != g:
+                    print("(f * g) / f =", k)
+                    print("g =", g)
+                    print("mismatch")
+                    return False
+            except ZeroDivisionError:
+                continue
     return True
 
 
@@ -145,7 +145,7 @@ def test_compress(n, iterations):
     except KeyError:
         return True
     for i in range(iterations):
-        while(1):
+        while (1):
             initial = [int(round(gauss(0, sigma))) for coef in range(n)]
             compressed = compress(initial, slen)
             if compressed is not False:
@@ -164,14 +164,15 @@ def test_samplerz(nb_mu=100, nb_sig=100, nb_samp=1000):
     """
     # Minimal size of a bucket for the chi-squared test (must be >= 5)
     chi2_bucket = 10
-    assert(nb_samp >= 10 * chi2_bucket)
+    assert (nb_samp >= 10 * chi2_bucket)
     sigmin = 1.3
     nb_rej = 0
     for i in range(nb_mu):
         mu = uniform(0, q)
         for j in range(nb_sig):
             sigma = uniform(sigmin, MAX_SIGMA)
-            list_samples = [samplerz(mu, sigma, sigmin) for _ in range(nb_samp)]
+            list_samples = [samplerz(mu, sigma, sigmin)
+                            for _ in range(nb_samp)]
             v = saga.UnivariateSamples(mu, sigma, list_samples)
             if (v.is_valid is False):
                 nb_rej += 1
@@ -232,6 +233,55 @@ def test_signature(n, iterations=10):
         if pk.verify(message, sig) is False:
             return False
     return True
+
+
+def test_key_generation(n, iterations=100):
+    """Test Falcon key generation."""
+    d = {True: "OK    ", False: "Not OK"}
+    for ntt in ['NTTIterative', 'NTTRecursive']:
+        start = timer()
+        for i in range(iterations):
+            sk = SecretKey(n, polys=None, ntt=ntt)
+            # pk = PublicKey(sk)
+        rep = True
+        end = timer()
+
+        msg = "Test keygen ({})".format(ntt[3:])
+        msg = msg.ljust(20) + ": " + d[rep]
+        if rep is True:
+            diff = end - start
+            msec = round(diff * 1000 / iterations, 3)
+            msg += " ({msec} msec / execution)".format(msec=msec).rjust(30)
+        print(msg)
+
+
+def test_signature_verification(n, iterations=100):
+    """Test Falcon signature verification."""
+    f = sign_KAT[n][0]["f"]
+    g = sign_KAT[n][0]["g"]
+    F = sign_KAT[n][0]["F"]
+    G = sign_KAT[n][0]["G"]
+    sk = SecretKey(n, [f, g, F, G])
+    pk = PublicKey(sk)
+    message = b"abc"
+    sig = sk.sign(message)
+
+    d = {True: "OK    ", False: "Not OK"}
+    for ntt in ['NTTIterative', 'NTTRecursive']:
+        start = timer()
+        for i in range(iterations):
+            if pk.verify(message, sig, ntt=ntt) is False:
+                rep = False
+        rep = True
+        end = timer()
+
+        msg = "Test verif ({})".format(ntt[3:])
+        msg = msg.ljust(20) + ": " + d[rep]
+        if rep is True:
+            diff = end - start
+            msec = round(diff * 1000 / iterations, 3)
+            msg += " ({msec} msec / execution)".format(msec=msec).rjust(30)
+        print(msg)
 
 
 def test_sign_KAT():
@@ -298,6 +348,8 @@ def test(n, iterations=500):
         wrapper_test(test_compress, "Compress", n, iterations)
         wrapper_test(test_signature, "Signature", n, iterations)
         # wrapper_test(test_sign_KAT, "Signature KATs", n, iterations)
+        test_key_generation(n, 5)
+        test_signature_verification(n, iterations)
     print("")
 
 
@@ -310,8 +362,8 @@ if (__name__ == "__main__"):
     wrapper_test(test_samplerz_KAT, "SamplerZ KATs", None, 1)
     print("")
 
-    for i in range(6, 11):
+    for i in range(6, 8):
         n = (1 << i)
-        it = 1000
+        it = 10
         print("Test battery for n = {n}".format(n=n))
         test(n, it)

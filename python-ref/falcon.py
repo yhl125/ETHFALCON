@@ -6,12 +6,13 @@ from common import q
 from numpy import set_printoptions
 from math import sqrt
 from fft import fft, ifft, sub, neg, add_fft, mul_fft
-from ntt import sub_zq, mul_zq, div_zq
 from ffsampling import gram, ffldl_fft, ffsampling_fft
 from ntrugen import ntru_gen
 from encoding import compress, decompress
 # https://pycryptodome.readthedocs.io/en/latest/src/hash/shake256.html
 from Crypto.Hash import SHAKE256
+from fake_shake import FakeShake
+from polyntt.poly import Poly
 # Randomness
 from os import urandom
 from rng import ChaCha20
@@ -216,7 +217,7 @@ class SecretKey:
     - verify the signature of a message
     """
 
-    def __init__(self, n, polys=None):
+    def __init__(self, n, polys=None, ntt='NTTIterative'):
         """Initialize a secret key."""
         # Public parameters
         self.n = n
@@ -249,7 +250,8 @@ class SecretKey:
         normalize_tree(self.T_fft, self.sigma)
 
         # The public key is a polynomial such that h*f = g mod (Phi,q)
-        self.h = div_zq(self.g, self.f)
+        self.h = Poly(self.g, q, ntt=ntt).div(Poly(self.f, q, ntt=ntt)).coeffs
+        # self.h = div_zq(self.g, self.f)
 
     def __repr__(self, verbose=False):
         """Print the object in readable form."""
@@ -274,7 +276,8 @@ class SecretKey:
 
         k = (1 << 16) // q
         # Create a SHAKE object and hash the salt and message.
-        shake = SHAKE256.new()
+        # shake = SHAKE256.new()
+        shake = FakeShake()
         shake.update(salt)
         shake.update(message)
         # Output pseudorandom bytes and map them to coefficients.
@@ -283,7 +286,8 @@ class SecretKey:
         while i < n:
             # Takes 2 bytes, transform them in a 16 bits integer
             twobytes = shake.read(2)
-            elt = (twobytes[0] << 8) + twobytes[1]  # This breaks in Python 2.x
+            # elt = (twobytes[0] << 8) + twobytes[1]  # This breaks in Python 2.x
+            elt = int(twobytes, 16)
             # Implicit rejection sampling
             if elt < k * q:
                 hashed[i] = elt % q
@@ -358,7 +362,7 @@ class SecretKey:
                 if (enc_s is not False):
                     return header + salt + enc_s
 
-    def verify(self, message, signature):
+    def verify(self, message, signature, ntt='NTTIterative'):
         """
         Verify a signature.
         """
@@ -374,12 +378,16 @@ class SecretKey:
 
         # Compute s0 and normalize its coefficients in (-q/2, q/2]
         hashed = self.hash_to_point(message, salt)
-        s0 = sub_zq(hashed, mul_zq(s1, self.h))
-        s0 = [(coef + (q >> 1)) % q - (q >> 1) for coef in s0]
+        hashed = Poly(hashed, q, ntt=ntt)
+        s1 = Poly(s1, q, ntt=ntt)
+        self_h = Poly(self.h, q, ntt=ntt)
+        s0 = hashed - s1 * self_h
+        # s0 = sub_zq(hashed, mul_zq(s1, self.h))
+        s0 = [(coef + (q >> 1)) % q - (q >> 1) for coef in s0.coeffs]
 
         # Check that the (s0, s1) is short
         norm_sign = sum(coef ** 2 for coef in s0)
-        norm_sign += sum(coef ** 2 for coef in s1)
+        norm_sign += sum(coef ** 2 for coef in s1.coeffs)
         if norm_sign > self.signature_bound:
             print("Squared norm of signature is too large:", norm_sign)
             return False
