@@ -249,8 +249,11 @@ class SecretKey:
         normalize_tree(self.T_fft, self.sigma)
 
         # The public key is a polynomial such that h*f = g mod (Phi,q)
-        self.h = Poly(self.g, q, ntt=ntt).div(Poly(self.f, q, ntt=ntt)).coeffs
         # self.h = div_zq(self.g, self.f)
+        poly_f = Poly(self.f, q, ntt=ntt)
+        poly_g = Poly(self.g, q, ntt=ntt)
+        poly_h = poly_g/poly_f
+        self.h = poly_h.coeffs
 
     def __repr__(self, verbose=False):
         """Print the object in readable form."""
