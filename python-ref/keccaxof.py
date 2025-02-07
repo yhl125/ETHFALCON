@@ -2,15 +2,19 @@ from Crypto.Hash import keccak
 from eth_abi.packed import encode_packed
 
 
-class FakeShake:
+class KeccaXOF:
     def __init__(self) -> None:
         self.input = []
         self.last = None
         self.tmp = None
 
+    @classmethod
+    def new(self):
+        return self()
+
     def update(self, data):
         if self.last is not None:
-            raise ValueError('FakeShake.update() called after digest()')
+            raise ValueError('KeccaXOF.update() called after digest()')
         self.input.append(data)
 
     def read(self, bytes):
@@ -30,4 +34,4 @@ class FakeShake:
 
         buff = self.tmp[:to_slice]
         self.tmp = self.tmp[to_slice:]
-        return buff
+        return int(buff, 16).to_bytes(2, 'big')

@@ -9,9 +9,8 @@ from fft import fft, ifft, sub, neg, add_fft, mul_fft
 from ffsampling import gram, ffldl_fft, ffsampling_fft
 from ntrugen import ntru_gen
 from encoding import compress, decompress
-# https://pycryptodome.readthedocs.io/en/latest/src/hash/shake256.html
 from Crypto.Hash import SHAKE256
-from fake_shake import FakeShake
+from keccaxof import KeccaXOF
 from polyntt.poly import Poly
 # Randomness
 from os import urandom
@@ -265,7 +264,7 @@ class SecretKey:
             rep += print_tree(self.T_fft, pref="")
         return rep
 
-    def hash_to_point(self, message, salt):
+    def hash_to_point(self, message, salt, xof=SHAKE256):
         """
         Hash a message to a point in Z[x] mod(Phi, q).
         Inspired by the Parse function from NewHope.
@@ -276,18 +275,20 @@ class SecretKey:
 
         k = (1 << 16) // q
         # Create a SHAKE object and hash the salt and message.
-        # shake = SHAKE256.new()
-        shake = FakeShake()
-        shake.update(salt)
-        shake.update(message)
+        # if xof == 'KeccaXOF':
+        #     xof = KeccaXOF.new()
+        # else:
+        #     xof = SHAKE256.new()
+        xof = xof.new()
+        xof.update(salt)
+        xof.update(message)
         # Output pseudorandom bytes and map them to coefficients.
         hashed = [0 for i in range(n)]
         i = 0
         while i < n:
             # Takes 2 bytes, transform them in a 16 bits integer
-            twobytes = shake.read(2)
-            # elt = (twobytes[0] << 8) + twobytes[1]  # This breaks in Python 2.x
-            elt = int(twobytes, 16)
+            twobytes = xof.read(2)
+            elt = (twobytes[0] << 8) + twobytes[1]  # This breaks in Python 2.x
             # Implicit rejection sampling
             if elt < k * q:
                 hashed[i] = elt % q
@@ -333,7 +334,7 @@ class SecretKey:
         s = [sub(point, v0), neg(v1)]
         return s
 
-    def sign(self, message, randombytes=urandom):
+    def sign(self, message, randombytes=urandom, xof=SHAKE256):
         """
         Sign a message. The message MUST be a byte string or byte array.
         Optionally, one can select the source of (pseudo-)randomness used
@@ -343,7 +344,7 @@ class SecretKey:
         header = int_header.to_bytes(1, "little")
 
         salt = randombytes(SALT_LEN)
-        hashed = self.hash_to_point(message, salt)
+        hashed = self.hash_to_point(message, salt, xof=xof)
 
         # We repeat the signing procedure until we find a signature that is
         # short enough (both the Euclidean norm and the bytelength)
@@ -362,7 +363,7 @@ class SecretKey:
                 if (enc_s is not False):
                     return header + salt + enc_s
 
-    def verify(self, message, signature, ntt='NTTIterative'):
+    def verify(self, message, signature, ntt='NTTIterative', xof=SHAKE256):
         """
         Verify a signature.
         """
@@ -377,7 +378,7 @@ class SecretKey:
             return False
 
         # Compute s0 and normalize its coefficients in (-q/2, q/2]
-        hashed = self.hash_to_point(message, salt)
+        hashed = self.hash_to_point(message, salt, xof=xof)
         hashed = Poly(hashed, q, ntt=ntt)
         s1 = Poly(s1, q, ntt=ntt)
         self_h = Poly(self.h, q, ntt=ntt)

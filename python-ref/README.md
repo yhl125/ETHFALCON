@@ -136,3 +136,83 @@ If you find errors or flaw, I will be very happy if you report them to me at the
 ## License
 
 MIT
+
+
+
+## Test and benchmarks Simon
+
+Tests of keygeneration, signing and verification work with iterative and recursive NTT, and SHAKE256 or KeccaXOF.
+
+<table>
+  <tr>
+    <th rowspan="2">n</th>
+    <th colspan="2">Key generation</th>
+    <th colspan="2">Signature</th>
+    <th colspan="4">Verification</th>
+  </tr>
+  <tr>
+    <td>NTT iterative</td>
+    <td>NTT recursive</td>
+    <td>SHAKE256</td>
+    <td>KeccaXOF</td>
+    <td>NTT iterative</td>
+    <td>NTT recursive</td>
+    <td>SHAKE256</td>
+    <td>KeccaXOF</td>
+  </tr>
+  <tr>
+    <td>64</td>
+    <td>180 ms</td>
+    <td>96 ms</td>
+    <td>2.4 ms</td>
+    <td>2.4 ms</td>
+    <td>0.3 ms</td>
+    <td>0.6 ms</td>
+    <td>0.3 ms</td>
+    <td>0.4 ms</td>
+  </tr>
+  <tr>
+    <td>128</td>
+    <td>825 ms</td>
+    <td>1033 ms</td>
+    <td>4.7 ms</td>
+    <td>4.7 ms</td>
+    <td>0.6 ms</td>
+    <td>1.4 ms</td>
+    <td>0.6 ms</td>
+    <td>0.7 ms</td>
+  </tr>
+  <tr>
+    <td>256</td>
+    <td>1051 ms</td>
+    <td>1530 ms</td>
+    <td>9.7 ms</td>
+    <td>9.4 ms</td>
+    <td>1.3 ms</td>
+    <td>3.0 ms</td>
+    <td>1.3 ms</td>
+    <td>1.3 ms</td>
+  </tr>
+  <tr>
+    <td>512</td>
+    <td>2273 ms</td>
+    <td>1755 ms</td>
+    <td>19.2 ms</td>
+    <td>19.0 ms</td>
+    <td>3.0 ms</td>
+    <td>6.6 ms</td>
+    <td>3.0 ms</td>
+    <td>3.0 ms</td>
+  </tr>
+  <tr>
+    <td>1024</td>
+    <td>10256 ms</td>
+    <td>13652 ms</td>
+    <td>39.3 ms</td>
+    <td>39.2 ms</td>
+    <td>6.4 ms</td>
+    <td>14.2 ms</td>
+    <td>6.4 ms</td>
+    <td>6.2 ms</td>
+  </tr>
+</table>
