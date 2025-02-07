@@ -19,6 +19,13 @@ contract Falcon {
         int256[] s1;
     }
 
+    struct FalconRecover_sig {
+        bytes r;
+        uint256[] s1;
+        uint256[] s2;
+        uint256[] ntts2m1;
+    }
+
     constructor() {
         ntt = new NTT();
         ntt_iterative= new NTT_iterative();
@@ -188,6 +195,46 @@ contract Falcon {
          require(norm < sigBound, "Signature is invalid");
     }
 
+    //returns the hash of the public key from a signature, see readme for optimizations from front
+    function recover( bytes memory msgs,
+        FalconRecover_sig memory signature
+        ) public view returns (address)
+    {
+        uint256[] memory s1 = new uint256[](512);
+        for (uint i = 0; i < 512; i++) {
+            if (signature.s1[i] < 0) {
+                s1[i] = uint256(int256(q) + int(signature.s1[i]));
+            } else {
+                s1[i] = uint256(signature.s1[i]);
+            }
+        }
+        uint256[] memory s2 =  new uint256[](512);
+        for (uint i = 0; i < 512; i++) {
+            if (signature.s1[i] < 0) {
+                s2[i] = uint256(int256(q) + int(signature.s2[i]));
+            } else {
+                s2[i] = uint256(signature.s2[i]);
+            }
+        }
 
+        uint norm = 0;
+        for (uint i = 0; i < n; i++) {
+            norm += s2[i] * s2[i];
+            norm += s1[i] * s1[i];
+        }
+      require(norm < sigBound, "Signature is invalid");
+
+    
+      uint256[] memory ntt_s2m1 = new uint256[](512);
+      for (uint i = 0; i < 512; i++) {
+            ntt_s2m1[i]=signature.ntts2m1[i];
+      }
+      ntt_s2m1 =  ntt_iterative.modmulx512(s2, ntt_s2m1);
+
+
+      //test hashed==ntt(1)
+      s2 = ntt_iterative.subZQ(ntt_s2m1, s1);
+      return address(uint160(uint256(keccak256(abi.encodePacked(s2)) )));
+    }
 }
 

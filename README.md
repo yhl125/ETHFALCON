@@ -16,7 +16,7 @@ While not degrading the performances it is not compatible with the original spec
 
 The performances improvment brought by ZKNOX come from :
 - some generic solidity gas cost optimizations (replacing mul by shifts, etc.)
-- the replacement of a recursive NTT, by a NWC (Negative Wrap Convolution) specialized one as specified in EIP-NTT following [LN16].
+- the replacement of a recursive NTT, by a NWC (Negative Wrap Convolution) specialized one as specified in EIP-NTT following [LN16]. This NTT is twice faster and doesn't need to store a table of $q$ elements
 - the precomputation of the NTT from of the public key to avoid repetitive identical computations for each iteration.
 
 The following optimizations are still WIP:
@@ -46,7 +46,16 @@ The verification then becomes:
     - $ntt(s_2)*ntt(s_2^{-1})==ntt(1)$;
     - $pk==H(s_2^{-1}(HashToPoint(r\mid\mid m,q,n))-s_1)$.
 
-Note that only one NTT transformation is required (and no inverse), leading to the fastest verification algorithm.
+Notes:
+
+- ntt(1) is the constant equal to a one at each position (trivial equality test)
+- defining HashToPoint as InvNTT(PRNG_Keccak(x)) avoid a NTT transform, the computation of $s_2^{-1}(HashToPoint(r\mid\mid m,q,n))$ only requires then a single InvNTT
+- only two NTT transformations are required, leading to a verification time equivalent to the falcon without recovery
+- the NTT used here is the NWC defined in NTT-EIP
+- PRNG_Keccak is a construction that generates the desired output only using keccak (EVM friendly) 
+
+Discussion:
+- it would be possible to totally avoid to use Inverse NTT by defining H as H=ntt(keccak(c), this would reduce the surface of hardware implementation.
 
 #### Description
 
@@ -59,7 +68,7 @@ Note that only one NTT transformation is required (and no inverse), leading to t
 | falcon.verify      | ZKNOX fork, recursive NTT | 20.8 M| OK|
 | falcon.verify_opt         | Use of precomputed NTT public key form, recursive NTT | 14.6 M| OK|
 | falcon.verify_iterative         | Use of precomputed NTT public key form, custom iterative NTT | 8.3 M| OK|
-| falcon.recover         | Use of hinted $s_2^{-1}$, custom iterative NTT | TBD| TBD|
+| falcon.recover         | Use of hinted $s_2^{-1}$, custom iterative NTT | 8.3 M (Theoretical) | TBC|
 
 
 
