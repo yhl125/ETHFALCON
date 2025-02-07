@@ -36,7 +36,7 @@ We integrated the NTT implementation and compare the benchmarks with Tetration i
     <td>6.4 ms</td>
     <td>14.2 ms</td>
   </tr>
-</table>
+</table> 
 
 
 ## SOLIDITY 
