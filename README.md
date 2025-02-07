@@ -2,6 +2,42 @@
 
 ETHFALCON gather experimentations around FALCON adaptations for the ETHEREUM ecosystem. [Falcon signature scheme](https://falcon-sign.info/) is a post-quantum digital signature algorithm. 
 
+## PYTHON
+
+We integrated the NTT implementation and compare the benchmarks with Tetration implementation. The implementation lets us choose the XOF function and select the way to compute NTT (iterative or recursive).
+
+<table>
+  <tr>
+    <th>n</th>
+    <th>Falcon Verification (ZKNox)</th>
+    <th>Falcon Verification (Tetration)</th>
+  </tr>
+    <td>64</td>
+    <td>0.3 ms</td>
+    <td>0.6 ms</td>
+  </tr>
+  <tr>
+    <td>128</td>
+    <td>0.6 ms</td>
+    <td>1.4 ms</td>
+  </tr>
+  <tr>
+    <td>256</td>
+    <td>1.3 ms</td>
+    <td>3.0 ms</td>
+  </tr>
+  <tr>
+    <td>512</td>
+    <td>3.0 ms</td>
+    <td>6.6 ms</td>
+  </tr>
+  <tr>
+    <td>1024</td>
+    <td>6.4 ms</td>
+    <td>14.2 ms</td>
+  </tr>
+</table> 
+
 
 ## SOLIDITY 
 
