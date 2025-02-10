@@ -59,12 +59,13 @@ print("}")
 print("// message")
 print("bytes memory msg3 = \"{}\"; ".format(message))
 print('// salt')
-print("sig.salt = \"{}\"; ".format(salt))
+print("sig.salt = \"{}\"; ".format("".join(f"\\x{ord(c):02x}" for c in salt)))
 
 print("falcon.verify(msg3, sig, pk);")
 
 print("// message")
-print("bytes memory msg4 = \"{}\"; ".format(message + salt))
+print("bytes memory msg4 = \"{}\"; ".format(
+    message + salt))
 print('// salt')
 print("sig.salt = \"\"; ")
 

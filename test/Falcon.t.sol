@@ -167,7 +167,8 @@ contract FalconTest is Test {
         // message
         bytes memory msg3 = "Send ______ 1 USDC ______ to vitalik.eth";
         // salt
-        sig.salt = " and 50000 USDC to RektMe.eth!";
+        sig
+            .salt = "\x20\x61\x6e\x64\x20\x35\x30\x30\x30\x30\x20\x55\x53\x44\x43\x20\x74\x6f\x20\x52\x65\x6b\x74\x4d\x65\x2e\x65\x74\x68\x21";
         falcon.verify(msg3, sig, pk);
         // message
         bytes
