@@ -5,11 +5,7 @@ from scripts.sign_KAT import sign_KAT
 from keccaxof import KeccaXOF
 
 n = 512
-f = sign_KAT[n][0]["f"]
-g = sign_KAT[n][0]["g"]
-F = sign_KAT[n][0]["F"]
-G = sign_KAT[n][0]["G"]
-sk = SecretKey(n, [f, g, F, G])
+sk = SecretKey(n)
 
 salt = "Send ______ 1 USDC ______ to vitalik.eth"
 message = " and 50000 USDC to RektMe.eth!"
