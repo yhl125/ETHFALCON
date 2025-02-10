@@ -60,12 +60,10 @@ contract FalconTest is Test {
         }
         uint[] memory ntt_h = new uint[](512);
         ntt_h = ntt.nTT(h);
-        console.log("NTT(one): (recursive)");
-        for (uint i = 0; i < 512; i++) console.log("%d ,", ntt_h[i]);
+        for (uint i = 0; i < 512; i++) require(ntt_h[i] == 1);
 
         ntt_h = ntt_iterative.NWC_ntt(h);
-        console.log("NTT(one): (nwc)");
-        for (uint i = 0; i < 512; i++) console.log("%d ,", ntt_h[i]);
+        for (uint i = 0; i < 512; i++) require(ntt_h[i] == 1);
     }
 
     //used to compute the ntt recursive form of the test vector
@@ -78,13 +76,6 @@ contract FalconTest is Test {
             h[i] = tmph[i];
         }
         uint[] memory ntt_h = new uint[](512);
-        ntt_h = ntt.nTT(h);
-        console.log("NTT(h): (recursive)");
-        for (uint i = 0; i < 512; i++) console.log("%d ,", ntt_h[i]);
-
-        ntt_h = ntt_iterative.NWC_ntt(h);
-        console.log("NTT(h): (nwc)");
-        for (uint i = 0; i < 512; i++) console.log("%d ,", ntt_h[i]);
     }
 
     function test_Verify_kpubntt() public view {
