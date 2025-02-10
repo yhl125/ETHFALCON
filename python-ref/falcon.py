@@ -387,9 +387,6 @@ class SecretKey:
         # s0 = sub_zq(hashed, mul_zq(s1, self.h))
         s0 = [(coef + (q >> 1)) % q - (q >> 1) for coef in s0.coeffs]
 
-        print("pk={}".format(self.h))
-        print("salt={}".format(salt))
-        print("s1={}".format(s1.coeffs))
         # Check that the (s0, s1) is short
         norm_sign = sum(coef ** 2 for coef in s0)
         norm_sign += sum(coef ** 2 for coef in s1.coeffs)
