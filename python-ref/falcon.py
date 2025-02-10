@@ -278,10 +278,6 @@ class SecretKey:
 
         k = (1 << 16) // q
         # Create a SHAKE object and hash the salt and message.
-        # if xof == 'KeccaXOF':
-        #     xof = KeccaXOF.new()
-        # else:
-        #     xof = SHAKE256.new()
         xof = xof.new()
         xof.update(salt)
         xof.update(message)
@@ -366,7 +362,7 @@ class SecretKey:
                 if (enc_s is not False):
                     return header + salt + enc_s
 
-    def verify(self, message, signature, ntt='NTTIterative', xof=SHAKE256):
+    def verify(self, message, signature, ntt='NTTIterative', xof=SHAKE256, pk=None):
         """
         Verify a signature.
         """
@@ -374,7 +370,6 @@ class SecretKey:
         salt = signature[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = signature[HEAD_LEN + SALT_LEN:]
         s1 = decompress(enc_s, self.sig_bytelen - HEAD_LEN - SALT_LEN, self.n)
-
         # Check that the encoding is valid
         if (s1 is False):
             print("Invalid encoding")
@@ -384,11 +379,17 @@ class SecretKey:
         hashed = self.hash_to_point(message, salt, xof=xof)
         hashed = Poly(hashed, q, ntt=ntt)
         s1 = Poly(s1, q, ntt=ntt)
-        self_h = Poly(self.h, q, ntt=ntt)
+        if pk == None:
+            self_h = Poly(self.h, q, ntt=ntt)
+        else:
+            self_h = Poly(pk, q, ntt=ntt)
         s0 = hashed - s1 * self_h
         # s0 = sub_zq(hashed, mul_zq(s1, self.h))
         s0 = [(coef + (q >> 1)) % q - (q >> 1) for coef in s0.coeffs]
 
+        print("pk={}".format(self.h))
+        print("salt={}".format(salt))
+        print("s1={}".format(s1.coeffs))
         # Check that the (s0, s1) is short
         norm_sign = sum(coef ** 2 for coef in s0)
         norm_sign += sum(coef ** 2 for coef in s1.coeffs)
