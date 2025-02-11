@@ -380,7 +380,6 @@ class SecretKey:
         s1 = Poly(s1, q, ntt=ntt)
         self_h = Poly(self.h, q, ntt=ntt)
         s0 = hashed - s1 * self_h
-        # s0 = sub_zq(hashed, mul_zq(s1, self.h))
         s0 = [(coef + (q >> 1)) % q - (q >> 1) for coef in s0.coeffs]
 
         # Check that the (s0, s1) is short
