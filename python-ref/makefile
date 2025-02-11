@@ -12,6 +12,9 @@ install:
 test:
 	$(PYTHON) test.py
 
+test_keccak_prng:
+	$(PYTHON) -m unittest test_keccak_prng
+
 profile:
 	rm -f $(AUX)
 	rm -rf __pycache__
