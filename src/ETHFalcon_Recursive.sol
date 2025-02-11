@@ -41,7 +41,7 @@ contract Falcon {
     function hashToPoint(
         bytes memory salt,
         bytes memory msgHash
-    ) public view returns (uint256[] memory) {
+    ) public pure returns (uint256[] memory) {
         uint[] memory hashed = new uint[](512);
         uint i = 0;
         uint j = 0;
@@ -199,7 +199,6 @@ contract Falcon {
 
     //returns the hash of the public key from a signature, see readme for optimizations from front
     function recover(
-        bytes memory msgs,
         FalconRecover_sig memory signature
     ) public view returns (address) {
         uint256[] memory s1 = new uint256[](512);

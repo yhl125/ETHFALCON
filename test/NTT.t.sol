@@ -14,7 +14,7 @@ contract NTTTest is Test {
     function setUp() public {
         ntt = new NTT();
     }
-    function testNTT() public {
+    function testNTT() public view {
         uint256[] memory t = new uint[](512);
         for (uint i = 0; i < 512; i++) {
             t[i] = f[i];
@@ -24,9 +24,8 @@ contract NTTTest is Test {
             assertEq(res[i], nttf[i]);
         }
     }
-    
 
-    function testINTT() public {
+    function testINTT() public view {
         uint256[] memory t = new uint[](512);
         for (uint i = 0; i < 512; i++) {
             t[i] = nttf[i];
@@ -37,7 +36,7 @@ contract NTTTest is Test {
         }
     }
 
-    function testSmallNTT() public {
+    function testSmallNTT() public view {
         uint256[] memory t = new uint[](8);
         for (uint i = 0; i < 8; i++) {
             t[i] = [7967, 11836, 7356, 6533, 11162, 3606, 8926, 6376][i];
@@ -50,7 +49,7 @@ contract NTTTest is Test {
         }
     }
 
-    function testMergeNTT() public {
+    function testMergeNTT() public view {
         uint256[] memory n1 = new uint[](8);
         for (uint i = 0; i < 8; i++) {
             n1[i] = [3227, 10513, 10307, 1790, 8477, 6234, 11796, 4023][i];
@@ -67,7 +66,7 @@ contract NTTTest is Test {
         }
     }
 
-    function testMulZQ() public {
+    function testMulZQ() public view {
         uint256[] memory a = new uint[](8);
         for (uint i = 0; i < 8; i++) {
             a[i] = [7488, 8357, 10738, 10489, 9342, 4703, 5408, 12082][i];
@@ -83,7 +82,7 @@ contract NTTTest is Test {
             assertEq(res[i], ref[i]);
         }
     }
-    function testSubZQ() public {
+    function testSubZQ() public view {
         uint256[] memory a = new uint[](8);
         for (uint i = 0; i < 8; i++) {
             a[i] = [7488, 8357, 10738, 10489, 9342, 4703, 5408, 12082][i];

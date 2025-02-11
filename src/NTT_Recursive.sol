@@ -39,14 +39,14 @@ contract NTT {
         return iNTT(mulNTT(nTT(a), nTT(b)));
     }
 
-     //multiply a normal representation polynomial a with a ntt representation one b.
-     function mulZQ_opt(
+    //multiply a normal representation polynomial a with a ntt representation one b.
+    function mulZQ_opt(
         uint[] memory a,
         uint[] memory b
     ) public view returns (uint[] memory) {
-        return iNTT(mulNTT(nTT(a),b));
+        return iNTT(mulNTT(nTT(a), b));
     }
-    
+
     function iNTT(uint[] memory p) public view returns (uint[] memory) {
         uint[] memory res = new uint[](p.length);
         if (p.length > 2) {
@@ -58,8 +58,8 @@ contract NTT {
             p0 = iNTT(p0);
             p1 = iNTT(p1);
             for (uint i = 0; i < p0.length; i++) {
-                res[i<<1] = p0[i];
-                res[(i<<1) + 1] = p1[i];
+                res[i << 1] = p0[i];
+                res[(i << 1) + 1] = p1[i];
             }
         } else {
             // original was elif p.length == 2 but there's no need to check ?
@@ -80,12 +80,12 @@ contract NTT {
         uint dizN = p.length;
         for (uint i = 0; i < dizN / 2; i++) {
             // p0[i] = (i2 * (p[2 * i] + p[2 * i + 1])) % q
-            p0[i] = mulmod(i2, addmod(p[i<<1], p[(i<<1) + 1], q), q);
+            p0[i] = mulmod(i2, addmod(p[i << 1], p[(i << 1) + 1], q), q);
             // p1[i] = (i2 * (p[2 * i] - p[2 * i + 1]) * inv_mod_q[w[2 * i]]) % q
-            uint neg2i1 = q - p[(i<<1) + 1];
-            uint tmpi2m2i1 = addmod(p[i<<1], neg2i1, q);
+            uint neg2i1 = q - p[(i << 1) + 1];
+            uint tmpi2m2i1 = addmod(p[i << 1], neg2i1, q);
             uint tmp = mulmod(i2, tmpi2m2i1, q);
-            p1[i] = mulmod(tmp, inv_mod_q[w[dizN][i<<1]], q);
+            p1[i] = mulmod(tmp, inv_mod_q[w[dizN][i << 1]], q);
         }
         return (p0, p1);
     }
@@ -98,8 +98,8 @@ contract NTT {
             uint[] memory p1 = new uint[](p.length / 2);
 
             for (uint i = 0; i < p.length / 2; i++) {
-                p0[i] = p[i<<1];
-                p1[i] = p[(i<<1) + 1];
+                p0[i] = p[i << 1];
+                p1[i] = p[(i << 1) + 1];
             }
             // compute nTT(p0) and nTT(p1)
             p0 = nTT(p0);
@@ -114,7 +114,7 @@ contract NTT {
         return res;
     }
 
-/*
+    /*
 s = int(v/2)
             for k in range(m):
                 jf = k * v
@@ -133,7 +133,6 @@ s = int(v/2)
             v = s
 */
 
-
     function mergeNTT(
         uint[] memory p0,
         uint[] memory p1
@@ -143,9 +142,9 @@ s = int(v/2)
         uint doublei;
 
         for (uint i = 0; i < p0.length; i++) {
-            doublei=i<<1;
+            doublei = i << 1;
             // res[i *2] = p0[i] + w[i] * p1[i] % q
-            res[i<<1] = addmod(p0[i], mulmod(w[dizN][doublei], p1[i], q), q);
+            res[i << 1] = addmod(p0[i], mulmod(w[dizN][doublei], p1[i], q), q);
             // res[i * 2 + 1] = p0[i] - w[i] * p1[i] % q
             uint negwp0 = q - mulmod(w[dizN][doublei], p1[i], q);
             res[(doublei) + 1] = addmod(p0[i], negwp0, q);
@@ -156,7 +155,7 @@ s = int(v/2)
     function mulNTT(
         uint[] memory a,
         uint[] memory b
-    ) public view returns (uint[] memory) {
+    ) public pure returns (uint[] memory) {
         assert(a.length == b.length);
         uint[] memory res = new uint[](a.length);
         for (uint i = 0; i < a.length; i++) {
@@ -168,17 +167,17 @@ s = int(v/2)
     function subZQ(
         uint[] memory a,
         uint[] memory b
-    ) public view returns (uint[] memory) {
+    ) public pure returns (uint[] memory) {
         assert(a.length == b.length);
         return addZQ(a, negZQ(b));
     }
 
-    function negZQ(uint[] memory a) public view returns (uint[] memory) {
+    function negZQ(uint[] memory a) public pure returns (uint[] memory) {
         // assume a < q for all a
         uint[] memory res = new uint[](a.length);
         for (uint i = 0; i < a.length; i++) {
             // assume a < q for all a
-            res[i] = (q - a[i]) ;
+            res[i] = (q - a[i]);
         }
         return res;
     }
@@ -186,7 +185,7 @@ s = int(v/2)
     function addZQ(
         uint[] memory a,
         uint[] memory b
-    ) public view returns (uint[] memory) {
+    ) public pure returns (uint[] memory) {
         assert(a.length == b.length);
         uint[] memory res = new uint[](a.length);
         for (uint i = 0; i < a.length; i++) {
@@ -195,11 +194,9 @@ s = int(v/2)
         return res;
     }
 
-    function benchAccess(uint a) public view returns (uint b)
-    {
-
-        for(uint i=0;i<a;i++){
-            b=b+inv_mod_q[(i+7)%q];
+    function benchAccess(uint a) public view returns (uint b) {
+        for (uint i = 0; i < a; i++) {
+            b = b + inv_mod_q[(i + 7) % q];
         }
-    } 
+    }
 }

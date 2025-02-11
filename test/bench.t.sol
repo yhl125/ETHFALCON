@@ -3149,13 +3149,19 @@ contract BenchTest is Test {
     }
 
     function testbench_iterative_mulPoly() public view {
-        uint256[] memory g = ntt_iterative.mul_NTTPoly(f_12289_512, g_12289_512);
+        uint256[] memory g = ntt_iterative.mul_NTTPoly(
+            f_12289_512,
+            g_12289_512
+        );
     }
 
     //performing 10 iterations to lower memory declaration impact
     function testbench_iterative_mulPoly10() public view {
         for (uint256 i = 0; i < 10; i++) {
-            uint256[] memory g = ntt_iterative.mul_NTTPoly(f_12289_512, g_12289_512);
+            uint256[] memory g = ntt_iterative.mul_NTTPoly(
+                f_12289_512,
+                g_12289_512
+            );
         }
     }
 

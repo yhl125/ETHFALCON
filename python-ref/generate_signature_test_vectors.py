@@ -55,13 +55,6 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     s1_inv = Poly(s1, q).inverse().coeffs
     h = sk.hash_to_point(salt, message.encode())
     h_ntt = Poly(h, q).ntt()
-    # write to file
-    # file = open("sig_{}.txt".format(i), 'w')
-    # file.write("message = \"{}\"\n".format(message))
-    # file.write("salt = {}\n".format(salt))
-    # file.write("s1 = {}\n".format(s1))
-    # file.write("s1_inv = {}\n".format(s1_inv))
-    # file.write("h_ntt = {}\n".format(h_ntt))
     assert sk.verify(message.encode(), sig, xof=KeccaXOF)
 
     file.write("function testVector{}() public view {{\n".format(i))
@@ -90,10 +83,10 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
         s1_inv[0], ','.join(map(str, s1_inv[1:]))))
 
     file.write("// message\n")
-    file.write("bytes memory msg  = \"{}\"; \n".format(message))
+    file.write("bytes memory message  = \"{}\"; \n".format(message))
     file.write('// salt and message hack because of Tetration confusion\n')
-    file.write("sig.salt = msg;\nmsg = \"{}\"; \n".format(
+    file.write("sig.salt = message;\nmessage = \"{}\"; \n".format(
         "".join(f"\\x{b:02x}" for b in salt)))
-    file.write("falcon.verify(msg, sig, pk);\n")
+    file.write("falcon.verify(message, sig, pk);\n")
     file.write("}\n")
 file.write("}\n")
