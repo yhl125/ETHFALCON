@@ -2,14 +2,6 @@ import unittest
 from keccak_prng import KeccakPRNG
 from Crypto.Hash.SHAKE256 import SHAKE256_XOF
 
-# We implement the Keccak PRNG defined here:
-# https://github.com/zhenfeizhang/falcon-go/blob/main/c/keccak_prng.c
-
-
-# Constants
-MAX_BUFFER_SIZE = 64  # Adjust based on needs
-KECCAK_OUTPUT = 32  # Keccak output size in bytes
-
 
 class TestKeccakPRNG(unittest.TestCase):
     """
