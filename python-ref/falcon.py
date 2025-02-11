@@ -9,8 +9,7 @@ from fft import fft, ifft, sub, neg, add_fft, mul_fft
 from ffsampling import gram, ffldl_fft, ffsampling_fft
 from ntrugen import ntru_gen
 from encoding import compress, decompress
-from Crypto.Hash import SHAKE256
-from keccaxof import KeccaXOF
+from keccak_prng import KeccakPRNG
 from polyntt.poly import Poly
 from polyntt.utils import batch_modular_inversion
 # Randomness
@@ -268,7 +267,7 @@ class SecretKey:
             rep += print_tree(self.T_fft, pref="")
         return rep
 
-    def hash_to_point(self, message, salt, xof=SHAKE256):
+    def hash_to_point(self, message, salt, xof=KeccakPRNG):
         """
         Hash a message to a point in Z[x] mod(Phi, q).
         Inspired by the Parse function from NewHope.
@@ -334,7 +333,7 @@ class SecretKey:
         s = [sub(point, v0), neg(v1)]
         return s
 
-    def sign(self, message, randombytes=urandom, xof=SHAKE256):
+    def sign(self, message, randombytes=urandom, xof=KeccakPRNG):
         """
         Sign a message. The message MUST be a byte string or byte array.
         Optionally, one can select the source of (pseudo-)randomness used
@@ -363,7 +362,7 @@ class SecretKey:
                 if (enc_s is not False):
                     return header + salt + enc_s
 
-    def verify(self, message, signature, ntt='NTTIterative', xof=SHAKE256):
+    def verify(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
         """
         Verify a signature.
         """
@@ -395,13 +394,13 @@ class SecretKey:
 
 
 class RecoveryModeSecretKey(SecretKey):
-    def __init__(self, n, polys=None, ntt='NTTIterative', xof=SHAKE256):
+    def __init__(self, n, polys=None, ntt='NTTIterative', xof=KeccakPRNG):
         super().__init__(n, polys, ntt)
         #
         self.pk = self.hash_to_point(
             b''.join(x.to_bytes(3, 'big') for x in self.h), b'', xof=xof)
 
-    def sign_with_recovery(self, message, randombytes=urandom, xof=SHAKE256):
+    def sign_with_recovery(self, message, randombytes=urandom, xof=KeccakPRNG):
         """
         Sign a message. The message MUST be a byte string or byte array.
         Optionally, one can select the source of (pseudo-)randomness used
@@ -439,7 +438,7 @@ class RecoveryModeSecretKey(SecretKey):
                     if enc_s is not False:  # and enc_s_1 is not False and enc_s_1_inv is not False:
                         return header + salt + enc_s+bytes_s1_inv_ntt
 
-    def verify_with_recovery(self, message, signature, ntt='NTTIterative', xof=SHAKE256):
+    def verify_with_recovery(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
         """
         Verify a signature.
         """
