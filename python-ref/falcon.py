@@ -431,13 +431,13 @@ class RecoveryModeSecretKey(SecretKey):
                     # changing the value of `sig_bytelen`, etc.
                     enc_s = compress(
                         s[0]+s[1], self.sig_bytelen * 2 - HEAD_LEN - SALT_LEN)
-                    s_1_inv = Poly(s[1], q).inverse().coeffs
+                    s_1_inv_ntt = Poly(s[1], q).inverse().ntt()
                     # 3 * n bytes required for s1_inv
-                    bytes_s1_inv = b''.join(x.to_bytes(3, 'big')
-                                            for x in s_1_inv)
+                    bytes_s1_inv_ntt = b''.join(x.to_bytes(3, 'big')
+                                                for x in s_1_inv_ntt)
                     # Check that the encoding is valid (sometimes it fails)
                     if enc_s is not False:  # and enc_s_1 is not False and enc_s_1_inv is not False:
-                        return header + salt + enc_s+bytes_s1_inv
+                        return header + salt + enc_s+bytes_s1_inv_ntt
 
     def verify_with_recovery(self, message, signature, ntt='NTTIterative', xof=SHAKE256):
         """
@@ -455,9 +455,9 @@ class RecoveryModeSecretKey(SecretKey):
         mid = len(s)//2
         s0, s1 = s[:mid], s[mid:]
         # s_1_inv
-        byte_s_1_inv = signature[-self.n*3:]
-        s_1_inv = Poly([int.from_bytes(byte_s_1_inv[i:i+3], 'big')
-                        for i in range(0, len(byte_s_1_inv), 3)], q)
+        byte_s_1_inv_ntt = signature[-self.n*3:]
+        s_1_inv_ntt = [int.from_bytes(byte_s_1_inv_ntt[i:i+3], 'big')
+                       for i in range(0, len(byte_s_1_inv_ntt), 3)]
 
         # Check that the (s0, s1) is short
         norm_sign = sum(coef ** 2 for coef in s0)
@@ -470,7 +470,7 @@ class RecoveryModeSecretKey(SecretKey):
         hashed = Poly(self.hash_to_point(message, salt, xof=xof), q, ntt=ntt)
         s0 = Poly(s0, q, ntt=ntt)
         # recover h
-        h = s_1_inv * (hashed - s0)
+        h = (hashed - s0).mul_opt(s_1_inv_ntt)
         bytes_h = b''.join(x.to_bytes(3, 'big') for x in h.coeffs)
         # TODO do we need salt here? SECURITY
         if self.pk != self.hash_to_point(bytes_h, b'', xof=xof):
