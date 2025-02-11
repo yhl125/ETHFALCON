@@ -4,6 +4,7 @@ This file implements tests for various parts of the Falcon.py library.
 Test the code with:
 > make test
 """
+from keccak_prng import KeccakPRNG
 from polyntt import poly
 from timeit import default_timer as timer
 from scripts.samplerz_KAT1024 import sampler_KAT1024
@@ -297,7 +298,7 @@ def test_signing_different_xof(n, iterations=100):
     message = b"abc"
 
     d = {True: "OK    ", False: "Not OK"}
-    for (xof, xof_str) in [(SHAKE256, 'SHAKE256'), (KeccaXOF, 'KeccaXOF')]:
+    for (xof, xof_str) in [(SHAKE256, 'SHAKE256'), (KeccaXOF, 'KeccaXOF'), (KeccakPRNG, 'KeccakPRNG')]:
         start = timer()
         for i in range(iterations):
             sig = sk.sign(message, xof=xof)

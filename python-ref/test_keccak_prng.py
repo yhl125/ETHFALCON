@@ -78,3 +78,10 @@ class TestKeccakPRNG(unittest.TestCase):
             prng.update(b"Test of update")
             prng.read(32)
         self.assertTrue(True)
+
+    def test_small_read(self):
+        """Check that we can read two bytes as in Falcon."""
+        prng = KeccakPRNG()
+        prng.update(b"Test of update")
+        prng.read(2)
+        self.assertTrue(True)
