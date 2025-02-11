@@ -12,6 +12,7 @@ from encoding import compress, decompress
 from Crypto.Hash import SHAKE256
 from keccaxof import KeccaXOF
 from polyntt.poly import Poly
+from polyntt.utils import batch_modular_inversion
 # Randomness
 from os import urandom
 from rng import ChaCha20
@@ -420,18 +421,17 @@ class RecoveryModeSecretKey(SecretKey):
             else:
                 seed = randombytes(SEED_LEN)
                 s = self.sample_preimage(hashed, seed=seed)
-            # TODO Simon: do we need to implement like this?
-            # Security concern????
-            if all(elt % q != 0 for elt in Poly(s[1], q).ntt()):
+            # TODO Simon: do we need to implement like this? Security concern?
+            s_1_ntt = Poly(s[1], q).ntt()
+            if all(elt % q != 0 for elt in s_1_ntt):
                 norm_sign = sum(coef ** 2 for coef in s[0])
                 norm_sign += sum(coef ** 2 for coef in s[1])
                 # Check the Euclidean norm
                 if norm_sign <= self.signature_bound:
-                    # TODO: We could compress the entire s here,
-                    # changing the value of `sig_bytelen`, etc.
+                    # We compress here s[0] and s[1], not s_1_inv_ntt.
                     enc_s = compress(
                         s[0]+s[1], self.sig_bytelen * 2 - HEAD_LEN - SALT_LEN)
-                    s_1_inv_ntt = Poly(s[1], q).inverse().ntt()
+                    s_1_inv_ntt = batch_modular_inversion(s_1_ntt, q)
                     # 3 * n bytes required for s1_inv
                     bytes_s1_inv_ntt = b''.join(x.to_bytes(3, 'big')
                                                 for x in s_1_inv_ntt)
