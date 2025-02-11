@@ -362,7 +362,7 @@ class SecretKey:
                 if (enc_s is not False):
                     return header + salt + enc_s
 
-    def verify(self, message, signature, ntt='NTTIterative', xof=SHAKE256, pk=None):
+    def verify(self, message, signature, ntt='NTTIterative', xof=SHAKE256):
         """
         Verify a signature.
         """
@@ -376,15 +376,10 @@ class SecretKey:
             return False
 
         # Compute s0 and normalize its coefficients in (-q/2, q/2]
-        hashed = self.hash_to_point(message, salt, xof=xof)
-        hashed = Poly(hashed, q, ntt=ntt)
+        hashed = Poly(self.hash_to_point(message, salt, xof=xof), q, ntt=ntt)
         s1 = Poly(s1, q, ntt=ntt)
-        if pk == None:
-            self_h = Poly(self.h, q, ntt=ntt)
-        else:
-            self_h = Poly(pk, q, ntt=ntt)
+        self_h = Poly(self.h, q, ntt=ntt)
         s0 = hashed - s1 * self_h
-        # s0 = sub_zq(hashed, mul_zq(s1, self.h))
         s0 = [(coef + (q >> 1)) % q - (q >> 1) for coef in s0.coeffs]
 
         # Check that the (s0, s1) is short
