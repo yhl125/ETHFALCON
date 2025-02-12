@@ -2,41 +2,30 @@
 
 ETHFALCON gather experimentations around FALCON adaptations for the ETHEREUM ecosystem. [Falcon signature scheme](https://falcon-sign.info/) is a post-quantum digital signature algorithm. 
 
-## PYTHON
+The repository implements several tweaked version of FALCON, optimized for different constraints.
 
-We integrated the NTT implementation and compare the benchmarks with Tetration implementation. The implementation lets us choose the XOF function and select the way to compute NTT (iterative or recursive).
 
 <table>
   <tr>
-    <th>n</th>
-    <th>Falcon Verification (ZKNox)</th>
-    <th>Falcon Verification (Tetration)</th>
+    <th>Algorithm</th>
+    <th>Source</th>
+    <th>Description</th>
   </tr>
-    <td>64</td>
-    <td>0.3 ms</td>
-    <td>0.6 ms</td>
+  <td>FALCON</td>
+  <td>NIST</td>
+  <td>The original FALCON NIST submission</td>
   </tr>
-  <tr>
-    <td>128</td>
-    <td>0.6 ms</td>
-    <td>1.4 ms</td>
+  <td>FALCON-SOLIDITY</td>
+  <td>Tetration </td>
+  <td>An EVM Friendly version of FALCON using keccak instead of SHAKE for XOF</td>
   </tr>
-  <tr>
-    <td>256</td>
-    <td>1.3 ms</td>
-    <td>3.0 ms</td>
+  <td>NOXFALCON</td>
+  <td>ZKNOX </td>
+  <td>An EVM Friendly version of FALCON using composition of ntt and keccak instead of SHAKE for XOF</td>
   </tr>
-  <tr>
-    <td>512</td>
-    <td>3.0 ms</td>
-    <td>6.6 ms</td>
-  </tr>
-  <tr>
-    <td>1024</td>
-    <td>6.4 ms</td>
-    <td>14.2 ms</td>
-  </tr>
-</table> 
+
+</table>   
+
 
 
 ## SOLIDITY 
@@ -98,6 +87,9 @@ Discussion:
 
 ## BENCHMARKS
 
+
+### SOLIDITY
+
 | Function                   | Description               | gas cost | Tests Status |
 |------------------------|---------------------|---------------------|---------------------|
 | falcon.verify       | original gas cost from [falcon-solidity](https://github.com/Tetration-Lab/falcon-solidity/blob/main/src/Falcon.sol)         | 24M | OK|
@@ -106,6 +98,42 @@ Discussion:
 | falcon.verify_iterative         | Use of precomputed NTT public key form, custom iterative NTT | 8.3 M| OK|
 | falcon.recover         | Use of hinted $s_2^{-1}$, custom iterative NTT | 8.3 M (Theoretical) | TBC|
 
+
+### PYTHON
+
+NTT implementation are benchmarked against Tetration implementation. The implementation enables to select the XOF function and the algorithm to compute NTT (iterative or recursive).
+
+<table>
+  <tr>
+    <th>n</th>
+    <th>Falcon Verification (ZKNox)</th>
+    <th>Falcon Verification (Tetration)</th>
+  </tr>
+    <td>64</td>
+    <td>0.3 ms</td>
+    <td>0.6 ms</td>
+  </tr>
+  <tr>
+    <td>128</td>
+    <td>0.6 ms</td>
+    <td>1.4 ms</td>
+  </tr>
+  <tr>
+    <td>256</td>
+    <td>1.3 ms</td>
+    <td>3.0 ms</td>
+  </tr>
+  <tr>
+    <td>512</td>
+    <td>3.0 ms</td>
+    <td>6.6 ms</td>
+  </tr>
+  <tr>
+    <td>1024</td>
+    <td>6.4 ms</td>
+    <td>14.2 ms</td>
+  </tr>
+</table> 
 
 
 ## REFERENCES
