@@ -163,6 +163,10 @@ Using a pipeline, it also enables to reuse the same NTT circuit inducing only la
 Upon confirmation of the optimal algorithm for NTT, its critical parts have been implemented in Yul, benefiting from the extcodecopy trick described in 3.3, stack optimization, and variable control.
 
 
+| Function                   | Description               | gas cost | Tests Status |
+|------------------------|---------------------|---------------------|---------------------|
+| falcon.verify       | ZKNOX_FALCON contract [falcon-solidity](https://github.com/Tetration-Lab/falcon-solidity/blob/main/src/Falcon.sol)         | 4.2M | OK|
+
 
 ### PYTHON
 
