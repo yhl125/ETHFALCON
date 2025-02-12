@@ -165,7 +165,8 @@ Upon confirmation of the optimal algorithm for NTT, its critical parts have been
 
 | Function                   | Description               | gas cost | Tests Status |
 |------------------------|---------------------|---------------------|---------------------|
-| falcon.verify       | ZKNOX_FALCON contract [falcon-solidity](https://github.com/Tetration-Lab/falcon-solidity/blob/main/src/Falcon.sol)         | 4.2M | OK|
+| falcon.verify       | ZKNOX_NTT      | 4.2M | OK|
+| falcon.verify_opt       | ZKNOX_NTT with precomputations         | 3.6M | OK|
 
 
 ### PYTHON
