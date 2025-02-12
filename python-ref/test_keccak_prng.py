@@ -1,6 +1,19 @@
 import unittest
 from keccak_prng import KeccakPRNG
-from shake import SHAKE256
+
+# Values obtained from `./c/test_prng` in Zhenfei Zhang's repository:
+# https://github.com/zhenfeizhang/falcon-go/blob/main/c/test_prng
+
+# Output for input "test input" with extract(32)
+output_test_input_32 = "5b9e99370fa4b753ac6bf0d246b3cec353c84a67839f5632cb2679b4ae565601"
+# Output for input "test input" with extract(64) (last half)
+output_test_input_64 = "569857b781dd8b81dd9cb45d06999916742043ff52f1cf165e161bcc9938b705"
+# Output for input "testinput" with extract(32)
+output_testinput_32 = "120f76b5b7198706bc294a942f8d17467aadb2bb1fa2cc1fecadbaba93c0dd74"
+# Output for input "test sequence" with extract(32) three times (only 16 bytes)
+output_test_sequence_32_1 = "9e96b1e50719da6f0ea5b664ac8bbac5"
+output_test_sequence_32_2 = "1be071eca45961aca979e88e3784a751"
+output_test_sequence_32_3 = "5f19135442b6b848b2f51f7cb58bc583"
 
 
 class TestKeccakPRNG(unittest.TestCase):
@@ -23,6 +36,7 @@ class TestKeccakPRNG(unittest.TestCase):
         prng2.flip()
         output2 = prng2.extract(32)
         self.assertEqual(output1, output2)
+        self.assertEqual(output1.hex(), output_test_input_32)
 
     def test_change_with_size(self):
         """The PRNG is outputs different values for different sizes of output."""
@@ -35,6 +49,7 @@ class TestKeccakPRNG(unittest.TestCase):
         prng2.flip()
         output2 = prng2.extract(64)
         self.assertNotEqual(output1, output2)
+        self.assertEqual(output2.hex()[64:], output_test_input_64)
 
     def test_inject_decomposition(self):
         """Check that injecting `testinput` or `test` and ten `input` produces the same output."""
@@ -50,6 +65,7 @@ class TestKeccakPRNG(unittest.TestCase):
         output2 = prng2.extract(32)
 
         self.assertEqual(output1, output2)
+        self.assertEqual(output1.hex(), output_testinput_32)
 
     def test_extraction(self):
         """Check that three extractions lead to different outputs."""
@@ -62,19 +78,14 @@ class TestKeccakPRNG(unittest.TestCase):
         self.assertNotEqual(output1, output2)
         self.assertNotEqual(output2, output3)
         self.assertNotEqual(output1, output3)
-
-    def test_structure_like_shake(self):
-        """Check that the two XOF work with the same structure."""
-        for xof in [KeccakPRNG, SHAKE256]:
-            prng = xof()
-            prng.update(b"Test of update")
-            prng.flip()
-            prng.read(32)
-        self.assertTrue(True)
+        self.assertEqual(output1.hex()[:32], output_test_sequence_32_1)
+        self.assertEqual(output2.hex()[:32], output_test_sequence_32_2)
+        self.assertEqual(output3.hex()[:32], output_test_sequence_32_3)
 
     def test_small_read(self):
         """Check that we can read two bytes as in Falcon."""
         prng = KeccakPRNG()
         prng.update(b"Test of update")
+        prng.flip()
         prng.read(2)
         self.assertTrue(True)
