@@ -13,7 +13,7 @@ from scripts.samplerz_KAT512 import sampler_KAT512
 from scripts import saga
 from encoding import compress, decompress
 from falcon import SALT_LEN, HEAD_LEN
-from Crypto.Hash import SHAKE256
+from shake import SHAKE
 from keccaxof import KeccaXOF
 from falcon import SecretKey, PublicKey, Params
 from ntrugen import karamul, ntru_gen, gs_norm
@@ -298,7 +298,7 @@ def test_signing_different_xof(n, iterations=100):
     message = b"abc"
 
     d = {True: "OK    ", False: "Not OK"}
-    for (xof, xof_str) in [(SHAKE256, 'SHAKE256'), (KeccaXOF, 'KeccaXOF'), (KeccakPRNG, 'KeccakPRNG')]:
+    for (xof, xof_str) in [(SHAKE, 'SHAKE'), (KeccaXOF, 'KeccaXOF'), (KeccakPRNG, 'KeccakPRNG')]:
         start = timer()
         for i in range(iterations):
             sig = sk.sign(message, xof=xof)
@@ -324,7 +324,7 @@ def test_verif_different_xof(n, iterations=100):
     pk = PublicKey(sk)
     message = b"I like to change hash functions"
     d = {True: "OK    ", False: "Not OK"}
-    for (xof, xof_str) in [(SHAKE256, 'SHAKE256'), (KeccaXOF, 'KeccaXOF'), (KeccakPRNG, 'KeccakPRNG')]:
+    for (xof, xof_str) in [(SHAKE, 'SHAKE'), (KeccaXOF, 'KeccaXOF'), (KeccakPRNG, 'KeccakPRNG')]:
         sig = sk.sign(message, xof=xof)
         start = timer()
         for i in range(iterations):
@@ -352,7 +352,7 @@ def test_sign_KAT():
     same signatures.
     """
     message = b"data1"
-    shake = SHAKE256.new(b"external")
+    shake = SHAKE.new(b"external")
     for n in sign_KAT:
         sign_KAT_n = sign_KAT[n]
         for D in sign_KAT_n:

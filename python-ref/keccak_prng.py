@@ -49,11 +49,9 @@ class KeccakPRNG:
     def extract(self, length: int) -> bytes:
         """
         Generate pseudorandom output from the PRNG.
-        It differs slightly from Zhenfei specification when `not self.finalized`.
         """
         if not self.finalized:
-            self.flip()
-            # raise ValueError("PRNG not finalized")
+            raise ValueError("PRNG not finalized")
 
         output = bytearray()
 
@@ -80,8 +78,5 @@ class KeccakPRNG:
         self.inject(data)
 
     def read(self, length: int) -> bytes:
-        """
-        `read` is `extract` in Zhenfei specification.
-        It differs slightly from Zhenfei specification when `not self.finalized`.
-        """
+        """`read` is `extract` in Zhenfei specification."""
         return self.extract(length)

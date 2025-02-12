@@ -1,6 +1,6 @@
 import unittest
 from keccak_prng import KeccakPRNG
-from Crypto.Hash.SHAKE256 import SHAKE256_XOF
+from shake import SHAKE256
 
 
 class TestKeccakPRNG(unittest.TestCase):
@@ -65,9 +65,10 @@ class TestKeccakPRNG(unittest.TestCase):
 
     def test_structure_like_shake(self):
         """Check that the two XOF work with the same structure."""
-        for xof in [KeccakPRNG, SHAKE256_XOF]:
+        for xof in [KeccakPRNG, SHAKE256]:
             prng = xof()
             prng.update(b"Test of update")
+            prng.flip()
             prng.read(32)
         self.assertTrue(True)
 

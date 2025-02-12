@@ -277,10 +277,11 @@ class SecretKey:
             raise ValueError("The modulus is too large")
 
         k = (1 << 16) // q
-        # Create a SHAKE object and hash the salt and message.
+        # Create a XOF object and hash the salt and message.
         xof = xof.new()
         xof.update(salt)
         xof.update(message)
+        xof.flip()
         # Output pseudorandom bytes and map them to coefficients.
         hashed = [0 for i in range(n)]
         i = 0

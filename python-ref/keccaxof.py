@@ -35,3 +35,8 @@ class KeccaXOF:
         buff = self.tmp[:to_slice]
         self.tmp = self.tmp[to_slice:]
         return int(buff, 16).to_bytes(2, 'big')
+
+    def flip(self):
+        return
+
+# THIS IMPLEMENTATION WILL BE REMOVED SOON
