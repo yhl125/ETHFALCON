@@ -2,7 +2,9 @@
 //this is a direct translation from https://github.com/coruus/py-keccak/blob/master/fips202/keccak.py
 pragma solidity ^0.8.25;
 
-contract Falcon {
+
+//THIS CONTRACT IS WIP, do not bother yet
+contract ZKNOX_shake {
 
 uint256[24]_KECCAK_RHO = [
      1,  3,  6, 10, 15, 21,
