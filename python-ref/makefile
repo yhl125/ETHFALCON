@@ -11,13 +11,13 @@ install:
 
 test:
 	$(PYTHON) test.py
-	$(PYTHON) -m unittest discover
+	$(PYTHON) -m unittest discover -v
 	
 test_keccak_prng:
-	$(PYTHON) -m unittest test_keccak_prng
+	$(PYTHON) -m unittest test_keccak_prng -v
 
 test_recovery_mode:
-	$(PYTHON) -m unittest test_recovery_mode
+	$(PYTHON) -m unittest test_recovery_mode -v
 
 profile:
 	rm -f $(AUX)

@@ -16,7 +16,7 @@ class RecoveryModeSecretKey(SecretKey):
         keccak_ctx.update(b''.join(x.to_bytes(3, 'big') for x in self.h))
         self.pk = keccak_ctx.digest()
 
-    def sign_with_recovery(self, message, randombytes=urandom, xof=KeccakPRNG):
+    def sign(self, message, randombytes=urandom, xof=KeccakPRNG):
         """
         Sign a message. The message MUST be a byte string or byte array.
         Optionally, one can select the source of (pseudo-)randomness used
@@ -55,7 +55,7 @@ class RecoveryModeSecretKey(SecretKey):
                     if enc_s is not False:
                         return header + salt + enc_s + bytes_s1_inv
 
-    def verify_with_recovery(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
+    def verify(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
         """
         Verify a signature.
         """

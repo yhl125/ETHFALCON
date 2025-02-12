@@ -2,7 +2,7 @@ import unittest
 
 from falcon_recovery import RecoveryModeSecretKey
 from scripts.sign_KAT import sign_KAT
-from keccak_prng import KeccakPRNG
+from shake import SHAKE
 
 
 class TestRecoveryMode(unittest.TestCase):
@@ -14,10 +14,10 @@ class TestRecoveryMode(unittest.TestCase):
         G = sign_KAT[n][0]["G"]
         sk = RecoveryModeSecretKey(n, [f, g, F, G])
         message = b"abc"
-        sig = sk.sign_with_recovery(message)
-        self.assertTrue(sk.verify_with_recovery(message, sig))
+        sig = sk.sign(message)
+        self.assertTrue(sk.verify(message, sig))
 
-    def test_signature_recovery_mode_keccak_prng(self):
+    def test_signature_recovery_mode_shake(self):
         n = 512
         f = sign_KAT[n][0]["f"]
         g = sign_KAT[n][0]["g"]
@@ -25,5 +25,5 @@ class TestRecoveryMode(unittest.TestCase):
         G = sign_KAT[n][0]["G"]
         sk = RecoveryModeSecretKey(n, [f, g, F, G])
         message = b"abc"
-        sig = sk.sign_with_recovery(message, xof=KeccakPRNG)
-        self.assertTrue(sk.verify_with_recovery(message, sig, xof=KeccakPRNG))
+        sig = sk.sign(message, xof=SHAKE)
+        self.assertTrue(sk.verify(message, sig, xof=SHAKE))
