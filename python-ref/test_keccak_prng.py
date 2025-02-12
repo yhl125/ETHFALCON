@@ -5,22 +5,26 @@ from keccak_prng import KeccakPRNG
 # https://github.com/zhenfeizhang/falcon-go/blob/main/c/test_prng
 
 # Test vector 1:
-# input "test input" with extract(32)
+# with extract(32)
+# input "test input"
 # input in hex: "7465737420696e707574"
 output_test_input_32 = "5b9e99370fa4b753ac6bf0d246b3cec353c84a67839f5632cb2679b4ae565601"
 
 # Test vector 2:
-# input "test input" with extract(64) (last half)
+# extract(64), last half
+# input "test input"
 # input in hex: "7465737420696e707574"
 output_test_input_64 = "569857b781dd8b81dd9cb45d06999916742043ff52f1cf165e161bcc9938b705"
 
 # Test vector 3:
-# input "testinput" with extract(32)
+# extract(32)
+# input "testinput"
 # input in hex: "74657374696e707574"
 output_testinput_32 = "120f76b5b7198706bc294a942f8d17467aadb2bb1fa2cc1fecadbaba93c0dd74"
 
 # Test vectors 4:
-# input "test sequence" with extract(32) three times (only 16 bytes)
+# extract(32) three times (only 16 bytes)
+# input "test sequence"
 # input in hex: "746573742073657175656e6365"
 output_test_sequence_32_1 = "9e96b1e50719da6f0ea5b664ac8bbac5"
 output_test_sequence_32_2 = "1be071eca45961aca979e88e3784a751"
