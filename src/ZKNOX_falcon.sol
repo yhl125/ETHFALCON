@@ -63,7 +63,7 @@ contract ZKNOX_falcon {
 
     struct Signature {
         bytes salt;
-        int256[] s1;
+        uint256[512] s1;// CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
     }
 
 
@@ -75,17 +75,16 @@ contract ZKNOX_falcon {
        
 
         if(h.length!=512) return false;              //"Invalid public key length"
-        if(signature.salt.length != 40) return false;//CVETH-2025-080201: "Invalid salt length", leads to forge
+        if(signature.salt.length != 40) return false;//CVETH-2025-080201: control salt length to avoid potential forge
         if(signature.s1.length != 512)  return false;//"Invalid salt length"
 
         result=false;
 
         uint256[] memory s1 = new uint256[](512);
         for (uint i = 0; i < 512; i++) {
-            if (signature.s1[i] < 0) {
-               return false; //CVETH-2025-080202:avoid malleability on coefficient signs
-            }
+                s1[i] = uint256(signature.s1[i]);
         }
+
         uint256[] memory hashed = hashToPoint(msgs, signature.salt, q,n);
         
         uint256[] memory s0 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s1, h),q);

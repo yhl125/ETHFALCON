@@ -136,7 +136,7 @@ function ZKNOX_NTTFW(uint[] memory a, address apsirev) public view returns (uint
     uint[1] memory S;
 
     
-    assembly{
+    assembly ("memory-safe") {
         for {} gt(n,m) {  } {//while(m<n)            
             t:=shr(1,t)    
             for {let i:=0} gt(m,i) { i := add(i, 1) } {    
@@ -171,7 +171,7 @@ function ZKNOX_NTTINV(uint[] memory a, address apsiinvrev) public view returns (
     
     uint[1] memory S;
 
-    assembly{
+    assembly("memory-safe"){
         for {} gt(m,1) { } {  // while(m > 1)
             let j1:=0
             let h:=shr(1,m)//uint h = m>>1;
