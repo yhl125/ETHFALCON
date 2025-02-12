@@ -15,6 +15,9 @@ test:
 test_keccak_prng:
 	$(PYTHON) -m unittest test_keccak_prng
 
+test_recovery_mode:
+	$(PYTHON) -m unittest test_recovery_mode
+	
 profile:
 	rm -f $(AUX)
 	rm -rf __pycache__
