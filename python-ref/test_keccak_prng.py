@@ -104,3 +104,15 @@ class TestKeccakPRNG(unittest.TestCase):
         prng.flip()
         prng.read(2)
         self.assertTrue(True)
+
+    def test_extract_2_2_vs_4(self):
+        prng = KeccakPRNG()
+        prng.update(b"Danette")
+        prng.flip()
+        output1 = prng.read(2) + prng.read(2)
+
+        prng = KeccakPRNG()
+        prng.update(b"Danette")
+        prng.flip()
+
+        self.assertEqual(output1, prng.read(4))

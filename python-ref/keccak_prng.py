@@ -19,6 +19,11 @@ class KeccakPRNG:
         self.counter = 0
         self.finalized = False
 
+        # Output buffer management
+        self.out_buffer = bytearray(KECCAK_OUTPUT)
+        self.out_buffer_pos = 0
+        self.out_buffer_len = 0
+
     @classmethod
     def new(self):
         return self()
@@ -46,6 +51,10 @@ class KeccakPRNG:
         self.state = keccak_ctx.digest()
         self.finalized = True
 
+        # Reset output buffer
+        self.out_buffer_pos = 0
+        self.out_buffer_len = 0
+
     def extract(self, length: int) -> bytes:
         """
         Generate pseudorandom output from the PRNG.
@@ -55,6 +64,19 @@ class KeccakPRNG:
 
         output = bytearray()
 
+        # First, use any bytes remaining in the output buffer
+        if self.out_buffer_len > self.out_buffer_pos:
+            available = self.out_buffer_len - self.out_buffer_pos
+            to_copy = min(length, available)
+
+            output.extend(
+                self.out_buffer[self.out_buffer_pos:self.out_buffer_pos + to_copy])
+            self.out_buffer_pos += to_copy
+
+            # If we've satisfied the request, return early
+            if len(output) == length:
+                return bytes(output)
+
         while len(output) < length:
             # Prepare input block: state || counter (big-endian)
             block = self.state + struct.pack(">Q", self.counter)
@@ -62,12 +84,20 @@ class KeccakPRNG:
             # Generate next block using Keccak
             keccak_ctx = keccak.new(digest_bytes=KECCAK_OUTPUT)
             keccak_ctx.update(block)
-            squeeze_out = keccak_ctx.digest()
+            self.out_buffer = keccak_ctx.digest()
 
-            # Append to output
-            to_copy = min(length - len(output), KECCAK_OUTPUT)
-            output.extend(squeeze_out[:to_copy])
+            # Update buffer state
+            self.out_buffer_len = KECCAK_OUTPUT
+            self.out_buffer_pos = 0
 
+            # Copy output
+            remaining = length - len(output)
+            to_copy = min(remaining, KECCAK_OUTPUT)
+
+            output.extend(self.out_buffer[:to_copy])
+            self.out_buffer_pos = to_copy
+
+            # Increment counter for next block
             self.counter += 1
 
         return bytes(output)
