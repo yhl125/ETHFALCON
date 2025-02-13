@@ -30,18 +30,18 @@ sk = SecretKey(n, [f, g, F, G])
 pub = PublicKey(sk)
 
 header = """
-// code generated using pythonref/sig_to_solidity.py.
+// code generated using pythonref/generate_signature_test_vectors.py.
 pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
-import {Falcon} from "../src/ETHFalcon_Recursive.sol";
+import {ETHFalcon} from "../src/ETHFalcon_Recursive.sol";
 
 contract SignatureTestVectors is Test {
     int constant q = 12289;
-    Falcon falcon;
+    ETHFalcon falcon;
 
     function setUp() public {
-        falcon = new Falcon();
+        falcon = new ETHFalcon();
     }
 """
 file.write(header)
@@ -71,7 +71,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("// prettier-ignore\n")
     file.write("int[512] memory tmp_s1 = [int({}), {}];\n".format(
         s1[0], ','.join(map(str, s1[1:]))))
-    file.write("Falcon.Signature memory sig;\n")
+    file.write("ETHFalcon.Signature memory sig;\n")
     file.write("sig.s1 = new int256[](512);\n")
     file.write("for (uint i = 0; i < 512; i++) {\n")
     file.write("\tsig.s1[i] = tmp_s1[i];\n")
