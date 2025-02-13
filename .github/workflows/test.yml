@@ -29,6 +29,10 @@ jobs:
         run: |
           forge --version
 
+      - name: Mute Foundry Nightly Warning
+        run: |
+          echo "FOUNDRY_DISABLE_NIGHTLY_WARNING=1" >> $GITHUB_ENV
+
       - name: Run Forge fmt
         run: |
           forge fmt --check
