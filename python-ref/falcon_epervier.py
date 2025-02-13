@@ -21,17 +21,6 @@ class EpervierSecretKey(SecretKey):
         keccak_ctx.update(b''.join(x.to_bytes(3, 'big') for x in h_ntt))
         return keccak_ctx.digest()
 
-    def hash_to_point_modified(self, message, salt, xof=KeccakPRNG):
-        """
-        /!\
-        Signature algorithm: hash_to_point.
-        Verification algorithm: hash_to_point_modified.
-        /!\
-        """
-        T = NTTIterative(q)
-        previous_hash_to_point = self.hash_to_point(message, salt, xof)
-        return T.ntt(previous_hash_to_point)
-
     def sign(self, message, randombytes=urandom, xof=KeccakPRNG):
         """
         Sign a message. The message MUST be a byte string or byte array.
