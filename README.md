@@ -78,7 +78,7 @@ The original Falcon with recovery as described section 3.12 of [FALCON](https://
 - The signature becomes $(s_1, s_2, r)$ 
 - The verifier accepts the signatures if and only if:
 - $(s_1, s_2)$ is short;
-- $pk=H(s_2^{-1}(HashToPoint_{SHAKE}(r\mid\mid m,q,n))-s_1)$
+- $pk=H(s_2^{-1}(HashToPoint_{SHAKE}(r\mid\mid m,q,n)-s_1))$
 
 
 
@@ -119,25 +119,28 @@ The performances improvment brought by ZKNOX to this version comes from :
 This section described an optimized version (for the circuit size) of the falcon with recovery algorithm. 
 
 As for our precomputed public key ntt form, some of the verification work is delegated to the
-front. The Falcon recovery requires a polynomial division to recover the public key value. We use a classical trick in ZK implementations by providing this as an extra value (a hint) in the calldata. The front also process the ntt transformation of $s_2^{-1}$.
-The verification then becomes:
-- The public key becomes $pk=H(h)$ for some collision-resistant hash function $H$;
-- The signature becomes $(s_1, s_2, r, ntt(s_2^{-1}))$ 
+front. The Falcon recovery requires a polynomial division to recover the public key value. We use a classical trick in ZK implementations by providing this as an extra value (a hint) in the calldata. The front also process the ntt transformation of $s_2^{-1}$. The verifier needs an extra check for then $s_2 \times s_2^{-1} == 1$ and the public key check becomes $pk==H(s_2^{-1}\times(HashToPoint(r\mid\mid m,q,n)-s_1))$.
+
+This verification requires `2NTT + 1iNTT` for step 2, and `1NTT + 1iNTT` for step 3 ($NTT(s_2^{-1})$ being already computed). This can be reduced by computing $NTT(s_2^{-1})$ by the signer, and modifying $H$ and $HashToPoint$ in order to compute multiplication in the NTT domain. We denote Epervier this setting for the adaption of Recover Mode of Falcon.
+
+**Epervier** is summarized as follows:
+- Public key: $pk=H(ntt(h))$ for some collision-resistant hash function $H$;
+- Signature: $σ = (s_1, s_2, r, ntt(s_2^{-1}))$ 
 - The verifier accepts the signatures if and only if:
-    - $(s_1, s_2)$ is short;
-    - $ntt(s_2)*ntt(s_2^{-1})==ntt(1)$;
-    - $pk==H(s_2^{-1}(HashToPoint(r\mid\mid m,q,n))-s_1)$.
-- By picking HashToPoint=NTTINV(PRNG_{Keccak}(x)) and $H=keccak(NTT(x))$, the last line of the verification is equivalent to
+    - $(σ_1,σ_2)$ is short;
+    - $ntt(σ_2)\cdot σ_4==ntt(1)$;
+    - $pk==H(σ_4\cdot (ntt(HashToPoint(r\mid\mid m,q,n)-σ_1)))$.
+<!-- - By picking HashToPoint=NTTINV(PRNG_{Keccak}(x)) and $H=keccak(NTT(x))$, the last line of the verification is equivalent to
    - $pk== keccak(ntt(s_2^{-1}).PRNG_{Keccak}(x)- ntt(s_1)) $
-   - this selection only requires two NTT transforms and no inverse NTT.
+   - this selection only requires two NTT transforms and no inverse NTT. -->
 
-We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For Hardware implementations, avoiding a NTTINV reduces the total required gates.
-Using a pipeline, it also enables to reuse the same NTT circuit inducing only latency of one stage of the implementation.
+Using this verification, we compute only **2NTT** (+ additional hashes and vectorized arithmetic) for the verification. We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For Hardware implementations, avoiding a NTTINV reduces the total required gates. Using a pipeline, it also enables to reuse the same NTT circuit inducing only latency of one stage of the implementation.
 
-#### Notes:
 
+
+Remarks:
 - ntt(1) is the constant equal to a one at each position (trivial equality test)
-- defining HashToPoint as NTTINV(PRNG_Keccak(x)) avoid a NTT transform, the computation of $H(s_2^{-1}(HashToPoint(r\mid\mid m,q,n))-s_1)$ only requires then a single InvNTT
+<!-- - defining HashToPoint as NTTINV(PRNG_Keccak(x)) avoid a NTT transform, the computation of $H(s_2^{-1}(HashToPoint(r\mid\mid m,q,n))-s_1)$ only requires then a single InvNTT -->
 - only two NTT transformations are required, leading to a verification time equivalent to the falcon without recovery
 - the NTT used here is the NWC defined in NTT-EIP
 - PRNG_Keccak is a construction that generates the desired output only using keccak (EVM friendly) 

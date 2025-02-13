@@ -4,17 +4,33 @@ from encoding import compress, decompress
 from falcon import HEAD_LEN, SALT_LEN, SEED_LEN, SecretKey, logn
 from keccak_prng import KeccakPRNG
 from polyntt.poly import Poly
+from polyntt.ntt_iterative import NTTIterative
 from Crypto.Hash import keccak
 # Randomness
 from os import urandom
 
 
-class RecoveryModeSecretKey(SecretKey):
+class EpervierSecretKey(SecretKey):
     def __init__(self, n, polys=None, ntt='NTTIterative'):
         super().__init__(n, polys, ntt)
+        self.pk = self.pk_hash(self.h)
+
+    def pk_hash(self, h):
+        h_ntt = Poly(h, q).ntt()
         keccak_ctx = keccak.new(digest_bytes=32)
-        keccak_ctx.update(b''.join(x.to_bytes(3, 'big') for x in self.h))
-        self.pk = keccak_ctx.digest()
+        keccak_ctx.update(b''.join(x.to_bytes(3, 'big') for x in h_ntt))
+        return keccak_ctx.digest()
+
+    def hash_to_point_modified(self, message, salt, xof=KeccakPRNG):
+        """
+        /!\
+        Signature algorithm: hash_to_point.
+        Verification algorithm: hash_to_point_modified.
+        /!\
+        """
+        T = NTTIterative(q)
+        previous_hash_to_point = self.hash_to_point(message, salt, xof)
+        return T.ntt(previous_hash_to_point)
 
     def sign(self, message, randombytes=urandom, xof=KeccakPRNG):
         """
@@ -47,9 +63,14 @@ class RecoveryModeSecretKey(SecretKey):
                     # We compress here s[0] and s[1], not s_1_inv_ntt.
                     enc_s = compress(
                         s[0]+s[1], self.sig_bytelen * 2 - HEAD_LEN - SALT_LEN)
+                    # TODO could be done more efficiently with vec_inv in ntt domain
+                    s_1_inv_ntt = Poly(s[1], q).inverse().ntt()
+                    # 3 * n bytes required for s1_inv
+                    bytes_s1_inv_ntt = b''.join(x.to_bytes(3, 'big')
+                                                for x in s_1_inv_ntt)
                     # Check that the encoding is valid (sometimes it fails)
                     if enc_s is not False:
-                        return header + salt + enc_s
+                        return header + salt + enc_s + bytes_s1_inv_ntt
 
     def verify(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
         """
@@ -57,7 +78,7 @@ class RecoveryModeSecretKey(SecretKey):
         """
         # Unpack the salt and the short polynomial s1
         salt = signature[HEAD_LEN:HEAD_LEN + SALT_LEN]
-        enc_s = signature[HEAD_LEN+SALT_LEN:]  # -self.n*3]
+        enc_s = signature[HEAD_LEN+SALT_LEN:-self.n*3]
         s = decompress(enc_s, self.sig_bytelen * 2 -
                        HEAD_LEN - SALT_LEN, self.n*2)
         # Check that the encoding is valid
@@ -66,7 +87,20 @@ class RecoveryModeSecretKey(SecretKey):
             return False
         mid = len(s)//2
         s0, s1 = s[:mid], s[mid:]
-        s_1_inv = Poly(s1, q).inverse()
+        # s_0_ntt = Poly(s0, q).ntt()
+        s_1_ntt = Poly(s1, q).ntt()
+        # s_1_inv
+        byte_s_1_inv_ntt = signature[-self.n*3:]
+        s_1_inv_ntt = [int.from_bytes(byte_s_1_inv_ntt[i:i+3], 'big')
+                       for i in range(0, len(byte_s_1_inv_ntt), 3)]
+        T = NTTIterative(q)
+        s_1_inv = Poly(T.intt(s_1_inv_ntt), q)
+
+        # check that s_1_inv_ntt * s_1_ntt == [1, ... , 1]
+        mul_s1_s1inv = T.vec_mul(s_1_inv_ntt, s_1_ntt)
+        for elt in mul_s1_s1inv:
+            if elt != 1:
+                return False
 
         # Check that the (s0, s1) is short
         norm_sign = sum(coef ** 2 for coef in s0)
@@ -76,11 +110,13 @@ class RecoveryModeSecretKey(SecretKey):
             return False
 
         # Compute s0 and normalize its coefficients in (-q/2, q/2]
-        hashed = Poly(self.hash_to_point(message, salt, xof=xof), q, ntt=ntt)
+        hashed = Poly(self.hash_to_point(
+            message, salt, xof=xof), q, ntt=ntt)
         s0 = Poly(s0, q, ntt=ntt)
         # recover h
-        h = (hashed - s0) * s_1_inv
-        bytes_h = b''.join(x.to_bytes(3, 'big') for x in h.coeffs)
+        h_ntt = T.vec_mul((hashed-s0).ntt(), s_1_inv_ntt)
+
+        bytes_h = b''.join(x.to_bytes(3, 'big') for x in h_ntt)
         keccak_ctx = keccak.new(digest_bytes=32)
         keccak_ctx.update(bytes_h)
         if self.pk != keccak_ctx.digest():

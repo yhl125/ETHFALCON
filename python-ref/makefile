@@ -16,8 +16,14 @@ test:
 test_keccak_prng:
 	$(PYTHON) -m unittest test_keccak_prng -v
 
+test_falcon:
+	$(PYTHON) -m unittest test_falcon -v
+
 test_recovery_mode:
-	$(PYTHON) -m unittest test_recovery_mode -v
+	$(PYTHON) -m unittest test_falcon_recovery -v
+
+test_epervier:
+	$(PYTHON) -m unittest test_falcon_epervier -v
 
 profile:
 	rm -f $(AUX)

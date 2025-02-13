@@ -334,7 +334,7 @@ class SecretKey:
         s = [sub(point, v0), neg(v1)]
         return s
 
-    def sign(self, message, randombytes=urandom, xof=KeccakPRNG):
+    def sign(self, message, randombytes=urandom, xof=KeccakPRNG, pk_recovery=False):
         """
         Sign a message. The message MUST be a byte string or byte array.
         Optionally, one can select the source of (pseudo-)randomness used
@@ -354,14 +354,16 @@ class SecretKey:
             else:
                 seed = randombytes(SEED_LEN)
                 s = self.sample_preimage(hashed, seed=seed)
-            norm_sign = sum(coef ** 2 for coef in s[0])
-            norm_sign += sum(coef ** 2 for coef in s[1])
-            # Check the Euclidean norm
-            if norm_sign <= self.signature_bound:
-                enc_s = compress(s[1], self.sig_bytelen - HEAD_LEN - SALT_LEN)
-                # Check that the encoding is valid (sometimes it fails)
-                if (enc_s is not False):
-                    return header + salt + enc_s
+            if not (pk_recovery) or all(elt % q != 0 for elt in Poly(s[1], q).ntt()):
+                norm_sign = sum(coef ** 2 for coef in s[0])
+                norm_sign += sum(coef ** 2 for coef in s[1])
+                # Check the Euclidean norm
+                if norm_sign <= self.signature_bound:
+                    enc_s = compress(
+                        s[1], self.sig_bytelen - HEAD_LEN - SALT_LEN)
+                    # Check that the encoding is valid (sometimes it fails)
+                    if (enc_s is not False):
+                        return header + salt + enc_s
 
     def verify(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
         """
