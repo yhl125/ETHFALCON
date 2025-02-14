@@ -56,7 +56,7 @@ The difference lies mainly in the definition of the inner expandable hash functi
   </tr>
  </tr>
   <td> EPERVIER </td>
-  <td> NTTINV, Keccak </td>
+  <td> Keccak </td>
   <td> Keccak(NTT(x)) </td>
   </tr>
 
