@@ -34,7 +34,7 @@ message, salt = salt, message
 print("// code generated using pythonref/forgery.py.")
 
 print("// public key")
-print("// prettier-ignore")
+print("// forgefmt: disable-next-line")
 print("uint[512] memory tmp_pk = [uint({}), {}];".format(
     sk.h[0], ','.join(map(str, sk.h[1:]))))
 print("uint[] memory pk = new uint[](512);")
@@ -43,7 +43,7 @@ print("\tpk[i] = tmp_pk[i];")
 print("}")
 
 print("// signature s1")
-print("// prettier-ignore")
+print("// forgefmt: disable-next-line")
 print("int[512] memory tmp_s1 = [int({}), {}];".format(
     s1[0], ','.join(map(str, s1[1:]))))
 print("Falcon.Signature memory sig;")

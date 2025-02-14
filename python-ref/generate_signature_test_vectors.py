@@ -59,7 +59,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
 
     file.write("function testVector{}() public view {{\n".format(i))
     file.write("// public key\n")
-    file.write("// prettier-ignore\n")
+    file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_pk = [uint({}), {}];\n".format(
         sk.h[0], ','.join(map(str, sk.h[1:]))))
     file.write("uint[] memory pk = new uint[](512);\n")
@@ -68,7 +68,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("}\n")
 
     file.write("// signature s1\n")
-    file.write("// prettier-ignore\n")
+    file.write("// forgefmt: disable-next-line\n")
     file.write("int[512] memory tmp_s1 = [int({}), {}];\n".format(
         s1[0], ','.join(map(str, s1[1:]))))
     file.write("ETHFalcon.Signature memory sig;\n")
@@ -78,7 +78,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("}\n")
 
     file.write("// signature s1 inverse\n")
-    file.write("// prettier-ignore\n")
+    file.write("// forgefmt: disable-next-line\n")
     file.write("int[512] memory tmp_s1_inv = [int({}), {}];\n".format(
         s1_inv[0], ','.join(map(str, s1_inv[1:]))))
 
