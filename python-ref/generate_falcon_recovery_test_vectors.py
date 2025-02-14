@@ -72,8 +72,8 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
     mid = len(s)//2
     s = [elt % q for elt in s]
-    s0, s1 = s[:mid], s[mid:]
-    s1_inv_ntt = Poly(s1, q).inverse().ntt()
+    s1, s2 = s[:mid], s[mid:]
+    s2_inv_ntt = Poly(s2, q).inverse().ntt()
     h = sk.hash_to_point(salt, message.encode())
     h_ntt = Poly(h, q).ntt()
     assert sk.verify(message.encode(), sig, xof=KeccaXOF)
@@ -88,29 +88,29 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("\tpk[i] = tmp_pk[i];\n")
     file.write("}\n")
 
-    file.write("// signature s0\n")
-    file.write("// forgefmt: disable-next-line\n")
-    file.write("uint[512] memory tmp_s0 = [uint({}), {}];\n".format(
-        s1[0], ','.join(map(str, s1[1:]))))
+    file.write("// signature s1\n")
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_s1 = [uint({}), {}];\n".format(
-        s1[0], ','.join(map(str, s1[1:]))))
+        s1[0], ','.join(map(str, s2[1:]))))
+    file.write("// forgefmt: disable-next-line\n")
+    file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n".format(
+        s2[0], ','.join(map(str, s2[1:]))))
     file.write("ZKNOX_falconrec.Signature memory sig;\n")
     file.write("for (uint i = 0; i < 512; i++) {\n")
-    file.write("\tsig.s1[i] = tmp_s0[i];\n")
-    file.write("\tsig.s2[i] = tmp_s1[i];\n")
+    file.write("\tsig.s1[i] = tmp_s1[i];\n")
+    file.write("\tsig.s2[i] = tmp_s2[i];\n")
     file.write("}\n")
 
-    file.write("// signature s1 inverse ntt\n")
+    file.write("// signature s2 inverse ntt\n")
     file.write("// forgefmt: disable-next-line\n")
-    file.write("uint[512] memory tmp_s1_inv_ntt = [uint({}), {}];\n".format(
-        s1_inv_ntt[0], ','.join(map(str, s1_inv_ntt[1:]))))
+    file.write("uint[512] memory tmp_s2_inv_ntt = [uint({}), {}];\n".format(
+        s2_inv_ntt[0], ','.join(map(str, s2_inv_ntt[1:]))))
 
     file.write("// message\n")
     file.write("bytes memory message  = \"{}\"; \n".format(message))
     file.write('// salt and message hack because of Tetration confusion\n')
     file.write("sig.salt = message;\nmessage = \"{}\"; \n".format(
         "".join(f"\\x{b:02x}" for b in salt)))
-    file.write("falconrec.verify(message, sig, pk);\n")
+    file.write("address pkrec = falconrec.falconrecover(message, sig);\n")
     file.write("}\n")
 file.write("}\n")
