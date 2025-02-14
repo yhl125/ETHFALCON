@@ -72,12 +72,12 @@ contract ZKNOX_falconrec {
     }
 
     /* A falcon with recovery implementation*/
-    function falconrecover(bytes memory msgs, Signature memory signature) public view returns (address result) {
-        if (signature.salt.length != 40) revert(); //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s1.length != 512) revert(); //"Invalid s1 length"
-        if (signature.s2.length != 512) revert(); //"Invalid s2 length"
-        if (signature.ntt_sm2.length != 512) revert(); //"Invalid salt length"
-
+    function recover(bytes memory msgs, Signature memory signature) public view returns (address result) {
+        if (signature.salt.length != 40) revert("wrong salt length"); //CVETH-2025-080201: control salt length to avoid potential forge
+        if (signature.s1.length != 512) revert("Invalid s1 length"); //"Invalid s1 length"
+        if (signature.s2.length != 512) revert("Invalid s2 length"); //"Invalid s2 length"
+        if (signature.ntt_sm2.length != 512) revert("Invalid hint length"); //"Invalid salt length"
+        
         //(s1,s2) must be short
         uint256 norm = 0;
         for (uint256 i = 0; i < n; i++) {
@@ -86,13 +86,17 @@ contract ZKNOX_falconrec {
         }
 
         if (norm > sigBound) {
-            revert();
+            revert("norm too large");
         }
 
         uint256[] memory s2 = new uint256[](512);
         for (uint256 i = 0; i < 512; i++) {
             s2[i] = uint256(signature.s2[i]);
         }
+
+        return address(0);
+
+
         s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev()); //ntt(s2)
         //ntt(s2)*ntt(s2^-1)==ntt(1)?
         for (uint256 i = 0; i < 512; i++) {
