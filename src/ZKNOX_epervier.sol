@@ -1,4 +1,6 @@
-/************************************************************************************************************************************************************************/                                                                                                                                                                          
+/**
+ *
+ */
 /*ZZZZZZZZZZZZZZZZZZZKKKKKKKKK    KKKKKKKNNNNNNNN        NNNNNNNN     OOOOOOOOO     XXXXXXX       XXXXXXX                         ..../&@&#.       .###%@@@#, ..                         
 /*Z:::::::::::::::::ZK:::::::K    K:::::KN:::::::N       N::::::N   OO:::::::::OO   X:::::X       X:::::X                      ...(@@* .... .           &#//%@@&,.                       
 /*Z:::::::::::::::::ZK:::::::K    K:::::KN::::::::N      N::::::N OO:::::::::::::OO X:::::X       X:::::X                    ..*@@.........              .@#%%(%&@&..                    
@@ -23,12 +25,13 @@
 /*                                                                                                                                     *(%%&&@(,,**@@@@@&                              
 /*                                                                                                                                      . .  .#@((@@(*,**                                
 /*                                                                                                                                             . (*. .                                   
-/*                                                                                                                                              .*/   
+/*                                                                                                                                              .*/
 ///* Copyright (C) 2025 - Renaud Dubois, Simon Masson - This file is part of ZKNOX project
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
 ///* FILE: ZKNOX_epervier.sol
 ///* Description: Compute ethereum friendly version of falcon verification
-/************************************************************************************************************************************************************************/  
-
+/**
+ *
+ */

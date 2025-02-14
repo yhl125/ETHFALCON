@@ -1,4 +1,6 @@
-/************************************************************************************************************************************************************************/                                                                                                                                                                          
+/**
+ *
+ */
 /*ZZZZZZZZZZZZZZZZZZZKKKKKKKKK    KKKKKKKNNNNNNNN        NNNNNNNN     OOOOOOOOO     XXXXXXX       XXXXXXX                         ..../&@&#.       .###%@@@#, ..                         
 /*Z:::::::::::::::::ZK:::::::K    K:::::KN:::::::N       N::::::N   OO:::::::::OO   X:::::X       X:::::X                      ...(@@* .... .           &#//%@@&,.                       
 /*Z:::::::::::::::::ZK:::::::K    K:::::KN::::::::N      N::::::N OO:::::::::::::OO X:::::X       X:::::X                    ..*@@.........              .@#%%(%&@&..                    
@@ -23,14 +25,16 @@
 /*                                                                                                                                     *(%%&&@(,,**@@@@@&                              
 /*                                                                                                                                      . .  .#@((@@(*,**                                
 /*                                                                                                                                             . (*. .                                   
-/*                                                                                                                                              .*/   
+/*                                                                                                                                              .*/
 ///* Copyright (C) 2025 - Renaud Dubois, Simon Masson - This file is part of ZKNOX project
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
 ///* FILE: ZKNOX_falcon.sol
 ///* Description: Compute ethereum friendly version of falcon verification
-/************************************************************************************************************************************************************************/   
+/**
+ *
+ */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
@@ -40,10 +44,9 @@ import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 import "./HashToPoint_tetration.sol";
 
 //select the XOF to use inside HashToPoint here
-import "./HashToPoint_tetration.sol";//not recommended, here for benchmarks against tetration only
+import "./HashToPoint_tetration.sol"; //not recommended, here for benchmarks against tetration only
 
 contract ZKNOX_falcon {
-
     //FALCON CONSTANTS
     uint256 constant n = 512;
     uint256 constant sigBound = 34034726;
@@ -55,42 +58,37 @@ contract ZKNOX_falcon {
 
     uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;
 
-
     constructor(ZKNOX_NTT i_ntt) {
         ntt = i_ntt;
     }
 
-
     struct Signature {
         bytes salt;
-        uint256[512] s1;// CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
+        uint256[512] s1; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
     }
-
 
     function verify(
         bytes memory msgs,
         Signature memory signature,
         uint256[] memory h // public key
     ) public view returns (bool result) {
-       
+        if (h.length != 512) return false; //"Invalid public key length"
+        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+        if (signature.s1.length != 512) return false; //"Invalid salt length"
 
-        if(h.length!=512) return false;              //"Invalid public key length"
-        if(signature.salt.length != 40) return false;//CVETH-2025-080201: control salt length to avoid potential forge
-        if(signature.s1.length != 512)  return false;//"Invalid salt length"
-
-        result=false;
+        result = false;
 
         uint256[] memory s1 = new uint256[](512);
-        for (uint i = 0; i < 512; i++) {
-                s1[i] = uint256(signature.s1[i]);
+        for (uint256 i = 0; i < 512; i++) {
+            s1[i] = uint256(signature.s1[i]);
         }
 
-        uint256[] memory hashed = hashToPoint(msgs, signature.salt, q,n);
-        
-        uint256[] memory s0 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s1, h),q);
-       
+        uint256[] memory hashed = hashToPoint(msgs, signature.salt, q, n);
+
+        uint256[] memory s0 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s1, h), q);
+
         // normalize s0 // to positive cuz you'll **2 anyway?
-        for (uint i = 0; i < n; i++) {
+        for (uint256 i = 0; i < n; i++) {
             if (s0[i] > qs1) {
                 s0[i] = q - s0[i];
             } else {
@@ -99,7 +97,7 @@ contract ZKNOX_falcon {
         }
 
         // normalize s1
-        for (uint i = 0; i < n; i++) {
+        for (uint256 i = 0; i < n; i++) {
             if (s1[i] > qs1) {
                 s1[i] = q - s1[i];
             } else {
@@ -107,17 +105,16 @@ contract ZKNOX_falcon {
             }
         }
 
-        uint norm = 0;
-        for (uint i = 0; i < n; i++) {
+        uint256 norm = 0;
+        for (uint256 i = 0; i < n; i++) {
             norm += s0[i] * s0[i];
             norm += s1[i] * s1[i];
         }
 
-        if(norm > sigBound){
-            result=false;
-        }
-        else{
-            result=true;
+        if (norm > sigBound) {
+            result = false;
+        } else {
+            result = true;
         }
         return result;
     }
@@ -128,25 +125,23 @@ contract ZKNOX_falcon {
         Signature memory signature,
         uint256[] memory ntth // public key
     ) public view returns (bool result) {
-       
+        if (ntth.length != 512) return false; //"Invalid public key length"
+        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+        if (signature.s1.length != 512) return false; //"Invalid salt length"
 
-        if(ntth.length!=512) return false;              //"Invalid public key length"
-        if(signature.salt.length != 40) return false;//CVETH-2025-080201: control salt length to avoid potential forge
-        if(signature.s1.length != 512)  return false;//"Invalid salt length"
-
-        result=false;
+        result = false;
 
         uint256[] memory s1 = new uint256[](512);
-        for (uint i = 0; i < 512; i++) {
-                s1[i] = uint256(signature.s1[i]);
+        for (uint256 i = 0; i < 512; i++) {
+            s1[i] = uint256(signature.s1[i]);
         }
 
-        uint256[] memory hashed = hashToPoint(msgs, signature.salt, q,n);
-        
-        uint256[] memory s0 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_HALFMUL(s1, ntth),q);
-       
+        uint256[] memory hashed = hashToPoint(msgs, signature.salt, q, n);
+
+        uint256[] memory s0 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_HALFMUL(s1, ntth), q);
+
         // normalize s0 // to positive cuz you'll **2 anyway?
-        for (uint i = 0; i < n; i++) {
+        for (uint256 i = 0; i < n; i++) {
             if (s0[i] > qs1) {
                 s0[i] = q - s0[i];
             } else {
@@ -155,7 +150,7 @@ contract ZKNOX_falcon {
         }
 
         // normalize s1
-        for (uint i = 0; i < n; i++) {
+        for (uint256 i = 0; i < n; i++) {
             if (s1[i] > qs1) {
                 s1[i] = q - s1[i];
             } else {
@@ -163,23 +158,25 @@ contract ZKNOX_falcon {
             }
         }
 
-        uint norm = 0;
-        for (uint i = 0; i < n; i++) {
+        uint256 norm = 0;
+        for (uint256 i = 0; i < n; i++) {
             norm += s0[i] * s0[i];
             norm += s1[i] * s1[i];
         }
 
-        if(norm > sigBound){
-            result=false;
-        }
-        else{
-            result=true;
+        if (norm > sigBound) {
+            result = false;
+        } else {
+            result = true;
         }
         return result;
     }
-
-}//end of contract
-/************************************************************************************************************************************************************************/  
+} //end of contract
+/**
+ *
+ */
 /*                                                                  END OF CONTRACT                                                                                     */
-/************************************************************************************************************************************************************************/  
+/**
+ *
+ */
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
