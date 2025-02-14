@@ -64,7 +64,7 @@ contract ZKNOX_falcon {
 
     struct Signature {
         bytes salt;
-        uint256[512] s1; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
+        uint256[512] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
     }
 
     function verify(
@@ -74,29 +74,20 @@ contract ZKNOX_falcon {
     ) public view returns (bool result) {
         if (h.length != 512) return false; //"Invalid public key length"
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s1.length != 512) return false; //"Invalid salt length"
+        if (signature.s2.length != 512) return false; //"Invalid salt length"
 
         result = false;
 
-        uint256[] memory s1 = new uint256[](512);
+        uint256[] memory s2 = new uint256[](512);
         for (uint256 i = 0; i < 512; i++) {
-            s1[i] = uint256(signature.s1[i]);
+            s2[i] = uint256(signature.s2[i]);
         }
 
         uint256[] memory hashed = hashToPoint(msgs, signature.salt, q, n);
 
-        uint256[] memory s0 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s1, h), q);
+        uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s2, h), q);
 
-        // normalize s0 // to positive cuz you'll **2 anyway?
-        for (uint256 i = 0; i < n; i++) {
-            if (s0[i] > qs1) {
-                s0[i] = q - s0[i];
-            } else {
-                s0[i] = s0[i];
-            }
-        }
-
-        // normalize s1
+        // normalize s1 // to positive cuz you'll **2 anyway?
         for (uint256 i = 0; i < n; i++) {
             if (s1[i] > qs1) {
                 s1[i] = q - s1[i];
@@ -105,10 +96,19 @@ contract ZKNOX_falcon {
             }
         }
 
+        // normalize s2
+        for (uint256 i = 0; i < n; i++) {
+            if (s2[i] > qs1) {
+                s2[i] = q - s2[i];
+            } else {
+                s2[i] = s2[i];
+            }
+        }
+
         uint256 norm = 0;
         for (uint256 i = 0; i < n; i++) {
-            norm += s0[i] * s0[i];
             norm += s1[i] * s1[i];
+            norm += s2[i] * s2[i];
         }
 
         if (norm > sigBound) {
@@ -127,29 +127,20 @@ contract ZKNOX_falcon {
     ) public view returns (bool result) {
         if (ntth.length != 512) return false; //"Invalid public key length"
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s1.length != 512) return false; //"Invalid salt length"
+        if (signature.s2.length != 512) return false; //"Invalid salt length"
 
         result = false;
 
-        uint256[] memory s1 = new uint256[](512);
+        uint256[] memory s2 = new uint256[](512);
         for (uint256 i = 0; i < 512; i++) {
-            s1[i] = uint256(signature.s1[i]);
+            s2[i] = uint256(signature.s2[i]);
         }
 
         uint256[] memory hashed = hashToPoint(msgs, signature.salt, q, n);
 
-        uint256[] memory s0 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_HALFMUL(s1, ntth), q);
+        uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_HALFMUL(s2, ntth), q);
 
-        // normalize s0 // to positive cuz you'll **2 anyway?
-        for (uint256 i = 0; i < n; i++) {
-            if (s0[i] > qs1) {
-                s0[i] = q - s0[i];
-            } else {
-                s0[i] = s0[i];
-            }
-        }
-
-        // normalize s1
+        // normalize s1 // to positive cuz you'll **2 anyway?
         for (uint256 i = 0; i < n; i++) {
             if (s1[i] > qs1) {
                 s1[i] = q - s1[i];
@@ -158,10 +149,19 @@ contract ZKNOX_falcon {
             }
         }
 
+        // normalize s2
+        for (uint256 i = 0; i < n; i++) {
+            if (s2[i] > qs1) {
+                s2[i] = q - s2[i];
+            } else {
+                s2[i] = s2[i];
+            }
+        }
+
         uint256 norm = 0;
         for (uint256 i = 0; i < n; i++) {
-            norm += s0[i] * s0[i];
             norm += s1[i] * s1[i];
+            norm += s2[i] * s2[i];
         }
 
         if (norm > sigBound) {

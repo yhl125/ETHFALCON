@@ -72,9 +72,9 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
                   randombytes=deterministic_salt, xof=KeccaXOF)
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     enc_s = sig[HEAD_LEN + SALT_LEN:]
-    s1 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
-    s1 = [elt % q for elt in s1]
-    s1_inv = Poly(s1, q).inverse().coeffs
+    s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
+    s2 = [elt % q for elt in s2]
+    s2_inv = Poly(s2, q).inverse().coeffs
     h = sk.hash_to_point(salt, message.encode())
     h_ntt = Poly(h, q).ntt()
     assert sk.verify(message.encode(), sig, xof=KeccaXOF)
@@ -89,13 +89,13 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("\tpk[i] = tmp_pk[i];\n")
     file.write("}\n")
 
-    file.write("// signature s1\n")
+    file.write("// signature s2\n")
     file.write("// forgefmt: disable-next-line\n")
-    file.write("uint[512] memory tmp_s1 = [uint({}), {}];\n".format(
-        s1[0], ','.join(map(str, s1[1:]))))
+    file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n".format(
+        s2[0], ','.join(map(str, s2[1:]))))
     file.write("ZKNOX_falcon.Signature memory sig;\n")
     file.write("for (uint i = 0; i < 512; i++) {\n")
-    file.write("\tsig.s1[i] = tmp_s1[i];\n")
+    file.write("\tsig.s2[i] = tmp_s2[i];\n")
     file.write("}\n")
 
     file.write("// message\n")

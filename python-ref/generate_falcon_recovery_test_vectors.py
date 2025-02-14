@@ -13,7 +13,7 @@ def deterministic_salt(x, seed="deterministic_salt"):
     return first_bytes + last_bytes[0:8]
 
 
-file = open("../test/SignatureTestVectors.sol", 'w')
+file = open("../test/ZKNOXFalconRecoveryTestVectors.sol", 'w')
 n = 512
 # An example of secret key
 f = [0, -7, -2, -1, 0, 0, 1, -2, 0, -2, -3, 0, 1, 8, 3, 2, -3, -3, 2, -6, 0, -7, 0, -6, 0, 5, 0, 2, 7, 3, 3, -1, -4, -2, -4, -1, -1, 3, 1, 1, -1, -1, 6, -1, -3, 4, 4, -7, 6, -2, 6, 4, 1, 5, 5, -2, -6, -1, -1, 6, 2, 4, -2, -3, 0, 5, 8, 1, 6, -1, -5, -1, 3, 2, -2, -2, -1, 0, -2, 8, 4, 9, 1, 1, -4, 1, 0, 3, -1, 0, -4, 0, 0, -2, 0, -5, 3, 4, 1, 2, 6, 3, 0, -3, 3, -5, -2, 2, 4, 0, -2, 0, -3, 4, 1, -3, -1, -5, 1, -5, 0, -4, -4, 5, -6, 10, -1, -8, -2, 8, -7, 2, 0, 3, 2, -1, -3, -5, -2, -3, 6, -5, 1, 1, 2, -6, 2, -1, -6, -2, -8, -1, -1, -5, 0, -6, -6, 1, -7, 9, 0, 1, 9, 5, 2, 3, 2, 1, 2, 3, -1, -2, 2, 6, -3, 6, -1, 3, 0, 3, 1, 3, 2, -5, -4, -1, 0, -2, 1, 8, -5, 1, 1, -4, -2, 9, -4, 3, -2, -6, -1, -3, 2, 9, -3, 0, -6, -1, -1, -6, 4, -2, -1, -2, 3, 2, -2, 5, 8, -6, 3, -5, -1, -1, -2, -2, -3, 1, 5, -1, 4, -2, -3, 6, -2, 3, -9, 10, -3, -3, -7, -5, 3, -7, -5, 1, 0, -2, -3, -6, -10,
@@ -97,8 +97,8 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
         s1[0], ','.join(map(str, s1[1:]))))
     file.write("ZKNOX_falconrec.Signature memory sig;\n")
     file.write("for (uint i = 0; i < 512; i++) {\n")
-    file.write("\tsig.s0[i] = tmp_s0[i];\n")
-    file.write("\tsig.s1[i] = tmp_s1[i];\n")
+    file.write("\tsig.s1[i] = tmp_s0[i];\n")
+    file.write("\tsig.s2[i] = tmp_s1[i];\n")
     file.write("}\n")
 
     file.write("// signature s1 inverse ntt\n")
