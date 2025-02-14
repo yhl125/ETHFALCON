@@ -36,6 +36,7 @@
  *
  */
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
 
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
@@ -49,7 +50,7 @@ contract ZKNOX_falconrec {
     uint256 constant sigBound = 34034726;
     uint256 constant sigBytesLen = 666;
     uint256 constant q = 12289;
-    uint256 qs1 = 6144; // q >> 1;
+    uint256 constant qs1 = 6144; // q >> 1;
 
     ZKNOX_NTT ntt;
 
@@ -61,37 +62,56 @@ contract ZKNOX_falconrec {
 
     struct Signature {
         bytes salt;
-        uint256[512] s0;
         uint256[512] s1;
-        uint256[512] ntt_sm1; //the ntt of the inverse of s1, provided as a hint
+        uint256[512] s2;
+        uint256[512] ntt_sm2; //the ntt of the inverse of s1, provided as a hint
+    }
+
+    function HashToAddress(bytes memory m) public pure returns (address) {
+        return address(uint160(uint256(keccak256(m))));
     }
 
     /* A falcon with recovery implementation*/
     function falconrecover(bytes memory msgs, Signature memory signature) public view returns (address result) {
         if (signature.salt.length != 40) revert(); //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s0.length != 512) revert(); //"Invalid s0 length"
+        if (signature.s2.length != 512) revert(); //"Invalid s0 length"
         if (signature.s1.length != 512) revert(); //"Invalid s1 length"
-        if (signature.ntt_sm1.length != 512) revert(); //"Invalid salt length"
+        if (signature.ntt_sm2.length != 512) revert(); //"Invalid salt length"
 
         //(s0,s1) must be short
         uint256 norm = 0;
         for (uint256 i = 0; i < n; i++) {
-            norm += signature.s0[i] * signature.s0[i];
             norm += signature.s1[i] * signature.s1[i];
+            norm += signature.s2[i] * signature.s2[i];
         }
 
         if (norm > sigBound) {
             revert();
         }
 
-        uint256[] memory s1 = new uint256[](512);
+        uint256[] memory s2 = new uint256[](512);
         for (uint256 i = 0; i < 512; i++) {
-            s1[i] = uint256(signature.s1[i]);
+            s2[i] = uint256(signature.s2[i]);
+        }
+        s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev()); //ntt(s2)
+        //ntt(s2)*ntt(s2^-1)==ntt(1)?
+        for (uint256 i = 0; i < 512; i++) {
+            if (mulmod(s2[i], signature.ntt_sm2[i], q) != 1) revert("wrong hint");
         }
 
         uint256[] memory hashed = hashToPoint(msgs, signature.salt, q, n);
+        for (uint256 i = 0; i < 512; i++) {
+            //hashToPoint-s1
+            hashed[i] = addmod(hashed[i], q - signature.s1[i], q);
+        }
+        hashed = ntt.ZKNOX_NTTFW(hashed, ntt.o_psirev()); //ntt(  HashtoPoint(r,m,q,n)) -s1 )
 
-        return result;
+        for (uint256 i = 0; i < 512; i++) {
+            s2[i] = uint256(signature.ntt_sm2[i]);
+        }
+
+        hashed = ntt.ZKNOX_VECMULMOD(hashed, s2, q);
+        return HashToAddress(abi.encodePacked(hashed));
     }
 } //end of contract
 

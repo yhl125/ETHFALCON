@@ -38,7 +38,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-function splitToHex(bytes32 x) view returns (uint16[16] memory) {
+function splitToHex(bytes32 x) pure returns (uint16[16] memory) {
     uint16[16] memory res;
     for (uint256 i = 0; i < 16; i++) {
         res[i] = uint16(uint256(x) >> ((15 - i) * 16));
@@ -48,7 +48,7 @@ function splitToHex(bytes32 x) view returns (uint16[16] memory) {
 
 //Use for Poc only, as this XOF doesn't respect separation domain for input and output of internal state
 //CVETH-2025-080203
-function hashToPoint(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n) view returns (uint256[] memory) {
+function hashToPoint(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n) pure returns (uint256[] memory) {
     uint256[] memory hashed = new uint256[](512);
     uint256 i = 0;
     uint256 j = 0;
