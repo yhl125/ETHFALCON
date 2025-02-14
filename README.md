@@ -33,12 +33,12 @@ The repository implements several tweaked version of FALCON, optimized for diffe
    <td>FALCON-SOLREC</td>
   <td>Tetration </td>
   <td>A  recovery version, compatible with FALCON SOLIDITY XOF</td>
-  <td> OK </td>
+  <td> WIP </td>
   </tr>
   <td>FALCONRIP</td>
   <td>ASANSO </td>
   <td>FALCON RIP draft by [ASANSO](https://github.com/asanso/RIPs/blob/master/RIPS/rip-falcon.md) </td>
-  <td> OK </td>
+  <td> WIP </td>
   </tr>
   <td>EPERVIER</td>
   <td>ZKNOX </td>
