@@ -76,15 +76,12 @@ class EpervierSecretKey(SecretKey):
             return False
         mid = len(s)//2
         s0, s1 = s[:mid], s[mid:]
-        # s_0_ntt = Poly(s0, q).ntt()
         s_1_ntt = Poly(s1, q).ntt()
         # s_1_inv
         byte_s_1_inv_ntt = signature[-self.n*3:]
         s_1_inv_ntt = [int.from_bytes(byte_s_1_inv_ntt[i:i+3], 'big')
                        for i in range(0, len(byte_s_1_inv_ntt), 3)]
         T = NTTIterative(q)
-        s_1_inv = Poly(T.intt(s_1_inv_ntt), q)
-
         # check that s_1_inv_ntt * s_1_ntt == [1, ... , 1]
         mul_s1_s1inv = T.vec_mul(s_1_inv_ntt, s_1_ntt)
         for elt in mul_s1_s1inv:

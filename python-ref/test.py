@@ -220,128 +220,6 @@ def test_samplerz_KAT(unused, unused2):
     return True
 
 
-def test_signature(n, iterations=10):
-    """
-    Test Falcon.
-    """
-    f = sign_KAT[n][0]["f"]
-    g = sign_KAT[n][0]["g"]
-    F = sign_KAT[n][0]["F"]
-    G = sign_KAT[n][0]["G"]
-    sk = SecretKey(n, [f, g, F, G])
-    pk = PublicKey(sk)
-    for i in range(iterations):
-        message = b"abc"
-        sig = sk.sign(message)
-        if pk.verify(message, sig) is False:
-            return False
-    return True
-
-
-def test_keygen_different_ntt(n, iterations=100):
-    """Test Falcon key generation."""
-    d = {True: "OK    ", False: "Not OK"}
-    for ntt in ['NTTIterative', 'NTTRecursive']:
-        start = timer()
-        for i in range(iterations):
-            sk = SecretKey(n, polys=None, ntt=ntt)
-            # pk = PublicKey(sk)
-        rep = True
-        end = timer()
-
-        msg = "Test keygen ({})".format(ntt[3:])
-        msg = msg.ljust(20) + ": " + d[rep]
-        if rep is True:
-            diff = end - start
-            msec = round(diff * 1000 / iterations, 3)
-            msg += " ({msec} msec / execution)".format(msec=msec).rjust(30)
-        print(msg)
-
-
-def test_verif_different_ntt(n, iterations=100):
-    """Test Falcon signature verification."""
-    f = sign_KAT[n][0]["f"]
-    g = sign_KAT[n][0]["g"]
-    F = sign_KAT[n][0]["F"]
-    G = sign_KAT[n][0]["G"]
-    sk = SecretKey(n, [f, g, F, G])
-    pk = PublicKey(sk)
-    message = b"abc"
-    sig = sk.sign(message)
-
-    d = {True: "OK    ", False: "Not OK"}
-    for ntt in ['NTTIterative', 'NTTRecursive']:
-        start = timer()
-        for i in range(iterations):
-            if pk.verify(message, sig, ntt=ntt) is False:
-                rep = False
-        rep = True
-        end = timer()
-
-        msg = "Test verif ({})".format(ntt[3:])
-        msg = msg.ljust(20) + ": " + d[rep]
-        if rep is True:
-            diff = end - start
-            msec = round(diff * 1000 / iterations, 3)
-            msg += " ({msec} msec / execution)".format(msec=msec).rjust(30)
-        print(msg)
-
-
-def test_signing_different_xof(n, iterations=100):
-    """Test Falcon signature verification."""
-    f = sign_KAT[n][0]["f"]
-    g = sign_KAT[n][0]["g"]
-    F = sign_KAT[n][0]["F"]
-    G = sign_KAT[n][0]["G"]
-    sk = SecretKey(n, [f, g, F, G])
-    pk = PublicKey(sk)
-    message = b"abc"
-
-    d = {True: "OK    ", False: "Not OK"}
-    for (xof, xof_str) in [(SHAKE, 'SHAKE'), (KeccaXOF, 'KeccaXOF'), (KeccakPRNG, 'KeccakPRNG')]:
-        start = timer()
-        for i in range(iterations):
-            sig = sk.sign(message, xof=xof)
-        rep = True
-        end = timer()
-
-        msg = "Test sign ({})".format(xof_str)
-        msg = msg.ljust(20) + ": " + d[rep]
-        if rep is True:
-            diff = end - start
-            msec = round(diff * 1000 / iterations, 3)
-            msg += " ({msec} msec / execution)".format(msec=msec).rjust(30)
-        print(msg)
-
-
-def test_verif_different_xof(n, iterations=100):
-    """Test Falcon signature verification."""
-    f = sign_KAT[n][0]["f"]
-    g = sign_KAT[n][0]["g"]
-    F = sign_KAT[n][0]["F"]
-    G = sign_KAT[n][0]["G"]
-    sk = SecretKey(n, [f, g, F, G])
-    pk = PublicKey(sk)
-    message = b"I like to change hash functions"
-    d = {True: "OK    ", False: "Not OK"}
-    for (xof, xof_str) in [(SHAKE, 'SHAKE'), (KeccaXOF, 'KeccaXOF'), (KeccakPRNG, 'KeccakPRNG')]:
-        sig = sk.sign(message, xof=xof)
-        start = timer()
-        for i in range(iterations):
-            if pk.verify(message, sig, xof=xof) is False:
-                rep = False
-        rep = True
-        end = timer()
-
-        msg = "Test verif ({})".format(xof_str)
-        msg = msg.ljust(20) + ": " + d[rep]
-        if rep is True:
-            diff = end - start
-            msec = round(diff * 1000 / iterations, 3)
-            msg += " ({msec} msec / execution)".format(msec=msec).rjust(30)
-        print(msg)
-
-
 def test_sign_KAT():
     """
     Test the signing procedure against test vectors obtained from
@@ -425,14 +303,13 @@ def test(n, iterations=500):
         # wrapper_test(test_sign_KAT, "Signature KATs", n, iterations)
     print("")
 
-    # Simon Tests
-    if (n in Params):
-        test_keygen_different_ntt(n, 1)
-        test_signing_different_xof(n, iterations)
-        test_verif_different_ntt(n, iterations)
-        test_verif_different_xof(n, iterations)
-    print("")
-
+    # # Simon Tests
+    # if (n in Params):
+    #     test_keygen_different_ntt(n, 1)
+    #     test_signing_different_xof(n, iterations)
+    #     test_verif_different_ntt(n, iterations)
+    #     test_verif_different_xof(n, iterations)
+    # print("")
 
     # Run all the tests
 if (__name__ == "__main__"):

@@ -17,7 +17,7 @@ class TestRecoveryMode(unittest.TestCase):
         sig = sk.sign(message)
         self.assertTrue(sk.verify(message, sig))
 
-    def test_signature_recovery_mode_shake(self):
+    def test_signature_epervier_shake(self):
         n = 512
         f = sign_KAT[n][0]["f"]
         g = sign_KAT[n][0]["g"]
