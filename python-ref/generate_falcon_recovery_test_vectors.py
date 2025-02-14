@@ -111,6 +111,6 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write('// salt and message hack because of Tetration confusion\n')
     file.write("sig.salt = message;\nmessage = \"{}\"; \n".format(
         "".join(f"\\x{b:02x}" for b in salt)))
-    file.write("address pkrec = falconrec.falconrecover(message, sig);\n")
+    file.write("// ?????????? = falconrec.falconrecover(message, sig);\n")
     file.write("}\n")
 file.write("}\n")
