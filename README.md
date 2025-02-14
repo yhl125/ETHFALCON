@@ -63,94 +63,91 @@ The difference lies mainly in the definition of the inner expandable hash functi
 
 </table>     
 
-### FALCON 
+### Falcon 
 
+**Original specification.** 
+FALCON refers to the original [specification](https://falcon-sign.info/falcon.pdf), as submitted to NIST. We provide here a simplified description of the signature scheme:
+- The public key is a polynomial $h$,
+- The signature is given as $(s_2, r)$ where $s_2$ is in compressed format,
+- The verification is split as follows:
+  - $c\leftarrow HashToPoint(r||m)$,
+  - Decompress $s_2$ (reject if it goes wrong),
+  - $s_1 \leftarrow c-s_2\times h$,
+  - if $(s_1,s_2)$ is short, accept, otherwise, reject.
 
-#### FALCON
-
-FALCON refers to the original [specification](https://falcon-sign.info/falcon.pdf), as submitted to NIST.
-The specification also includes a recovery version that will be refered as FALCONREC. While not present in standard available implementation, it is valuable in the context of ETHREUM to stick to the ecrecover specification.
-
-#### RECOVERY VERSION 
-
-The original Falcon with recovery as described section 3.12 of [FALCON](https://falcon-sign.info/falcon.pdf) is:
+**Public key recovery mode.**
+Falcon specification also includes a public key recovery version. Although it is not present in the standard implementation, it is described in the specification in [Section 3.12](https://falcon-sign.info/falcon.pdf). We denote this version FalconRec and we summarize it here:
 - The public key becomes $pk=H(h)$ for some collision-resistant hash function $H$;
-- The signature becomes $(s_1, s_2, r)$ 
+- The signature becomes $(s_1, s_2, r)$, where $s_1$ and $s_2$ are in compressed format,
 - The verifier accepts the signatures if and only if:
-- $(s_1, s_2)$ is short;
-- $pk=H(s_2^{-1}(HashToPoint_{SHAKE}(r\mid\mid m,q,n)-s_1))$
+  - $(s_1, s_2)$ is short;
+  - $pk==H(s_2^{-1}(HashToPoint(r\mid\mid m)-s_1))$
+
+Note: In the context of ETHEREUM, It is valuable to stick to the `ecrecover` specification. 
 
 
+### Falcon-Solidity: an EVM-friendly signature
 
+**Tetration implementation.**
+FALCON-SOLIDITY refers to the specification of [Tetration](https://github.com/Tetration-Lab/falcon-solidity/blob/main/src/Falcon.sol) repository. It is important to notice that this implementation is EVM friendly and use a FALCON equivalent implementation using a Keccak XOF instead of SHAKE. It is thus not compliant with [FALCON](https://falcon-sign.info/falcon.pdf) NIST instantiation. While assumingly not degrading the  security it is not compatible with the original specification.
 
-### FALCON-SOLIDITY : EVM-FRIENDLY
-
-FALCON-SOLIDITY refers to the specification of
-[Tetration](https://github.com/Tetration-Lab/falcon-solidity/blob/main/src/Falcon.sol) repo.
-It is important to notice that the 
-[Tetration](https://github.com/Tetration-Lab/falcon-solidity/blob/main/src/Falcon.sol) repo is EVM friendly and use a FALCON equivalent implementation using keccak instead of SHAKE.
-It is thus not compliant with [FALCON](https://falcon-sign.info/falcon.pdf) NIST instanciation.
-While assumingly not degrading the  security it is not compatible with the original specification.
-
-#### Optimizations
-
-The performances improvment brought by ZKNOX to this version comes from :
+**Optimizations.**
+The performance improvement brought by ZKNOX to this version comes from :
 -  generic solidity gas cost optimizations (replacing mul by shifts, etc.)
-- the replacement of a recursive NTT, by a NWC (Negative Wrap Convolution) specialized one as specified in EIP-NTT following [LN16]. This NTT is twice faster and doesn't need to store a table of $q$ elements
+- the replacement of a recursive NTT, by a NWC (Negative Wrap Convolution) specialized one as specified in EIP-NTT following [LN16]. This NTT is twice faster and does not need to store a table of $q$ elements
 - the precomputation of the NTT from of the public key to avoid repetitive identical computations for each iteration.
 
 
+**Uncovered vulnerabilities on Tetration [v1.0](https://github.com/Tetration-Lab/falcon-solidity/blob/main/src/Falcon.sol).**
 
 
-
-#### Uncovered vulnerabilities on Tetration [v1.0](https://github.com/Tetration-Lab/falcon-solidity/blob/main/src/Falcon.sol)
-
-
-| LABEL                   | Severity | Description               |  Impact |Fix | PR |
+| Label                   | Severity | Description               |  Impact |Fix | PR |
 |------------------------|---------------------|---------------------|---------------------|---------------------|---------------------|
 |CVETH-2025-080201| critical  | salt size is not checked in verification | forge | add salt size checking | TBD
 |CVETH-2025-080202| medium | signature malleability on coefficient signs | malleability | force positive coefficients in s part | TBD
 |CVETH-2025-080203| low | no domain separation of internal state input and output | XOF design infringment | modify FALCON-SOLIDITY XOF specification | TBD
 
 
-### EPERVIER: a compact EVM-FRIENDLY FALCON with recovery
-#### Description
+### Epervier: a compact EVM-friendly Falcon with public key recovery mode
 
-This section described an optimized version (for the circuit size) of the falcon with recovery algorithm. 
+**Optimization of FalconRec.**
 
-As for our precomputed public key ntt form, some of the verification work is delegated to the
-front. The Falcon recovery requires a polynomial division to recover the public key value. We use a classical trick in ZK implementations by providing this as an extra value (a hint) in the calldata. The front also process the ntt transformation of $s_2^{-1}$. The verifier needs an extra check for then $s_2 \times s_2^{-1} == 1$ and the public key check becomes $pk==H(s_2^{-1}\times(HashToPoint(r\mid\mid m,q,n)-s_1))$.
+In order to optimize the verification of FalconRec, we use a classical trick in ZK implementations by providing $s_2^{-1}$ as an extra value (a hint) in the calldata, in the NTT domain (i.e. we provide `ntt(s2Inverse)`). Then, the verifier needs to check that the hint is indeed the inverse of $s_2$:
+- The public key remains $pk = H(m)$ for some collision-resistant hash function $H$;
+- The signature becomes $σ  =(s_1,s_2,r,ntt(s_2^{-1}))$,
+- The verification splits as:
+  - $ntt(σ_2)\cdot σ_4 == 1$,
+  - $(σ_1,σ_2)$ is short,
+  - $pk==H(intt(σ_4\cdot ntt(HashToPoint(σ_3\mid\mid m)-σ_1)))$.
 
-This verification requires `2NTT + 1iNTT` for step 2, and `1NTT + 1iNTT` for step 3 ($NTT(s_2^{-1})$ being already computed). This can be reduced by computing $NTT(s_2^{-1})$ by the signer, and modifying $H$ and $HashToPoint$ in order to compute multiplication in the NTT domain. We denote Epervier this setting for the adaption of Recover Mode of Falcon.
+Finally, the cost of FalconRec verification is dominated by **2NTT + 1iNTT** (1 NTT in step 1, and the rest in step 3).
 
-**Epervier** is summarized as follows:
+Note that the check of step one is done in the NTT domain, where $ntt(1)$ is the constant equal to 1 at every poition. It is a simple equality test once $ntt(σ_2)$ is computed.
+
+**Moving the public key in the NTT domain.**
+
+We present here a modification of the public key in order to reduce the verification cost. The public key is moved in the NTT domain in order to save an iNTT in the FalconRec verification. Epervier is summarized as follows:
 - Public key: $pk=H(ntt(h))$ for some collision-resistant hash function $H$;
 - Signature: $σ = (s_1, s_2, r, ntt(s_2^{-1}))$ 
 - The verifier accepts the signatures if and only if:
-    - $(σ_1,σ_2)$ is short;
     - $ntt(σ_2)\cdot σ_4==ntt(1)$;
-    - $pk==H(σ_4\cdot (ntt(HashToPoint(r\mid\mid m,q,n)-σ_1)))$.
-<!-- - By picking HashToPoint=NTTINV(PRNG_{Keccak}(x)) and $H=keccak(NTT(x))$, the last line of the verification is equivalent to
-   - $pk== keccak(ntt(s_2^{-1}).PRNG_{Keccak}(x)- ntt(s_1)) $
-   - this selection only requires two NTT transforms and no inverse NTT. -->
+    - $(σ_1,σ_2)$ is short;
+    - $pk==H(σ_4\cdot (ntt(HashToPoint(r\mid\mid m)-σ_1)))$.
 
-Using this verification, we compute only **2NTT** (+ additional hashes and vectorized arithmetic) for the verification. We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For Hardware implementations, avoiding a NTTINV reduces the total required gates. Using a pipeline, it also enables to reuse the same NTT circuit inducing only latency of one stage of the implementation.
+Using this verification, we compute only **2NTT** (+ additional hashes and vectorized arithmetic) for the verification. This matches with the number of NTT in Falcon (without the recovery mode).
 
+We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For hardware implementations, avoiding a NTTINV reduces the total required gates. Using a pipeline, it also enables to reuse the same NTT circuit inducing only latency of one stage of the implementation.
 
-
-Remarks:
-- ntt(1) is the constant equal to a one at each position (trivial equality test)
-<!-- - defining HashToPoint as NTTINV(PRNG_Keccak(x)) avoid a NTT transform, the computation of $H(s_2^{-1}(HashToPoint(r\mid\mid m,q,n))-s_1)$ only requires then a single InvNTT -->
-- only two NTT transformations are required, leading to a verification time equivalent to the falcon without recovery
+<!-- 
 - the NTT used here is the NWC defined in NTT-EIP
 - PRNG_Keccak is a construction that generates the desired output only using keccak (EVM friendly) 
-- Defining H as H=ntt(keccak(c) remove to use Inverse NTT, this reduces the surface of hardware implementation.
+- Defining H as H=ntt(keccak(c) remove to use Inverse NTT, this reduces the surface of hardware implementation. -->
 
 
 ## BENCHMARKS
 
 
-### SOLIDITY
+### Solidity
 
 
 | Function                   | Description               | gas cost | Tests Status |
@@ -161,7 +158,7 @@ Remarks:
 | falcon.verify_iterative         | Use of precomputed NTT public key form, custom iterative NTT | 8.3 M| OK|
 | falcon.recover         | Use of hinted $s_2^{-1}$, custom iterative NTT | 8.3 M (Theoretical) | TBC|
 
-### YUL
+### Yul
 
 Upon confirmation of the optimal algorithm for NTT, its critical parts have been implemented in Yul, benefiting from the extcodecopy trick described in 3.3, stack optimization, and variable control.
 
@@ -172,7 +169,7 @@ Upon confirmation of the optimal algorithm for NTT, its critical parts have been
 | falcon.verify_opt       | ZKNOX_NTT with precomputations         | 3.6M | OK|
 
 
-### PYTHON
+### Python
 
 NTT implementation are benchmarked against Tetration implementation. The implementation enables to select the XOF function and the algorithm to compute NTT (iterative or recursive).
 
@@ -212,7 +209,7 @@ NTT implementation are benchmarked against Tetration implementation. The impleme
 ## CONCLUSION
 
 This repo provides a highly optimized version of FALCON. Order of magnitudes were gained compared to other implementations. In our search, we also devise a way to implement falcon with recovery without requiring the inverse NTT transformation (only forward).
-Despite those efforts, it doesn't seem plausible to reach operational (below 1M) verification cost. Nevertheless, the provided code allow Account Abtraction using 7702 or 4337 from today.
+Despite those efforts, it does not seem plausible to reach operational (below 1M) verification cost. Nevertheless, the provided code allow Account Abtraction using 7702 or 4337 from today.
 The architecture also demonstrates that providing NTT would allow an acceptable cost, and provide more genericity and agility in the PQ signature candidate of Ethereum. For this reason [NTT-EIP]() is submitted.
 
 ## REFERENCES
