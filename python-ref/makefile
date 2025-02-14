@@ -13,6 +13,10 @@ test:
 	$(PYTHON) test.py
 	$(PYTHON) -m unittest discover -v
 	
+
+bench:
+	$(PYTHON) -m bench_signature -v
+
 test_keccak_prng:
 	$(PYTHON) -m unittest test_keccak_prng -v
 
