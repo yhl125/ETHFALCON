@@ -124,7 +124,7 @@ contract SignatureTestVectors is Test {
             sig.s2[i] = tmp_s2[i];
             sig.ntt_sm2[i] = tmp_s2_inv_ntt[i];
         }
-        // signature s2 inverse ntt
+
         bytes memory salt =
             "\x42\x85\x0c\xc7\x80\xd7\xde\xa3\x20\x0d\x18\x59\x43\x39\x7d\xc6\x3f\x66\x65\xef\xda\xc6\x81\x40\x35\xe7\x91\xc9\xdf\x0d\x37\x84\x69\xe5\x68\xbd\xba\x8d\xf8\x7b";
         // salt and message hack because of Tetration confusion
@@ -133,6 +133,6 @@ contract SignatureTestVectors is Test {
         // message
         bytes memory message = "My name is Renaud";
 
-        //recovered_pk=falcon.recover(message, sig);, as of 14/02, norm too large
+        recovered_pk = falcon.recover(message, sig); // as of 14/02, norm too large
     }
 }
