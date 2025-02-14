@@ -52,6 +52,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     enc_s = sig[HEAD_LEN + SALT_LEN:]
     s1 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
+    s1 = [elt % q for elt in s1]
     s1_inv = Poly(s1, q).inverse().coeffs
     h = sk.hash_to_point(salt, message.encode())
     h_ntt = Poly(h, q).ntt()
