@@ -141,7 +141,6 @@ contract ZKNOX_FalconTest is Test {
         signature.salt =
             "\xc5\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97";
 
-       
         for (uint256 i = 0; i < 512; i++) {
             signature.s2[i] = uint256(tmps2[i]);
         }
@@ -152,7 +151,7 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             h[i] = ntt_h[i];
         }
-        assertEq(true,falcon.verify_opt(msgs, signature, h));
+        assertEq(true, falcon.verify_opt(msgs, signature, h));
     }
 
     /**
@@ -183,7 +182,7 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             h[i] = tmph[i];
         }
-        assertEq(true,falcon.verify(msg1, signature, h));
+        assertEq(true, falcon.verify(msg1, signature, h));
 
         // Another (message, salt) with the same signature
         bytes memory msg2 = "falcon in sol now?\xc5";
@@ -228,8 +227,7 @@ contract ZKNOX_FalconTest is Test {
         bytes memory msg4 = "Send ______ 1 USDC ______ to vitalik.eth and 50000 USDC to RektMe.eth!";
         // salt
         sig.salt = "";
-        falcon.verify(msg4, sig, pk);//
-
+        falcon.verify(msg4, sig, pk); //
         result = falcon.verify(msg4, signature, h);
         assertEq(result, false);
     }

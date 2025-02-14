@@ -77,7 +77,7 @@ contract ZKNOX_falconrec {
         if (signature.s1.length != 512) revert("Invalid s1 length"); //"Invalid s1 length"
         if (signature.s2.length != 512) revert("Invalid s2 length"); //"Invalid s2 length"
         if (signature.ntt_sm2.length != 512) revert("Invalid hint length"); //"Invalid salt length"
-        
+
         //(s1,s2) must be short
         uint256 norm = 0;
         for (uint256 i = 0; i < n; i++) {
@@ -95,7 +95,6 @@ contract ZKNOX_falconrec {
         }
 
         return address(0);
-
 
         s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev()); //ntt(s2)
         //ntt(s2)*ntt(s2^-1)==ntt(1)?
