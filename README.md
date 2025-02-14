@@ -29,6 +29,17 @@ The repository implements several tweaked version of FALCON, optimized for diffe
   <td>An EVM Friendly version of FALCON using keccak instead of SHAKE for XOF</td>
   <td> OK </td>
   </tr>
+  </tr>
+   <td>FALCON-SOLREC</td>
+  <td>Tetration </td>
+  <td>A  recovery version, compatible with FALCON SOLIDITY XOF</td>
+  <td> OK </td>
+  </tr>
+  <td>FALCONRIP</td>
+  <td>ASANSO </td>
+  <td>FALCON RIP draft by [ASANSO](https://github.com/asanso/RIPs/blob/master/RIPS/rip-falcon.md) </td>
+  <td> OK </td>
+  </tr>
   <td>EPERVIER</td>
   <td>ZKNOX </td>
   <td>An EVM Friendly version of FALCONREC  avoiding expensive operations </td>
@@ -38,11 +49,11 @@ The repository implements several tweaked version of FALCON, optimized for diffe
 </table>   
 
 The difference lies mainly in the definition of the inner expandable hash functions (XOF) required in $HashToPoint$ and $H$ (this latest only for recovery).
-
+Those function being non standard, the  code provided by authors is the specification until further notice.
 <table>
   <tr>
     <th>Algorithm</th>
-    <th> XOF core function </th>
+    <th> XOF </th>
     <th> H </th>
   </tr>
   <td> FALCON </td>
@@ -51,12 +62,17 @@ The difference lies mainly in the definition of the inner expandable hash functi
   </tr>
   </tr>
     <td> FALCON-SOLIDITY </td>
-    <td> Keccak </td>
+    <td> Keccak-OFB </td>
+    <td> N/A </td>
+  </tr>
+   </tr>
+    <td> FALCONRIP </td>
+    <td> Keccak-CTR </td>
     <td> N/A </td>
   </tr>
  </tr>
   <td> EPERVIER </td>
-  <td> Keccak </td>
+  <td> Keccak-CTR (WIP) </td>
   <td> Keccak(NTT(x)) </td>
   </tr>
 
