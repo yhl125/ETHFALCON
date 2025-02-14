@@ -91,7 +91,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("// signature s1\n")
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_s1 = [uint({}), {}];\n".format(
-        s1[0], ','.join(map(str, s2[1:]))))
+        s1[0], ','.join(map(str, s1[1:]))))
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n".format(
         s2[0], ','.join(map(str, s2[1:]))))
