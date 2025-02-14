@@ -32,6 +32,7 @@ test_epervier:
 generate_test_vectors:
 	# $(PYTHON) -m generate_epervier_test_vectors -v
 	$(PYTHON) -m generate_signature_test_vectors -v
+	forge fmt
 
 
 profile:
