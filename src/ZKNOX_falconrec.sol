@@ -74,11 +74,11 @@ contract ZKNOX_falconrec {
     /* A falcon with recovery implementation*/
     function falconrecover(bytes memory msgs, Signature memory signature) public view returns (address result) {
         if (signature.salt.length != 40) revert(); //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s2.length != 512) revert(); //"Invalid s0 length"
         if (signature.s1.length != 512) revert(); //"Invalid s1 length"
+        if (signature.s2.length != 512) revert(); //"Invalid s2 length"
         if (signature.ntt_sm2.length != 512) revert(); //"Invalid salt length"
 
-        //(s0,s1) must be short
+        //(s1,s2) must be short
         uint256 norm = 0;
         for (uint256 i = 0; i < n; i++) {
             norm += signature.s1[i] * signature.s1[i];
