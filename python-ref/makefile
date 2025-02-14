@@ -30,8 +30,9 @@ test_epervier:
 	$(PYTHON) -m unittest test_falcon_epervier -v
 
 generate_test_vectors:
-	# $(PYTHON) -m generate_epervier_test_vectors -v
-	$(PYTHON) -m generate_signature_test_vectors -v
+	$(PYTHON) -m generate_falcon_test_vectors -v
+	# $(PYTHON) -m generate_falcon_recovery_test_vectors -v
+	# $(PYTHON) -m generate_falcon_epervier_test_vectors -v
 	forge fmt
 
 
