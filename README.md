@@ -129,7 +129,7 @@ The performance improvement brought by ZKNOX to this version comes from :
 **Optimization of FalconRec.**
 
 In order to optimize the verification of FalconRec, we use a classical trick in ZK implementations by providing $s_2^{-1}$ as an extra value (a hint) in the calldata, in the NTT domain (i.e. we provide `ntt(s2Inverse)`). Then, the verifier needs to check that the hint is indeed the inverse of $s_2$:
-- The public key remains $pk = H(m)$ for some collision-resistant hash function $H$;
+- The public key remains $pk = H(h)$ for some collision-resistant hash function $H$;
 - The signature becomes $σ  =(s_1,s_2,r,ntt(s_2^{-1}))$,
 - The verification splits as:
   - $ntt(σ_2)\cdot σ_4 == 1$,

@@ -384,10 +384,6 @@ class SecretKey:
         self_h = Poly(self.h, q, ntt=ntt)
         s0 = hashed - s1 * self_h
         s0 = [(coef + (q >> 1)) % q - (q >> 1) for coef in s0.coeffs]
-        print("s0={}".format(s0))
-        print("s1={}".format(s1.coeffs))
-        print("h={}".format(self_h.coeffs))
-        print("hashed={}".format(hashed.coeffs))
 
         # Check that the (s0, s1) is short
         norm_sign = sum(coef ** 2 for coef in s0)

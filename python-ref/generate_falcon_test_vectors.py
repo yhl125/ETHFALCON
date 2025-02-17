@@ -1,6 +1,5 @@
 import hashlib
 from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey, PublicKey
-from polyntt.poly import Poly
 from common import q
 from scripts.sign_KAT import sign_KAT
 from keccaxof import KeccaXOF
@@ -12,10 +11,6 @@ def deterministic_salt(x, seed="deterministic_salt"):
     first_bytes = hashlib.sha256(f"{seed}{x}".encode()).digest()
     last_bytes = hashlib.sha256(f"{seed}".encode()+first_bytes).digest()
     return first_bytes + last_bytes[0:8]
-
-
-def constant_salt(x):
-    return b"\xc5\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97"
 
 
 file = open("../test/ZKNOXFalconTestVectors.sol", 'w')
@@ -71,11 +66,9 @@ contract ZKNOX_FalconTest is Test {
 """
 file.write(header)
 
-# for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
-for (i, message) in enumerate(["falcon in sol now?"]):
+for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
     sig = sk.sign(message.encode(),
-                  #   randombytes=deterministic_salt, xof=KeccaXOF)
-                  randombytes=constant_salt, xof=KeccaXOF)
+                  randombytes=lambda x: deterministic_salt(x, seed=str(i)), xof=KeccaXOF)
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     enc_s = sig[HEAD_LEN + SALT_LEN:]
     s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
