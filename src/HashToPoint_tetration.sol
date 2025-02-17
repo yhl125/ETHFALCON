@@ -52,7 +52,7 @@ function hashToPoint(bytes memory salt, bytes memory msgHash, uint256 q, uint256
     uint256[] memory hashed = new uint256[](512);
     uint256 i = 0;
     uint256 j = 0;
-    bytes32 tmp = keccak256(abi.encodePacked(salt, msgHash));
+    bytes32 tmp = keccak256(abi.encodePacked(msgHash, salt));
     uint16[16] memory sample = splitToHex(tmp);
     uint256 k = (1 << 16) / q;
     uint256 kq = k * q;

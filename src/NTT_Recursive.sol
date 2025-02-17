@@ -11,15 +11,15 @@ contract NTT {
     mapping(uint256 => uint256[]) w;
 
     constructor() {
-        // prettier-ignore
+        // forgefmt: disable-next-line
         w[2] = [1479, 10810];
-        // prettier-ignore
+        // forgefmt: disable-next-line
         w[4] = [4043, 8246, 5146, 7143];
-        // prettier-ignore
+        // forgefmt: disable-next-line
         w[8] = [5736, 6553, 4134, 8155, 722, 11567, 1305, 10984];
-        // prettier-ignore
+        // forgefmt: disable-next-line
         w[16] = [1646, 10643, 1212, 11077, 5860, 6429, 3195, 9094, 2545, 9744, 3621, 8668, 3504, 8785, 3542, 8747];
-        // prettier-ignore
+        // forgefmt: disable-next-line
         w[32] = [
             4591,
             7698,
@@ -54,7 +54,7 @@ contract NTT {
             2639,
             9650
         ];
-        // prettier-ignore
+        // forgefmt: disable-next-line
         w[64] = [
             1000,
             11289,
@@ -121,7 +121,7 @@ contract NTT {
             790,
             11499
         ];
-        // prettier-ignore
+        // forgefmt: disable-next-line
         w[128] = [
             544,
             11745,
@@ -252,7 +252,7 @@ contract NTT {
             1428,
             10861
         ];
-        // prettier-ignore
+        // forgefmt: disable-next-line
         w[256] = [
             1663,
             10626,
@@ -511,7 +511,7 @@ contract NTT {
             2481,
             9808
         ];
-        // prettier-ignore
+        // forgefmt: disable-next-line
         w[512] = [
             3957,
             8332,
@@ -1028,7 +1028,7 @@ contract NTT {
         ];
     }
 
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256[12289] inv_mod_q = [
         0,
         1,

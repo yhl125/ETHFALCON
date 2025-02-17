@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 contract NTT_iterative {
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256[1024] psi_rev = [
         uint256(1),
         1479,
@@ -1029,7 +1029,7 @@ contract NTT_iterative {
         21,
         6481
     ];
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256[1024] psi_inv_rev = [
         uint256(1),
         10810,
@@ -2097,17 +2097,17 @@ contract NTT_iterative {
         t = n
         m = 1
         while m < n:
-            t //= 2
-            for i in range(m):
-                j1 = 2*i*t
-                j2 = j1+t-1
-                S = self.ψ_rev[m+i]
-                for j in range(j1, j2+1):
-                    U = a[j]
-                    V = a[j+t]*S
-                    a[j] = (U+V) % self.q
-                    a[j+t] = (U-V) % self.q
-            m = 2*m
+    t //= 2
+    for i in range(m):
+        j1 = 2*i*t
+        j2 = j1+t-1
+        S = self.ψ_rev[m+i]
+        for j in range(j1, j2+1):
+    U = a[j]
+    V = a[j+t]*S
+    a[j] = (U+V) % self.q
+    a[j+t] = (U-V) % self.q
+    m = 2*m
         return a
     */
 
@@ -2144,21 +2144,21 @@ contract NTT_iterative {
         t = 1
         m = n
         while m > 1:
-            j1 = 0
-            h = m//2
-            for i in range(h):
-                j2 = j1+t-1
-                S = self.ψ_inv_rev[h+i]
-                for j in range(j1, j2+1):
-                    U = a[j]
-                    V = a[j+t]
-                    a[j] = (U+V) % self.q
-                    a[j+t] = ((U-V) * S) % self.q//end j
-                j1 += 2*t//, end i
-            t *= 2
-            m //= 2//end while
+    j1 = 0
+    h = m//2
+    for i in range(h):
+        j2 = j1+t-1
+        S = self.ψ_inv_rev[h+i]
+        for j in range(j1, j2+1):
+    U = a[j]
+    V = a[j+t]
+    a[j] = (U+V) % self.q
+    a[j+t] = ((U-V) * S) % self.q//end j
+        j1 += 2*t//, end i
+    t *= 2
+    m //= 2//end while
         for j in range(n):
-            a[j] = (a[j] * n_inv[self.q][n]) % self.q
+    a[j] = (a[j] * n_inv[self.q][n]) % self.q
         return a
     */
 

@@ -112,7 +112,6 @@ contract ZKNOX_falcon {
             norm += s1[i] * s1[i];
             norm += s2[i] * s2[i];
         }
-
         if (norm > sigBound) {
             result = false;
         } else {

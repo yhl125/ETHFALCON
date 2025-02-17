@@ -5,6 +5,7 @@ import {NTT} from "./NTT_Recursive.sol";
 import {NTT_iterative} from "./NTT_Iterative.sol";
 import {Test, console} from "forge-std/Test.sol";
 // TODO: make it a library (aka unfuck constants/data)
+import "./HashToPoint_tetration.sol"; //not recommended, here for benchmarks against tetration only
 
 contract ETHFalcon {
     uint256 constant n = 512;
@@ -31,37 +32,37 @@ contract ETHFalcon {
         ntt_iterative = new NTT_iterative();
     }
 
-    function splitToHex(bytes32 x) public pure returns (uint16[16] memory) {
-        uint16[16] memory res;
-        for (uint256 i = 0; i < 16; i++) {
-            res[i] = uint16(uint256(x) >> ((15 - i) * 16));
-        }
-        return res;
-    }
+    // function splitToHex(bytes32 x) public pure returns (uint16[16] memory) {
+    //     uint16[16] memory res;
+    //     for (uint256 i = 0; i < 16; i++) {
+    //         res[i] = uint16(uint256(x) >> ((15 - i) * 16));
+    //     }
+    //     return res;
+    // }
 
-    //note: an expandable function version of poseidon, does it exist ?
-    function hashToPoint(bytes memory salt, bytes memory msgHash) public pure returns (uint256[] memory) {
-        uint256[] memory hashed = new uint256[](512);
-        uint256 i = 0;
-        uint256 j = 0;
-        bytes32 tmp = keccak256(abi.encodePacked(salt, msgHash));
-        uint16[16] memory sample = splitToHex(tmp);
-        uint256 k = (1 << 16) / q;
-        uint256 kq = k * q;
-        while (i < n) {
-            if (j == 16) {
-                tmp = keccak256(abi.encodePacked(tmp));
-                sample = splitToHex(tmp);
-                j = 0;
-            }
-            if (sample[j] < kq) {
-                hashed[i] = sample[j] % q;
-                i++;
-            }
-            j++;
-        }
-        return hashed;
-    }
+    // //note: an expandable function version of poseidon, does it exist ?
+    // function hashToPoint(bytes memory salt, bytes memory msgHash) public pure returns (uint256[] memory) {
+    //     uint256[] memory hashed = new uint256[](512);
+    //     uint256 i = 0;
+    //     uint256 j = 0;
+    //     bytes32 tmp = keccak256(abi.encodePacked(salt, msgHash));
+    //     uint16[16] memory sample = splitToHex(tmp);
+    //     uint256 k = (1 << 16) / q;
+    //     uint256 kq = k * q;
+    //     while (i < n) {
+    //         if (j == 16) {
+    //             tmp = keccak256(abi.encodePacked(tmp));
+    //             sample = splitToHex(tmp);
+    //             j = 0;
+    //         }
+    //         if (sample[j] < kq) {
+    //             hashed[i] = sample[j] % q;
+    //             i++;
+    //         }
+    //         j++;
+    //     }
+    //     return hashed;
+    // }
 
     function verify(
         bytes memory msgs,
@@ -78,7 +79,7 @@ contract ETHFalcon {
                 s1[i] = uint256(signature.s1[i]);
             }
         }
-        uint256[] memory hashed = hashToPoint(msgs, signature.salt);
+        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
         uint256[] memory s0 = ntt.subZQ(hashed, ntt.mulZQ(s1, h));
         uint256 qs1 = 6144; // q >> 1;
         // normalize s0 // to positive cuz you'll **2 anyway?
@@ -123,7 +124,7 @@ contract ETHFalcon {
                 s1[i] = uint256(signature.s1[i]);
             }
         }
-        uint256[] memory hashed = hashToPoint(msgs, signature.salt);
+        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
         uint256[] memory s0 = ntt.subZQ(hashed, ntt.mulZQ_opt(s1, ntt_h));
         uint256 qs1 = 6144; // q >> 1;
         // normalize s0 // to positive cuz you'll **2 anyway?
@@ -166,7 +167,7 @@ contract ETHFalcon {
                 s1[i] = uint256(signature.s1[i]);
             }
         }
-        uint256[] memory hashed = hashToPoint(msgs, signature.salt);
+        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
         uint256[] memory s0 = ntt_iterative.subZQ(hashed, ntt_iterative.mul_halfNTTPoly(s1, ntt_h));
         uint256 qs1 = 6144; // q >> 1;
         // normalize s0 // to positive cuz you'll **2 anyway?

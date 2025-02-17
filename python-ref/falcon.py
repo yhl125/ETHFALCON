@@ -279,8 +279,8 @@ class SecretKey:
         k = (1 << 16) // q
         # Create a XOF object and hash the salt and message.
         xof = xof.new()
-        xof.update(salt)
         xof.update(message)
+        xof.update(salt)
         xof.flip()
         # Output pseudorandom bytes and map them to coefficients.
         hashed = [0 for i in range(n)]
