@@ -38,6 +38,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import {console} from "forge-std/Test.sol";
+
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
@@ -83,7 +85,7 @@ contract ZKNOX_falcon {
             s2[i] = uint256(signature.s2[i]);
         }
 
-        uint256[] memory hashed = hashToPoint(msgs, signature.salt, q, n);
+        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
 
         uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s2, h), q);
 
@@ -136,7 +138,7 @@ contract ZKNOX_falcon {
             s2[i] = uint256(signature.s2[i]);
         }
 
-        uint256[] memory hashed = hashToPoint(msgs, signature.salt, q, n);
+        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
 
         uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_HALFMUL(s2, ntth), q);
 
