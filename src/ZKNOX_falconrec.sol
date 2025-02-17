@@ -38,6 +38,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import {console} from "forge-std/Test.sol";
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
@@ -78,11 +79,20 @@ contract ZKNOX_falconrec {
         if (signature.s2.length != 512) revert("Invalid s2 length"); //"Invalid s2 length"
         if (signature.ntt_sm2.length != 512) revert("Invalid hint length"); //"Invalid salt length"
 
-        //(s1,s2) must be short
+        // (s1,s2) must be short
         uint256 norm = 0;
+        // As (σ1,σ2) are given with positive values, small negative values are actually large (close to q).
         for (uint256 i = 0; i < n; i++) {
-            norm += signature.s1[i] * signature.s1[i];
-            norm += signature.s2[i] * signature.s2[i];
+            if (signature.s1[i] > qs1) {
+                norm += (q - signature.s1[i]) * (q - signature.s1[i]);
+            } else {
+                norm += signature.s1[i] * signature.s1[i];
+            }
+            if (signature.s2[i] > qs1) {
+                norm += (q - signature.s2[i]) * (q - signature.s2[i]);
+            } else {
+                norm += signature.s2[i] * signature.s2[i];
+            }
         }
 
         if (norm > sigBound) {
@@ -94,27 +104,24 @@ contract ZKNOX_falconrec {
             s2[i] = uint256(signature.s2[i]);
         }
 
-        return address(0);
-
         s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev()); //ntt(s2)
         //ntt(s2)*ntt(s2^-1)==ntt(1)?
         for (uint256 i = 0; i < 512; i++) {
             if (mulmod(s2[i], signature.ntt_sm2[i], q) != 1) revert("wrong hint");
         }
 
-        uint256[] memory hashed = hashToPoint(msgs, signature.salt, q, n);
+        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
         for (uint256 i = 0; i < 512; i++) {
             //hashToPoint-s1
             hashed[i] = addmod(hashed[i], q - signature.s1[i], q);
         }
-        hashed = ntt.ZKNOX_NTTFW(hashed, ntt.o_psirev()); //ntt(  HashtoPoint(r,m,q,n)) -s1 )
 
         for (uint256 i = 0; i < 512; i++) {
             s2[i] = uint256(signature.ntt_sm2[i]);
         }
+        uint256[] memory hashed_mul_s2 = ntt.ZKNOX_NTT_HALFMUL(hashed, s2);
 
-        hashed = ntt.ZKNOX_VECMULMOD(hashed, s2, q);
-        return HashToAddress(abi.encodePacked(hashed));
+        return HashToAddress(abi.encodePacked(hashed_mul_s2));
     }
 } //end of contract
 
