@@ -6,6 +6,8 @@ from keccak_prng import KeccakPRNG
 from polyntt.poly import Poly
 from polyntt.ntt_iterative import NTTIterative
 from Crypto.Hash import keccak
+from eth_abi.packed import encode_packed
+
 # Randomness
 from os import urandom
 
@@ -14,8 +16,10 @@ class RecoveryModeSecretKey(SecretKey):
     def __init__(self, n, polys=None, ntt='NTTIterative'):
         super().__init__(n, polys, ntt)
         keccak_ctx = keccak.new(digest_bytes=32)
-        keccak_ctx.update(b''.join(x.to_bytes(3, 'big') for x in self.h))
-        self.pk = keccak_ctx.digest()
+        keccak_ctx.update(encode_packed(
+            ["uint256"] * len(self.h), self.h))
+        # get the uint160 part of the keccak256 output
+        self.pk = int.from_bytes(keccak_ctx.digest()[-20:], byteorder='big')
 
     def sign(self, message, randombytes=urandom, xof=KeccakPRNG):
         """
@@ -58,6 +62,10 @@ class RecoveryModeSecretKey(SecretKey):
                         return header + salt + enc_s + bytes_s1_inv_ntt
 
     def verify(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
+        print("Not Implemented")
+        return False
+
+    def recover(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
         """
         Verify a signature.
         """
@@ -94,13 +102,13 @@ class RecoveryModeSecretKey(SecretKey):
 
         # Compute s0 and normalize its coefficients in (-q/2, q/2]
         hashed = Poly(self.hash_to_point(message, salt, xof=xof), q, ntt=ntt)
-        s0 = Poly(s0, q, ntt=ntt)
+        # we use positive coefficients for s0 here
+        s0 = Poly([elt + q if elt < 0 else elt for elt in s0], q, ntt=ntt)
         # recover h
-        h = (hashed - s0).mul_opt(s_1_inv_ntt)
-        bytes_h = b''.join(x.to_bytes(3, 'big') for x in h.coeffs)
+        hashed_minus_s0_in_ntt = (hashed-s0).ntt()
+        h_ntt = hashed.NTT.vec_mul(hashed_minus_s0_in_ntt, s_1_inv_ntt)
+        h = hashed.NTT.intt(h_ntt)
+
         keccak_ctx = keccak.new(digest_bytes=32)
-        keccak_ctx.update(bytes_h)
-        if self.pk != keccak_ctx.digest():
-            return False
-        # If all checks are passed, accept
-        return True
+        keccak_ctx.update(encode_packed(["uint256"] * len(h), h))
+        return int.from_bytes(keccak_ctx.digest()[-20:], byteorder='big')
