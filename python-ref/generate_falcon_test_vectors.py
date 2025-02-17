@@ -14,6 +14,10 @@ def deterministic_salt(x, seed="deterministic_salt"):
     return first_bytes + last_bytes[0:8]
 
 
+def constant_salt(x):
+    return b"\xc5\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97"
+
+
 file = open("../test/ZKNOXFalconTestVectors.sol", 'w')
 n = 512
 # An example of secret key
@@ -67,16 +71,15 @@ contract ZKNOX_FalconTest is Test {
 """
 file.write(header)
 
-for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
+# for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
+for (i, message) in enumerate(["falcon in sol now?"]):
     sig = sk.sign(message.encode(),
-                  randombytes=deterministic_salt, xof=KeccaXOF)
+                  #   randombytes=deterministic_salt, xof=KeccaXOF)
+                  randombytes=constant_salt, xof=KeccaXOF)
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     enc_s = sig[HEAD_LEN + SALT_LEN:]
     s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
     s2 = [elt % q for elt in s2]
-    s2_inv = Poly(s2, q).inverse().coeffs
-    h = sk.hash_to_point(salt, message.encode())
-    h_ntt = Poly(h, q).ntt()
     assert sk.verify(message.encode(), sig, xof=KeccaXOF)
 
     file.write("function testVector{}() public view {{\n".format(i))
@@ -93,6 +96,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n".format(
         s2[0], ','.join(map(str, s2[1:]))))
+
     file.write("ZKNOX_falcon.Signature memory sig;\n")
     file.write("for (uint i = 0; i < 512; i++) {\n")
     file.write("\tsig.s2[i] = tmp_s2[i];\n")
@@ -100,9 +104,9 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
 
     file.write("// message\n")
     file.write("bytes memory message  = \"{}\"; \n".format(message))
-    file.write('// salt and message hack because of Tetration confusion\n')
-    file.write("sig.salt = message;\nmessage = \"{}\"; \n".format(
+    file.write("sig.salt = \"{}\"; \n".format(
         "".join(f"\\x{b:02x}" for b in salt)))
-    file.write("falcon.verify(message, sig, pk);\n")
+    file.write("bool result = falcon.verify(message, sig, pk);\n")
+    file.write("assertEq(true, result);")
     file.write("}\n")
 file.write("}\n")
