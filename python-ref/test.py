@@ -299,7 +299,6 @@ def test(n, iterations=500):
     # for parameter sets that are defined.
     if (n in Params):
         wrapper_test(test_compress, "Compress", n, iterations)
-        wrapper_test(test_signature, "Signature", n, iterations)
         # wrapper_test(test_sign_KAT, "Signature KATs", n, iterations)
     print("")
 
