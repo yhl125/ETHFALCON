@@ -31,8 +31,10 @@ test_epervier:
 
 generate_test_vectors:
 	$(PYTHON) -m generate_falcon_tetration_test_vectors -v
+	$(PYTHON) -m generate_falcon_zknox_test_vectors -v
 	$(PYTHON) -m generate_falcon_recovery_tetration_test_vectors -v
 	$(PYTHON) -m generate_falcon_epervier_tetration_test_vectors -v
+	
 	forge fmt
 
 simple:

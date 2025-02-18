@@ -38,55 +38,74 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import {Test, console} from "forge-std/Test.sol";
 import "./ZKNOX_keccak_prng.sol";
 
-function splitToHex(bytes32 x) pure returns (uint16[16] memory) {
-    uint16[16] memory res;
-    for (uint256 i = 0; i < 16; i++) {
-        res[i] = uint16(uint256(x) >> ((15 - i) * 16));
-    }
-    return res;
-}
+contract ZKNOX_HashToPoint {
+    constructor() {}
 
-function hashToPoint(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n) pure returns (uint256[] memory) {
-    // HashToPoint from Tetration CopyPasta
-    uint256[] memory hashed = new uint256[](512);
-    uint256 i = 0;
-    uint256 j = 0;
-    bytes32 tmp = keccak256(abi.encodePacked(msgHash, salt));
-    uint16[16] memory sample = splitToHex(tmp);
-    uint256 k = (1 << 16) / q;
-    uint256 kq = k * q;
-    while (i < n) {
-        if (j == 16) {
-            tmp = keccak256(abi.encodePacked(tmp));
-            sample = splitToHex(tmp);
-            j = 0;
+    function splitToHex(bytes32 x) public pure returns (uint16[16] memory) {
+        uint16[16] memory res;
+        for (uint256 i = 0; i < 16; i++) {
+            res[i] = uint16(uint256(x) >> ((15 - i) * 16));
         }
-        if (sample[j] < kq) {
-            hashed[i] = sample[j] % q;
-            i++;
-        }
-        j++;
+        return res;
     }
-    return hashed;
-    // uint256 k = (1 << 16) / q;
-    // ZKNOX_keccak_prng keccak_prng = new ZKNOX_keccak_prng();
-    // keccak_prng.inject(abi.encodePacked(msgHash, salt));
-    // keccak_prng.flip();
 
-    // uint256 kq = k * q;
-    // bytes memory t_bytes;
-    // uint256 t;
-    // uint256[] memory c = new uint256[](512);
-    // uint256 i = 0;
-    // while (i < n) {
-    //     t_bytes = keccak_prng.extract(16);
-    //     assembly{t:=mload(add(t_bytes, 16))}
-    //     if (t < kq) {
-    //         c[i] = t % q;
-    //         i++;
-    //     }
-    // }
-    // return c;
+    function hashToPoint(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
+        public
+        returns (uint256[] memory)
+    {
+        // // HashToPoint from Tetration CopyPasta
+        // // TODO MODIFY WITH THE COMMENTED VERSION BELOW
+        // uint256[] memory hashed = new uint256[](512);
+        // uint256 i = 0;
+        // uint256 j = 0;
+        // bytes32 tmp = keccak256(abi.encodePacked(msgHash, salt));
+        // uint16[16] memory sample = splitToHex(tmp);
+        // uint256 k = (1 << 16) / q;
+        // uint256 kq = k * q;
+        // while (i < n) {
+        //     if (j == 16) {
+        //         tmp = keccak256(abi.encodePacked(tmp));
+        //         sample = splitToHex(tmp);
+        //         j = 0;
+        //     }
+        //     if (sample[j] < kq) {
+        //         hashed[i] = sample[j] % q;
+        //         i++;
+        //     }
+        //     j++;
+        // }
+        // ZKNOX_keccak_prng keccak_prng = new ZKNOX_keccak_prng();
+        // return hashed;
+        uint256 k = (1 << 16) / q;
+        ZKNOX_keccak_prng keccak_prng = new ZKNOX_keccak_prng();
+        keccak_prng.inject(abi.encodePacked(msgHash, salt));
+        keccak_prng.flip();
+
+        uint256 kq = k * q;
+        bytes memory t_bytes;
+        uint256 t;
+        uint256[] memory c = new uint256[](512);
+        uint256 i = 0;
+        while (i < n) {
+            assembly {
+                mstore(add(t_bytes, 32), 0)
+            }
+            t_bytes = keccak_prng.extract(2); // 2 bytes, i.e. 16 bits
+            assembly {
+                t := mload(add(t_bytes, 32))
+            }
+            // console.log(t);
+            t = t >> (256 - 16);
+            // console.log(t);
+            // console.log(kq);
+            if (t < kq) {
+                c[i] = t % q;
+                i++;
+            }
+        }
+        return c;
+    }
 }
