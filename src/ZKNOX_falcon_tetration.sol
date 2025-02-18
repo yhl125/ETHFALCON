@@ -30,8 +30,8 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_falconrec.sol
-///* Description: verify falcon with recovery signature
+///* FILE: ZKNOX_falcon.sol
+///* Description: Compute ethereum friendly version of falcon verification
 /**
  *
  */
@@ -39,90 +39,145 @@
 pragma solidity ^0.8.25;
 
 import {console} from "forge-std/Test.sol";
+
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./HashToPoint_ZKNOX.sol";
+import "./HashToPoint_tetration.sol";
 
-contract ZKNOX_falcon_epervier {
+//select the XOF to use inside HashToPoint here
+import "./HashToPoint_tetration.sol"; //not recommended, here for benchmarks against tetration only
+
+contract ZKNOX_falcon_tetration {
     //FALCON CONSTANTS
     uint256 constant n = 512;
     uint256 constant sigBound = 34034726;
     uint256 constant sigBytesLen = 666;
     uint256 constant q = 12289;
-    uint256 constant qs1 = 6144; // q >> 1;
+    uint256 qs1 = 6144; // q >> 1;
 
     ZKNOX_NTT ntt;
-    ZKNOX_HashToPoint H2P;
 
     uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;
 
-    constructor(ZKNOX_NTT i_ntt, ZKNOX_HashToPoint h2p) {
+    constructor(ZKNOX_NTT i_ntt) {
         ntt = i_ntt;
-        H2P = h2p;
     }
 
     struct Signature {
         bytes salt;
-        uint256[512] s1;
-        uint256[512] s2;
-        uint256[512] ntt_sm2; //the ntt of the inverse of s1, provided as a hint
+        uint256[512] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
     }
 
-    function HashToAddress(bytes memory m) public pure returns (address) {
-        return address(uint160(uint256(keccak256(m))));
-    }
+    function verify(
+        bytes memory msgs,
+        Signature memory signature,
+        uint256[] memory h // public key
+    ) public view returns (bool result) {
+        if (h.length != 512) return false; //"Invalid public key length"
+        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+        if (signature.s2.length != 512) return false; //"Invalid salt length"
 
-    /* A falcon with recovery implementation*/
-    function recover(bytes memory msgs, Signature memory signature) public returns (address result) {
-        if (signature.salt.length != 40) revert("wrong salt length"); //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s1.length != 512) revert("Invalid s1 length"); //"Invalid s1 length"
-        if (signature.s2.length != 512) revert("Invalid s2 length"); //"Invalid s2 length"
-        if (signature.ntt_sm2.length != 512) revert("Invalid hint length"); //"Invalid salt length"
-
-        // (s1,s2) must be short
-        uint256 norm = 0;
-        // As (σ1,σ2) are given with positive values, small negative values are actually large (close to q).
-        for (uint256 i = 0; i < n; i++) {
-            if (signature.s1[i] > qs1) {
-                norm += (q - signature.s1[i]) * (q - signature.s1[i]);
-            } else {
-                norm += signature.s1[i] * signature.s1[i];
-            }
-            if (signature.s2[i] > qs1) {
-                norm += (q - signature.s2[i]) * (q - signature.s2[i]);
-            } else {
-                norm += signature.s2[i] * signature.s2[i];
-            }
-        }
-
-        if (norm > sigBound) {
-            revert("norm too large");
-        }
+        result = false;
 
         uint256[] memory s2 = new uint256[](512);
         for (uint256 i = 0; i < 512; i++) {
             s2[i] = uint256(signature.s2[i]);
         }
 
-        s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev()); //ntt(s2)
-        //ntt(s2)*ntt(s2^-1)==ntt(1)?
-        for (uint256 i = 0; i < 512; i++) {
-            if (mulmod(s2[i], signature.ntt_sm2[i], q) != 1) revert("wrong hint");
+        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
+
+        uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s2, h), q);
+
+        // normalize s1 // to positive cuz you'll **2 anyway?
+        for (uint256 i = 0; i < n; i++) {
+            if (s1[i] > qs1) {
+                s1[i] = q - s1[i];
+            } else {
+                s1[i] = s1[i];
+            }
         }
 
-        uint256[] memory hashed = H2P.hashToPoint(signature.salt, msgs, q, n);
-        for (uint256 i = 0; i < 512; i++) {
-            //hashToPoint-s1
-            hashed[i] = addmod(hashed[i], q - signature.s1[i], q);
+        // normalize s2
+        for (uint256 i = 0; i < n; i++) {
+            if (s2[i] > qs1) {
+                s2[i] = q - s2[i];
+            } else {
+                s2[i] = s2[i];
+            }
         }
 
-        for (uint256 i = 0; i < 512; i++) {
-            s2[i] = uint256(signature.ntt_sm2[i]);
+        uint256 norm = 0;
+        for (uint256 i = 0; i < n; i++) {
+            norm += s1[i] * s1[i];
+            norm += s2[i] * s2[i];
         }
-        uint256[] memory hashed_mul_s2_ntt = ntt.ZKNOX_VECMULMOD(ntt.ZKNOX_NTTFW(hashed, ntt.o_psirev()), s2, q);
-        return HashToAddress(abi.encodePacked(hashed_mul_s2_ntt));
+        if (norm > sigBound) {
+            result = false;
+        } else {
+            result = true;
+        }
+        return result;
+    }
+
+    //same as above but takes the precomputed ntt(publickey) as input value
+    function verify_opt(
+        bytes memory msgs,
+        Signature memory signature,
+        uint256[] memory ntth // public key
+    ) public view returns (bool result) {
+        if (ntth.length != 512) return false; //"Invalid public key length"
+        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+        if (signature.s2.length != 512) return false; //"Invalid salt length"
+
+        result = false;
+
+        uint256[] memory s2 = new uint256[](512);
+        for (uint256 i = 0; i < 512; i++) {
+            s2[i] = uint256(signature.s2[i]);
+        }
+
+        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
+
+        uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_HALFMUL(s2, ntth), q);
+
+        // normalize s1 // to positive cuz you'll **2 anyway?
+        for (uint256 i = 0; i < n; i++) {
+            if (s1[i] > qs1) {
+                s1[i] = q - s1[i];
+            } else {
+                s1[i] = s1[i];
+            }
+        }
+
+        // normalize s2
+        for (uint256 i = 0; i < n; i++) {
+            if (s2[i] > qs1) {
+                s2[i] = q - s2[i];
+            } else {
+                s2[i] = s2[i];
+            }
+        }
+
+        uint256 norm = 0;
+        for (uint256 i = 0; i < n; i++) {
+            norm += s1[i] * s1[i];
+            norm += s2[i] * s2[i];
+        }
+
+        if (norm > sigBound) {
+            result = false;
+        } else {
+            result = true;
+        }
+        return result;
     }
 } //end of contract
-
+/**
+ *
+ */
+/*                                                                  END OF CONTRACT                                                                                     */
+/**
+ *
+ */
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
