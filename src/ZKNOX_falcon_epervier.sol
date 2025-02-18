@@ -43,7 +43,6 @@ import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
 import "./HashToPoint_ZKNOX.sol";
-
 contract ZKNOX_falcon_epervier {
     //FALCON CONSTANTS
     uint256 constant n = 512;
