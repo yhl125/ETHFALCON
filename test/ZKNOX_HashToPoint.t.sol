@@ -5,9 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import "../src/HashToPoint_ZKNOX.sol";
 
 contract HashToPointZKNOXTest is Test {
-
-    function test_simon() pure public {
-
+    function test_simon() public pure {
         bytes memory salt = "123";
         bytes memory msgHash = "456";
         uint256 q = 12289;
