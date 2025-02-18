@@ -84,10 +84,6 @@ contract ZKNOX_falcon {
             s2[i] = uint256(signature.s2[i]);
         }
         uint256[] memory hashed = H2P.hashToPoint(signature.salt, msgs, q, n);
-        console.log("hashed");
-        for (uint256 i = 0; i < 10; i++) {
-            console.log(hashed[i]);
-        }
 
         uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s2, h), q);
 
