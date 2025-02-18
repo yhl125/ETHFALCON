@@ -24,10 +24,10 @@ pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_NTT.sol";
-import "../src/ZKNOX_falconrec.sol";
+import "../src/ZKNOX_falconrec_tetration.sol";
 
 contract ZKNOX_FalconRecTest is Test {
-    ZKNOX_falconrec falconrec;
+    ZKNOX_falconrec_tetration falconrec;
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
     // forgefmt: disable-next-line
@@ -52,7 +52,7 @@ contract ZKNOX_FalconRecTest is Test {
 
         ntt.update(a_psirev, a_psiInvrev, 12289, 12265); //update ntt with outer contract
 
-        falconrec = new ZKNOX_falconrec(ntt);
+        falconrec = new ZKNOX_falconrec_tetration(ntt);
     }"""
 file.write(header)
 
@@ -87,7 +87,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n\n".format(
         s2[0], ','.join(map(str, s2[1:]))))
-    file.write("ZKNOX_falconrec.Signature memory sig;\n")
+    file.write("ZKNOX_falconrec_tetration.Signature memory sig;\n")
     file.write("// signature s2 inverse ntt\n")
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_s2_inv_ntt = [uint({}), {}];\n".format(

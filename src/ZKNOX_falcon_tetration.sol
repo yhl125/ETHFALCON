@@ -43,9 +43,12 @@ import {console} from "forge-std/Test.sol";
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./HashToPoint_ZKNOX.sol";
+import "./HashToPoint_tetration.sol";
 
-contract ZKNOX_falcon {
+//select the XOF to use inside HashToPoint here
+import "./HashToPoint_tetration.sol"; //not recommended, here for benchmarks against tetration only
+
+contract ZKNOX_falcon_tetration {
     //FALCON CONSTANTS
     uint256 constant n = 512;
     uint256 constant sigBound = 34034726;
