@@ -19,7 +19,7 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
 sk = EpervierSecretKey(n, [f, g, F, G])
 
 header = """
-// code generated using pythonref/generate_falcon_recovery_test_vectors.py.
+// code generated using pythonref/generate_falcon_epervier_tetration_test_vectors.py.
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
