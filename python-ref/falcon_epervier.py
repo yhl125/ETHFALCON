@@ -6,6 +6,8 @@ from keccak_prng import KeccakPRNG
 from polyntt.poly import Poly
 from polyntt.ntt_iterative import NTTIterative
 from Crypto.Hash import keccak
+from eth_abi.packed import encode_packed
+
 # Randomness
 from os import urandom
 
@@ -13,13 +15,13 @@ from os import urandom
 class EpervierSecretKey(SecretKey):
     def __init__(self, n, polys=None, ntt='NTTIterative'):
         super().__init__(n, polys, ntt)
-        self.pk = self.pk_hash(self.h)
-
-    def pk_hash(self, h):
-        h_ntt = Poly(h, q).ntt()
+        T = NTTIterative(q)
+        h_ntt = T.ntt(self.h)
         keccak_ctx = keccak.new(digest_bytes=32)
-        keccak_ctx.update(b''.join(x.to_bytes(3, 'big') for x in h_ntt))
-        return keccak_ctx.digest()
+        keccak_ctx.update(encode_packed(
+            ["uint256"] * len(h_ntt), h_ntt))
+        # get the uint160 part of the keccak256 output
+        self.pk = int.from_bytes(keccak_ctx.digest()[-20:], byteorder='big')
 
     def sign(self, message, randombytes=urandom, xof=KeccakPRNG):
         """
@@ -61,9 +63,9 @@ class EpervierSecretKey(SecretKey):
                     if enc_s is not False:
                         return header + salt + enc_s + bytes_s1_inv_ntt
 
-    def verify(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
+    def recover(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
         """
-        Verify a signature.
+        Recover a public key.
         """
         # Unpack the salt and the short polynomial s1
         salt = signature[HEAD_LEN:HEAD_LEN + SALT_LEN]
@@ -102,10 +104,6 @@ class EpervierSecretKey(SecretKey):
         # recover h
         h_ntt = T.vec_mul((hashed-s0).ntt(), s_1_inv_ntt)
 
-        bytes_h = b''.join(x.to_bytes(3, 'big') for x in h_ntt)
         keccak_ctx = keccak.new(digest_bytes=32)
-        keccak_ctx.update(bytes_h)
-        if self.pk != keccak_ctx.digest():
-            return False
-        # If all checks are passed, accept
-        return True
+        keccak_ctx.update(encode_packed(["uint256"] * len(h_ntt), h_ntt))
+        return int.from_bytes(keccak_ctx.digest()[-20:], byteorder='big')
