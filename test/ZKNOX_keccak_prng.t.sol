@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Keccak256PRNG} from "../src/ZKNOX_keccak_prng.sol";
+import {ZKNOX_keccak_prng} from "../src/ZKNOX_keccak_prng.sol";
 
 contract KeccakPRNGTest is Test {
     // Input and output provided by
@@ -26,19 +26,19 @@ contract KeccakPRNGTest is Test {
     uint256 output_4_2 = 0x1be071eca45961aca979e88e3784a751;
     uint256 output_4_3 = 0x5f19135442b6b848b2f51f7cb58bc583;
 
-    Keccak256PRNG keccak_prng;
+    ZKNOX_keccak_prng keccak_prng;
 
     function setUp() public {}
 
     function test_keccak_prng_test_vectors() public {
         // Test vector 1
-        keccak_prng = new Keccak256PRNG();
+        keccak_prng = new ZKNOX_keccak_prng();
         keccak_prng.inject(input_1);
         keccak_prng.flip();
         assertEq(output_1, keccak_prng.extract(32));
 
         // Test vector 2
-        keccak_prng = new Keccak256PRNG();
+        keccak_prng = new ZKNOX_keccak_prng();
         keccak_prng.inject(input_2);
         keccak_prng.flip();
         bytes memory out_2 = keccak_prng.extract(64);
@@ -49,13 +49,13 @@ contract KeccakPRNGTest is Test {
         assertEq(computed_output_2, output_2);
 
         // Test vector 3
-        keccak_prng = new Keccak256PRNG();
+        keccak_prng = new ZKNOX_keccak_prng();
         keccak_prng.inject(input_3);
         keccak_prng.flip();
         assertEq(output_3, keccak_prng.extract(32));
 
         // Test vector 4
-        keccak_prng = new Keccak256PRNG();
+        keccak_prng = new ZKNOX_keccak_prng();
         keccak_prng.inject(input_4);
         keccak_prng.flip();
 

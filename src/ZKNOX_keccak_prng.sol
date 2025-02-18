@@ -1,95 +1,110 @@
-// SPDX-License-Identifier: UNLICENSED
-//this is a direct translation from https://github.com/coruus/py-keccak/blob/master/fips202/keccak.py
-pragma solidity ^0.8.25;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
 
-//THIS CONTRACT IS WIP, do not bother yet
+/**
+ * @title Keccak256-Based PRNG
+ * @notice A cryptographically secure PRNG based on Keccak-256
+ * @dev Inspired by the C implementation, adapted for Solidity
+ */
 contract ZKNOX_keccak_prng {
-    uint256[24] _KECCAK_RHO =
-        [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 2, 14, 27, 41, 56, 8, 25, 43, 62, 18, 39, 61, 20, 44];
+    // State Variables
+    bytes32 private state;
+    uint64 private counter;
+    bytes private buffer;
+    bool private finalized;
 
-    uint256[24] _KECCAK_PI = [10, 7, 11, 17, 18, 3, 5, 16, 8, 21, 24, 4, 15, 23, 19, 13, 12, 2, 20, 14, 22, 9, 6, 1];
+    // Output buffer
+    bytes32 private outBuffer;
+    uint8 private outBufferPos;
+    bool private outBufferValid;
 
-    uint64[24] _KECCAK_RC = [
-        0x0000000000000001,
-        0x0000000000008082,
-        0x800000000000808a,
-        0x8000000080008000,
-        0x000000000000808b,
-        0x0000000080000001,
-        0x8000000080008081,
-        0x8000000000008009,
-        0x000000000000008a,
-        0x0000000000000088,
-        0x0000000080008009,
-        0x000000008000000a,
-        0x000000008000808b,
-        0x800000000000008b,
-        0x8000000000008089,
-        0x8000000000008003,
-        0x8000000000008002,
-        0x8000000000000080,
-        0x000000000000800a,
-        0x800000008000000a,
-        0x8000000080008081,
-        0x8000000000008080,
-        0x0000000080000001,
-        0x8000000080008008
-    ];
-
-    uint256 constant _SPONGE_ABSORBING = 1;
-    uint256 _SPONGE_SQUEEZING = 2;
-
-    // """Rotate uint64 x left by s.""
-    function rol64(uint256 x, uint256 s) public pure returns (uint64) {
-        return (uint64)(x << s ^ (x >> (64 - s)));
+    /**
+     * @notice Initializes the PRNG state
+     */
+    constructor() {
+        state = bytes32(0);
+        counter = 0;
+        buffer = "";
+        finalized = false;
+        outBufferPos = 0;
+        outBufferValid = false;
     }
 
-    function F1600(uint64[25] memory state) public view returns (uint64[25] memory) {
-        uint64[5] memory bc = [uint64(0), 0, 0, 0, 0];
+    /**
+     * @notice Injects data into the PRNG state
+     * @param input The data to inject
+     */
+    function inject(bytes memory input) public {
+        require(!finalized, "Cannot inject after finalization");
 
-        for (uint256 i = 0; i < 24; i++) {
-            //range(24):
-            uint64 t;
-            //# Parity
-            for (uint256 x = 0; x < 5; x++) {
-                //range(5):
-                bc[x] = 0;
-                for (uint256 y = 0; y < 25; y += 5) {
-                    // range(0, 25, 5):
-                    bc[x] ^= state[x + y];
-                }
-            }
-            //# Theta
-            for (uint256 x = 0; x < 5; x++) {
-                //range(5):
-                t = bc[(x + 4) % 5] ^ rol64(bc[(x + 1) % 5], 1);
-                for (uint64 y = 0; y < 25; y += 5) {
-                    // in range(0, 25, 5):
-                    state[y + x] ^= t;
-                }
+        // Accumulate input into the buffer
+        buffer = abi.encodePacked(buffer, input);
+    }
+
+    /**
+     * @notice Finalizes the state for output generation
+     */
+    function flip() public {
+        require(!finalized, "Already finalized");
+
+        // Initialize state with the Keccak-256 of the buffer
+        state = keccak256(buffer);
+        finalized = true;
+
+        // Reset output buffer
+        outBufferPos = 0;
+        outBufferValid = false;
+    }
+
+    /**
+     * @notice Generates pseudorandom output
+     * @param length The number of bytes to generate
+     * @return randomBytes The generated pseudorandom bytes
+     */
+    function extract(uint256 length) public returns (bytes memory randomBytes) {
+        require(finalized, "PRNG not finalized");
+
+        randomBytes = new bytes(length);
+        uint256 offset = 0;
+
+        // Use any remaining bytes in the output buffer first
+        while (outBufferValid && outBufferPos < 32 && offset < length) {
+            randomBytes[offset] = outBuffer[outBufferPos];
+            outBufferPos++;
+            offset++;
+        }
+
+        // Generate additional blocks as needed
+        while (offset < length) {
+            // Prepare input block: state || counter (big-endian)
+            bytes memory blockInput = abi.encodePacked(state, uint64ToBytes(counter));
+
+            // Generate the next output block using Keccak-256
+            outBuffer = keccak256(blockInput);
+            outBufferPos = 0;
+            outBufferValid = true;
+
+            // Copy to output
+            while (outBufferPos < 32 && offset < length) {
+                randomBytes[offset] = outBuffer[outBufferPos];
+                outBufferPos++;
+                offset++;
             }
 
-            //# Rho and pi
-            t = state[1];
-            for (uint256 x = 0; x < 24; x++) {
-                bc[0] = state[_KECCAK_PI[x]];
-                state[_KECCAK_PI[x]] = rol64(t, _KECCAK_RHO[x]);
-                t = bc[0];
-            }
+            // Increment the counter
+            counter++;
+        }
+    }
 
-            for (uint256 y = 0; y < 25; y += 5) {
-                // in range(0, 25, 5):
-                for (uint256 x = 0; x < 5; x++) {
-                    //range(5):
-                    bc[x] = state[y + x];
-                }
-                for (uint256 x = 0; x < 5; x++) {
-                    //range(5):
-                    state[y + x] = bc[x] ^ ((bc[(x + 1) % 5] ^ 0xffffffffffffffff) & bc[(x + 2) % 5]);
-                }
-                state[0] ^= _KECCAK_RC[i];
-            }
-        } //end loop i
-        return state;
-    } //end F1600
+    /**
+     * @notice Helper function to convert uint64 to big-endian bytes
+     * @param x The uint64 value to convert
+     * @return b The big-endian bytes representation
+     */
+    function uint64ToBytes(uint64 x) internal pure returns (bytes memory b) {
+        b = new bytes(8);
+        for (uint256 i = 0; i < 8; i++) {
+            b[i] = bytes1(uint8(x >> (56 - i * 8)));
+        }
+    }
 }
