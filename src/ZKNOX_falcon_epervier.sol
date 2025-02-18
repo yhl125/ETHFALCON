@@ -42,9 +42,9 @@ import {console} from "forge-std/Test.sol";
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./HashToPoint_tetration.sol";
+import "./HashToPoint_ZKNOX.sol";
 
-contract ZKNOX_falconrec_tetration {
+contract ZKNOX_falcon_epervier {
     //FALCON CONSTANTS
     uint256 constant n = 512;
     uint256 constant sigBound = 34034726;
@@ -53,11 +53,13 @@ contract ZKNOX_falconrec_tetration {
     uint256 constant qs1 = 6144; // q >> 1;
 
     ZKNOX_NTT ntt;
+    ZKNOX_HashToPoint H2P;
 
     uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;
 
-    constructor(ZKNOX_NTT i_ntt) {
+    constructor(ZKNOX_NTT i_ntt, ZKNOX_HashToPoint h2p) {
         ntt = i_ntt;
+        H2P = h2p;
     }
 
     struct Signature {
@@ -72,7 +74,7 @@ contract ZKNOX_falconrec_tetration {
     }
 
     /* A falcon with recovery implementation*/
-    function recover(bytes memory msgs, Signature memory signature) public view returns (address result) {
+    function recover(bytes memory msgs, Signature memory signature) public returns (address result) {
         if (signature.salt.length != 40) revert("wrong salt length"); //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s1.length != 512) revert("Invalid s1 length"); //"Invalid s1 length"
         if (signature.s2.length != 512) revert("Invalid s2 length"); //"Invalid s2 length"
@@ -109,7 +111,7 @@ contract ZKNOX_falconrec_tetration {
             if (mulmod(s2[i], signature.ntt_sm2[i], q) != 1) revert("wrong hint");
         }
 
-        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
+        uint256[] memory hashed = H2P.hashToPoint(signature.salt, msgs, q, n);
         for (uint256 i = 0; i < 512; i++) {
             //hashToPoint-s1
             hashed[i] = addmod(hashed[i], q - signature.s1[i], q);
@@ -118,9 +120,8 @@ contract ZKNOX_falconrec_tetration {
         for (uint256 i = 0; i < 512; i++) {
             s2[i] = uint256(signature.ntt_sm2[i]);
         }
-        uint256[] memory hashed_mul_s2 = ntt.ZKNOX_NTT_HALFMUL(hashed, s2);
-
-        return HashToAddress(abi.encodePacked(hashed_mul_s2));
+        uint256[] memory hashed_mul_s2_ntt = ntt.ZKNOX_VECMULMOD(ntt.ZKNOX_NTTFW(hashed, ntt.o_psirev()), s2, q);
+        return HashToAddress(abi.encodePacked(hashed_mul_s2_ntt));
     }
 } //end of contract
 
