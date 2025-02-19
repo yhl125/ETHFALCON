@@ -33,7 +33,7 @@ The repository implements several tweaked version of FALCON, optimized for diffe
    <td>FALCON-SOLREC</td>
   <td>Tetration </td>
   <td>A  recovery version, compatible with FALCON SOLIDITY XOF</td>
-  <td> WIP </td>
+  <td> OK </td>
   </tr>
   <td>FALCONRIP</td>
   <td>ASANSO </td>
@@ -119,8 +119,8 @@ The performance improvement brought by ZKNOX to this version comes from :
 
 | Label                   | Severity | Description               |  Impact |Fix | PR |
 |------------------------|---------------------|---------------------|---------------------|---------------------|---------------------|
-|CVETH-2025-080201| critical  | salt size is not checked in verification | forge | add salt size checking | TBD
-|CVETH-2025-080202| medium | signature malleability on coefficient signs | malleability | force positive coefficients in s part | TBD
+|CVETH-2025-080201| critical  | salt size is not checked in verification | forge | add salt size checking | [here](https://github.com/Tetration-Lab/falcon-solidity/pull/1)
+|CVETH-2025-080202| medium | signature malleability on coefficient signs | malleability | force positive coefficients in s part | [here](https://github.com/Tetration-Lab/falcon-solidity/pull/1)
 |CVETH-2025-080203| low | no domain separation of internal state input and output | XOF design infringment | modify FALCON-SOLIDITY XOF specification | TBD
 
 
@@ -132,7 +132,7 @@ In order to optimize the verification of FalconRec, we use a classical trick in 
 - The public key remains $pk = H(h)$ for some collision-resistant hash function $H$;
 - The signature becomes $σ  =(s_1,s_2,r,ntt(s_2^{-1}))$,
 - The verification splits as:
-  - $ntt(σ_2)\cdot σ_4 == 1$,
+  - $ntt(σ_2)\cdot σ_4 == ntt(1)$,
   - $(σ_1,σ_2)$ is short,
   - $pk==H(intt(σ_4\cdot ntt(HashToPoint(σ_3\mid\mid m)-σ_1)))$.
 
@@ -150,7 +150,7 @@ We present here a modification of the public key in order to reduce the verifica
     - $(σ_1,σ_2)$ is short;
     - $pk==H(σ_4\cdot (ntt(HashToPoint(r\mid\mid m)-σ_1)))$.
 
-Using this verification, we compute only **2NTT** (+ additional hashes and vectorized arithmetic) for the verification. This matches with the number of NTT in Falcon (without the recovery mode).
+Using this verification, we compute only **2NTT** (+ additional hash computations and vectorized arithmetic) for the verification. This matches with the number of NTT in Falcon (without the recovery mode).
 
 We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For hardware implementations, avoiding a NTTINV reduces the total required gates. Using a pipeline, it also enables to reuse the same NTT circuit inducing only latency of one stage of the implementation.
 
@@ -173,6 +173,24 @@ We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For hardw
 | falcon.verify_opt         | Use of precomputed NTT public key form, recursive NTT | 14.6 M| OK|
 | falcon.verify_iterative         | Use of precomputed NTT public key form, custom iterative NTT | 8.3 M| OK|
 | falcon.recover         | Use of hinted $s_2^{-1}$, custom iterative NTT | 8.3 M (Theoretical) | TBC|
+
+
+
+<!-- Simon temporary benchmarks
+
+| Primitive | HashToPoint | NTT | Gas cost |
+| -------- | ------------------- | ------------- | -------- |
+| Falcon | Tetration    | Recursive| 20.0M |
+| Falcon | Tetration    | Iterative | 4.2 M |
+| FalconOpt | Tetration    | Iterative | 3.7 M |
+| Falcon | Zhenfei      | Iterative | 7.1 M |
+|||||
+| FalconRec | Tetration | Iterative | 4.3 M |
+| FalconRec | Zhenfei   | Iterative | 7.2 M |
+|||||
+| Epervier | Tetration  | Iterative | 3.8 M |
+| Epervier | Zhenfei    | Iterative | 6.7 M | -->
+
 
 ### Yul
 
