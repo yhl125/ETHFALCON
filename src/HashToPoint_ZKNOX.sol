@@ -30,7 +30,7 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_NTT.sol
+///* FILE: HashToPoint_ZKNOX.sol
 ///* Description: Compute Negative Wrap Convolution NTT as specified in EIP-NTT
 /**
  *
@@ -56,29 +56,6 @@ contract ZKNOX_HashToPoint {
         public
         returns (uint256[] memory)
     {
-        // // HashToPoint from Tetration CopyPasta
-        // // TODO MODIFY WITH THE COMMENTED VERSION BELOW
-        // uint256[] memory hashed = new uint256[](512);
-        // uint256 i = 0;
-        // uint256 j = 0;
-        // bytes32 tmp = keccak256(abi.encodePacked(msgHash, salt));
-        // uint16[16] memory sample = splitToHex(tmp);
-        // uint256 k = (1 << 16) / q;
-        // uint256 kq = k * q;
-        // while (i < n) {
-        //     if (j == 16) {
-        //         tmp = keccak256(abi.encodePacked(tmp));
-        //         sample = splitToHex(tmp);
-        //         j = 0;
-        //     }
-        //     if (sample[j] < kq) {
-        //         hashed[i] = sample[j] % q;
-        //         i++;
-        //     }
-        //     j++;
-        // }
-        // ZKNOX_keccak_prng keccak_prng = new ZKNOX_keccak_prng();
-        // return hashed;
         uint256 k = (1 << 16) / q;
         ZKNOX_keccak_prng keccak_prng = new ZKNOX_keccak_prng();
         keccak_prng.inject(abi.encodePacked(msgHash, salt));
@@ -97,10 +74,7 @@ contract ZKNOX_HashToPoint {
             assembly {
                 t := mload(add(t_bytes, 32))
             }
-            // console.log(t);
             t = t >> (256 - 16);
-            // console.log(t);
-            // console.log(kq);
             if (t < kq) {
                 c[i] = t % q;
                 i++;
