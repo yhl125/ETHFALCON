@@ -44,14 +44,6 @@ import "./ZKNOX_keccak_prng.sol";
 contract ZKNOX_HashToPoint {
     constructor() {}
 
-    function splitToHex(bytes32 x) public pure returns (uint16[16] memory) {
-        uint16[16] memory res;
-        for (uint256 i = 0; i < 16; i++) {
-            res[i] = uint16(uint256(x) >> ((15 - i) * 16));
-        }
-        return res;
-    }
-
     function hashToPoint(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
         public
         returns (uint256[] memory)

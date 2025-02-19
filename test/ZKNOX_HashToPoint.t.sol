@@ -23,18 +23,7 @@ contract HashToPointZKNOXTest is Test {
         assertEq(hash[4], 5824);
     }
 
-    function test_H2P_zhenfei() public {
-        ZKNOX_HashToPoint H2P = new ZKNOX_HashToPoint();
-
-        bytes memory salt =
-            "5\x001\x8fu\xad \xf0\xaa b\xba\x1c4\x8a\xfe\xaaI#\x87\xa4c\xeb\x8c(\xafw\x9dj>\xa6\x96\xeb\xb9f\x0c\xcf\xf5\x06-";
-        bytes memory msgHash = "My name is Renaud";
-        uint256 q = 12289;
-        uint256 n = 512;
-        uint256[] memory hash = H2P.hashToPoint(salt, msgHash, q, n);
-    }
-
-    function test_H2P_tetration() public {
+    function test_H2P_tetration() public pure {
 
         bytes memory salt =
             "5\x001\x8fu\xad \xf0\xaa b\xba\x1c4\x8a\xfe\xaaI#\x87\xa4c\xeb\x8c(\xafw\x9dj>\xa6\x96\xeb\xb9f\x0c\xcf\xf5\x06-";
@@ -43,6 +32,5 @@ contract HashToPointZKNOXTest is Test {
         uint256 n = 512;
         uint256[] memory hash = hashToPoint(salt, msgHash, q, n);
     }
-
     
 }

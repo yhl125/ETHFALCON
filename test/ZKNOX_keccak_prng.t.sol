@@ -86,4 +86,29 @@ contract KeccakPRNGTest is Test {
         computed_output_4_3 = computed_output_4_3 >> 128;
         assertEq(computed_output_4_3, output_4_3);
     }
+
+    function test_keccak_1() public {
+        // Test vector 1
+        keccak_prng = new ZKNOX_keccak_prng();
+        keccak_prng.inject(input_1);
+        // keccak_prng.flip();
+        // assertEq(output_1, keccak_prng.extract(32));
+    }
+
+    function test_keccak_2() public {
+        // Test vector 1
+        keccak_prng = new ZKNOX_keccak_prng();
+        keccak_prng.inject(input_1);
+        keccak_prng.flip();
+        // assertEq(output_1, keccak_prng.extract(32));
+    }
+
+    function test_keccak_3() public {
+        // Test vector 1
+        keccak_prng = new ZKNOX_keccak_prng();
+        keccak_prng.inject(input_1);
+        keccak_prng.flip();
+        assertEq(output_1, keccak_prng.extract(32));
+    }
+
 }
