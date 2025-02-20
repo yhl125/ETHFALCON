@@ -184,7 +184,7 @@ Upon confirmation of the optimal algorithm for NTT, its critical parts have been
 | Function                   | Description               | gas cost | Tests Status |
 |------------------------|---------------------|---------------------|---------------------|
 | falcon.verify       | ZKNOX_NTT      | 4.2M | OK|
-| falcon.verify_opt       | ZKNOX_NTT with precomputations         | 3.6M | OK|
+| falcon.verify_opt       | ZKNOX_NTT with precomputations         | 3.8M | OK|
 | falcon.recover          | Use of hinted $s_2^{-1}$, custom iterative NTT  | 4.3M | OK|
 | falcon.recover_opt      | pk is $\text{Hash}\circ\text{ntt}$ |	  3.8M | OK|
 
