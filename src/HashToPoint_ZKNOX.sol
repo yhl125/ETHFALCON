@@ -39,47 +39,75 @@
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
-import "./ZKNOX_keccak_prng.sol";
 
-contract ZKNOX_HashToPoint {
-    constructor() {}
+function hashToPointZKNOX(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
+    pure
+    returns (uint256[] memory c)
+{
+    uint256 k = (1 << 16) / q;
+    bytes32 state;
+    uint64 counter;
+    bytes memory buffer;
+    bytes32 outBuffer;
+    uint8 outBufferPos;
+    bool outBufferValid;
 
-    function splitToHex(bytes32 x) public pure returns (uint16[16] memory) {
-        uint16[16] memory res;
-        for (uint256 i = 0; i < 16; i++) {
-            res[i] = uint16(uint256(x) >> ((15 - i) * 16));
+    counter = 0;
+    outBufferPos = 0;
+    outBufferValid = false;
+
+    // Inject
+    buffer = abi.encodePacked("", abi.encodePacked(msgHash, salt));
+    // Flip
+    state = keccak256(buffer);
+
+    uint256 kq = k * q;
+    uint256 t;
+    c = new uint256[](512);
+    uint256 i = 0;
+    while (i < n) {
+        assembly {
+            mstore(add(buffer, 32), 0)
         }
-        return res;
+
+        buffer = new bytes(2);
+        uint256 offset = 0;
+        // Use any remaining bytes in the output buffer first
+        while (outBufferValid && outBufferPos < 32 && offset < 2) {
+            buffer[offset] = outBuffer[outBufferPos];
+            outBufferPos++;
+            offset++;
+        }
+        // Generate two blocks
+        while (offset < 2) {
+            outBuffer = keccak256(abi.encodePacked(state, uint64ToBytes(counter)));
+            outBufferPos = 0;
+            outBufferValid = true;
+            while (outBufferPos < 32 && offset < 2) {
+                buffer[offset] = outBuffer[outBufferPos];
+                outBufferPos++;
+                offset++;
+            }
+            counter++;
+        }
+
+        assembly {
+            t := mload(add(buffer, 32))
+        }
+        t = t >> (256 - 16);
+        if (t < kq) {
+            c[i] = t % q;
+            i++;
+        }
     }
+}
 
-    function hashToPoint(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
-        public
-        returns (uint256[] memory)
-    {
-        uint256 k = (1 << 16) / q;
-        ZKNOX_keccak_prng keccak_prng = new ZKNOX_keccak_prng();
-        keccak_prng.inject(abi.encodePacked(msgHash, salt));
-        keccak_prng.flip();
-
-        uint256 kq = k * q;
-        bytes memory t_bytes;
-        uint256 t;
-        uint256[] memory c = new uint256[](512);
-        uint256 i = 0;
-        while (i < n) {
-            assembly {
-                mstore(add(t_bytes, 32), 0)
-            }
-            t_bytes = keccak_prng.extract(2); // 2 bytes, i.e. 16 bits
-            assembly {
-                t := mload(add(t_bytes, 32))
-            }
-            t = t >> (256 - 16);
-            if (t < kq) {
-                c[i] = t % q;
-                i++;
-            }
-        }
-        return c;
+/**
+ * convert uint64 to big-endian bytes
+ */
+function uint64ToBytes(uint64 x) pure returns (bytes memory b) {
+    b = new bytes(8);
+    for (uint256 i = 0; i < 8; i++) {
+        b[i] = bytes1(uint8(x >> (56 - i * 8)));
     }
 }

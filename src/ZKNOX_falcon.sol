@@ -38,12 +38,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {console} from "forge-std/Test.sol";
-
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import {ZKNOX_HashToPoint} from "./HashToPoint_ZKNOX.sol";
+import "./HashToPoint_ZKNOX.sol";
 
 contract ZKNOX_falcon {
     //FALCON CONSTANTS
@@ -54,13 +52,11 @@ contract ZKNOX_falcon {
     uint256 qs1 = 6144; // q >> 1;
 
     ZKNOX_NTT ntt;
-    ZKNOX_HashToPoint H2P;
 
     uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;
 
-    constructor(ZKNOX_NTT i_ntt, ZKNOX_HashToPoint h2p) {
+    constructor(ZKNOX_NTT i_ntt) {
         ntt = i_ntt;
-        H2P = h2p;
     }
 
     struct Signature {
@@ -72,7 +68,7 @@ contract ZKNOX_falcon {
         bytes memory msgs,
         Signature memory signature,
         uint256[] memory h // public key
-    ) public returns (bool result) {
+    ) public view returns (bool result) {
         if (h.length != 512) return false; //"Invalid public key length"
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s2.length != 512) return false; //"Invalid salt length"
@@ -83,7 +79,7 @@ contract ZKNOX_falcon {
         for (uint256 i = 0; i < 512; i++) {
             s2[i] = uint256(signature.s2[i]);
         }
-        uint256[] memory hashed = H2P.hashToPoint(signature.salt, msgs, q, n);
+        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
 
         uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s2, h), q);
 
@@ -123,7 +119,7 @@ contract ZKNOX_falcon {
         bytes memory msgs,
         Signature memory signature,
         uint256[] memory ntth // public key
-    ) public returns (bool result) {
+    ) public view returns (bool result) {
         if (ntth.length != 512) return false; //"Invalid public key length"
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s2.length != 512) return false; //"Invalid salt length"
@@ -135,11 +131,7 @@ contract ZKNOX_falcon {
             s2[i] = uint256(signature.s2[i]);
         }
 
-        uint256[] memory hashed = H2P.hashToPoint(signature.salt, msgs, q, n);
-        console.log("hashed");
-        for (uint256 i = 0; i < 10; i++) {
-            console.log(hashed[i]);
-        }
+        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
         uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_HALFMUL(s2, ntth), q);
 
         // normalize s1 // to positive cuz you'll **2 anyway?

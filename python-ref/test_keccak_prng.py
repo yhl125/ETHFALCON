@@ -27,8 +27,8 @@ output_testinput_32 = "120f76b5b7198706bc294a942f8d17467aadb2bb1fa2cc1fecadbaba9
 # input "test sequence"
 # input in hex: "746573742073657175656e6365"
 output_test_sequence_32_1 = "9e96b1e50719da6f0ea5b664ac8bbac5"
-output_test_sequence_32_2 = "1be071eca45961aca979e88e3784a751"
-output_test_sequence_32_3 = "5f19135442b6b848b2f51f7cb58bc583"
+output_test_sequence_32_2 = "eb409b4db770b124363b393a0c96b5d6"
+output_test_sequence_32_3 = "1be071eca45961aca979e88e3784a751"
 
 
 class TestKeccakPRNG(unittest.TestCase):
@@ -87,15 +87,15 @@ class TestKeccakPRNG(unittest.TestCase):
         prng = KeccakPRNG()
         prng.inject(b"test sequence")
         prng.flip()
-        output1 = prng.extract(32)
-        output2 = prng.extract(32)
-        output3 = prng.extract(32)
+        output1 = prng.extract(16)
+        output2 = prng.extract(16)
+        output3 = prng.extract(16)
         self.assertNotEqual(output1, output2)
         self.assertNotEqual(output2, output3)
         self.assertNotEqual(output1, output3)
-        self.assertEqual(output1.hex()[:32], output_test_sequence_32_1)
-        self.assertEqual(output2.hex()[:32], output_test_sequence_32_2)
-        self.assertEqual(output3.hex()[:32], output_test_sequence_32_3)
+        self.assertEqual(output1.hex(), output_test_sequence_32_1)
+        self.assertEqual(output2.hex(), output_test_sequence_32_2)
+        self.assertEqual(output3.hex(), output_test_sequence_32_3)
 
     def test_small_read(self):
         """Check that we can read two bytes as in Falcon."""
