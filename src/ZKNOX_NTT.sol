@@ -93,11 +93,7 @@ contract ZKNOX_NTT {
     }
 
     /**
-     *
-     */
-    /*                                                                  STATEFULL VERSION                                                                                   */
-    /**
-     *
+     * STATEFUL VERSION
      */
     /* STORAGE FOR THE STATEFUL VERSION */
     address public o_psirev; //external contract containing psi_rev

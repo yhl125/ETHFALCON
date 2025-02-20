@@ -32,38 +32,6 @@ contract ETHFalcon {
         ntt_iterative = new NTT_iterative();
     }
 
-    // function splitToHex(bytes32 x) public pure returns (uint16[16] memory) {
-    //     uint16[16] memory res;
-    //     for (uint256 i = 0; i < 16; i++) {
-    //         res[i] = uint16(uint256(x) >> ((15 - i) * 16));
-    //     }
-    //     return res;
-    // }
-
-    // //note: an expandable function version of poseidon, does it exist ?
-    // function hashToPoint(bytes memory salt, bytes memory msgHash) public pure returns (uint256[] memory) {
-    //     uint256[] memory hashed = new uint256[](512);
-    //     uint256 i = 0;
-    //     uint256 j = 0;
-    //     bytes32 tmp = keccak256(abi.encodePacked(salt, msgHash));
-    //     uint16[16] memory sample = splitToHex(tmp);
-    //     uint256 k = (1 << 16) / q;
-    //     uint256 kq = k * q;
-    //     while (i < n) {
-    //         if (j == 16) {
-    //             tmp = keccak256(abi.encodePacked(tmp));
-    //             sample = splitToHex(tmp);
-    //             j = 0;
-    //         }
-    //         if (sample[j] < kq) {
-    //             hashed[i] = sample[j] % q;
-    //             i++;
-    //         }
-    //         j++;
-    //     }
-    //     return hashed;
-    // }
-
     function verify(
         bytes memory msgs,
         Signature memory signature,

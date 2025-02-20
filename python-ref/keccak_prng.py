@@ -65,6 +65,8 @@ class KeccakPRNG:
         output = bytearray()
 
         # First, use any bytes remaining in the output buffer
+        offset = 0
+
         if self.out_buffer_len > self.out_buffer_pos:
             available = self.out_buffer_len - self.out_buffer_pos
             to_copy = min(length, available)
@@ -72,13 +74,14 @@ class KeccakPRNG:
             output.extend(
                 self.out_buffer[self.out_buffer_pos:self.out_buffer_pos + to_copy])
             self.out_buffer_pos += to_copy
-
+            offset += to_copy
             # If we've satisfied the request, return early
-            if len(output) == length:
+            if offset == length:
                 return bytes(output)
 
-        while len(output) < length:
+        while offset < length:
             # Prepare input block: state || counter (big-endian)
+            # block = self.state + struct.pack(">Q", self.counter)
             block = self.state + struct.pack(">Q", self.counter)
 
             # Generate next block using Keccak
@@ -91,11 +94,12 @@ class KeccakPRNG:
             self.out_buffer_pos = 0
 
             # Copy output
-            remaining = length - len(output)
+            remaining = length - offset
             to_copy = min(remaining, KECCAK_OUTPUT)
 
             output.extend(self.out_buffer[:to_copy])
             self.out_buffer_pos = to_copy
+            offset += to_copy
 
             # Increment counter for next block
             self.counter += 1

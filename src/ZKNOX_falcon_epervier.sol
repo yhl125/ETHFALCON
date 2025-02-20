@@ -53,13 +53,11 @@ contract ZKNOX_falcon_epervier {
     uint256 constant qs1 = 6144; // q >> 1;
 
     ZKNOX_NTT ntt;
-    ZKNOX_HashToPoint H2P;
 
     uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;
 
-    constructor(ZKNOX_NTT i_ntt, ZKNOX_HashToPoint h2p) {
+    constructor(ZKNOX_NTT i_ntt) {
         ntt = i_ntt;
-        H2P = h2p;
     }
 
     struct Signature {
@@ -111,7 +109,7 @@ contract ZKNOX_falcon_epervier {
             if (mulmod(s2[i], signature.ntt_sm2[i], q) != 1) revert("wrong hint");
         }
 
-        uint256[] memory hashed = H2P.hashToPoint(signature.salt, msgs, q, n);
+        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
         for (uint256 i = 0; i < 512; i++) {
             //hashToPoint-s1
             hashed[i] = addmod(hashed[i], q - signature.s1[i], q);
