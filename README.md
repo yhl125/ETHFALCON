@@ -172,24 +172,8 @@ We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For hardw
 | falcon.verify      | ZKNOX fork, recursive NTT | 20.8 M| OK|
 | falcon.verify_opt         | Use of precomputed NTT public key form, recursive NTT | 14.6 M| OK|
 | falcon.verify_iterative         | Use of precomputed NTT public key form, custom iterative NTT | 8.3 M| OK|
-| falcon.recover         | Use of hinted $s_2^{-1}$, custom iterative NTT | 8.3 M (Theoretical) | TBC|
+| falcon.recover         | Use of hinted $s_2^{-1}$, custom iterative NTT | 8.3 M | OK|
 
-
-
-<!-- Simon temporary benchmarks
-
-| Primitive | HashToPoint | NTT | Gas cost |
-| -------- | ------------------- | ------------- | -------- |
-| Falcon | Tetration    | Recursive| 20.0M |
-| Falcon | Tetration    | Iterative | 4.2 M |
-| FalconOpt | Tetration    | Iterative | 3.7 M |
-| Falcon | Zhenfei      | Iterative | 7.1 M |
-|||||
-| FalconRec | Tetration | Iterative | 4.3 M |
-| FalconRec | Zhenfei   | Iterative | 7.2 M |
-|||||
-| Epervier | Tetration  | Iterative | 3.8 M |
-| Epervier | Zhenfei    | Iterative | 6.7 M | -->
 
 
 ### Yul
@@ -201,6 +185,8 @@ Upon confirmation of the optimal algorithm for NTT, its critical parts have been
 |------------------------|---------------------|---------------------|---------------------|
 | falcon.verify       | ZKNOX_NTT      | 4.2M | OK|
 | falcon.verify_opt       | ZKNOX_NTT with precomputations         | 3.6M | OK|
+| falcon.recover          | Use of hinted $s_2^{-1}$, custom iterative NTT  | 4.3M | OK|
+| falcon.recover_opt      | pk is $\text{Hash}\circ\text{ntt}$ |	  3.8M | OK|
 
 
 ### Python
