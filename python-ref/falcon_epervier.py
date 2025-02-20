@@ -13,7 +13,7 @@ from os import urandom
 
 
 class EpervierSecretKey(SecretKey):
-    def __init__(self, n, polys=None, ntt='NTTIterative'):
+    def __init__(self, n, polys=None, ntt=NTTIterative):
         super().__init__(n, polys, ntt)
         T = NTTIterative(q)
         h_ntt = T.ntt(self.h)
@@ -63,7 +63,7 @@ class EpervierSecretKey(SecretKey):
                     if enc_s is not False:
                         return header + salt + enc_s + bytes_s1_inv_ntt
 
-    def recover(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
+    def recover(self, message, signature, ntt=NTTIterative, xof=KeccakPRNG):
         """
         Recover a public key.
         """

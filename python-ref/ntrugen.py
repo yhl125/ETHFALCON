@@ -207,7 +207,7 @@ def gs_norm(f, g, q):
     return max(sqnorm_fg, sqnorm_FG)
 
 
-def gen_poly(n, ntt='NTTIterative'):
+def gen_poly(n, ntt=NTTIterative):
     """
     Generate a polynomial of degree at most (n - 1), with coefficients
     following a discrete Gaussian distribution D_{Z, 0, sigma_fg} with
@@ -226,7 +226,7 @@ def gen_poly(n, ntt='NTTIterative'):
     return Poly(f, q, ntt=ntt)
 
 
-def ntru_gen(n, ntt='NTTIterative'):
+def ntru_gen(n, ntt=NTTIterative):
     """
     Implement the algorithm 5 (NTRUGen) of Falcon's documentation.
     At the end of the function, polynomials f, g, F, G in Z[x]/(x ** n + 1)
@@ -237,7 +237,7 @@ def ntru_gen(n, ntt='NTTIterative'):
         g = gen_poly(n).coeffs
         if gs_norm(f, g, q) > (1.17 ** 2) * q:
             continue
-        if ntt == 'NTTRecursive':
+        if ntt == NTTRecursive:
             T = NTTRecursive(q)
         else:
             T = NTTIterative(q)

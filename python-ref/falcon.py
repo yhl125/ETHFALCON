@@ -11,7 +11,7 @@ from ntrugen import ntru_gen
 from encoding import compress, decompress
 from keccak_prng import KeccakPRNG
 from polyntt.poly import Poly
-from Crypto.Hash import keccak
+from polyntt.ntt_iterative import NTTIterative
 # Randomness
 from os import urandom
 from rng import ChaCha20
@@ -216,7 +216,7 @@ class SecretKey:
     - verify the signature of a message
     """
 
-    def __init__(self, n, polys=None, ntt='NTTIterative'):
+    def __init__(self, n, polys=None, ntt=NTTIterative):
         """Initialize a secret key."""
         # Public parameters
         self.n = n
@@ -365,7 +365,7 @@ class SecretKey:
                     if (enc_s is not False):
                         return header + salt + enc_s
 
-    def verify(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
+    def verify(self, message, signature, ntt=NTTIterative, xof=KeccakPRNG):
         """
         Verify a signature.
         """
@@ -373,6 +373,7 @@ class SecretKey:
         salt = signature[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = signature[HEAD_LEN + SALT_LEN:]
         s1 = decompress(enc_s, self.sig_bytelen - HEAD_LEN - SALT_LEN, self.n)
+        print("verif:", s1)
         # Check that the encoding is valid
         if (s1 is False):
             print("Invalid encoding")

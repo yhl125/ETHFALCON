@@ -74,7 +74,7 @@ class TestFalcon(unittest.TestCase):
         sig = sk.sign(message)
 
         d = {True: "OK    ", False: "Not OK"}
-        for ntt in ['NTTIterative', 'NTTRecursive']:
+        for (ntt, ntt_str) in [(NTTIterative, 'Iterative'), (NTTRecursive, 'Recursive')]:
             start = timer()
             for i in range(iterations):
                 if pk.verify(message, sig, ntt=ntt) is False:
@@ -82,7 +82,7 @@ class TestFalcon(unittest.TestCase):
             rep = True
             end = timer()
 
-            msg = "Test verif ({})".format(ntt[3:])
+            msg = "Test verif ({})".format(ntt_str)
             msg = msg.ljust(20) + ": " + d[rep]
             if rep is True:
                 diff = end - start

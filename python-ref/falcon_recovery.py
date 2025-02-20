@@ -13,7 +13,7 @@ from os import urandom
 
 
 class RecoveryModeSecretKey(SecretKey):
-    def __init__(self, n, polys=None, ntt='NTTIterative'):
+    def __init__(self, n, polys=None, ntt=NTTIterative):
         super().__init__(n, polys, ntt)
         keccak_ctx = keccak.new(digest_bytes=32)
         keccak_ctx.update(encode_packed(
@@ -61,11 +61,11 @@ class RecoveryModeSecretKey(SecretKey):
                                                     for x in s_1_inv_ntt)
                         return header + salt + enc_s + bytes_s1_inv_ntt
 
-    def verify(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
+    def verify(self, message, signature, ntt=NTTIterative, xof=KeccakPRNG):
         print("Not Implemented")
         return False
 
-    def recover(self, message, signature, ntt='NTTIterative', xof=KeccakPRNG):
+    def recover(self, message, signature, ntt=NTTIterative, xof=KeccakPRNG):
         """
         Verify a signature.
         """

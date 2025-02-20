@@ -6,6 +6,9 @@ Test the code with:
 """
 from keccak_prng import KeccakPRNG
 from polyntt import poly
+from polyntt.ntt_iterative import NTTIterative
+from polyntt.ntt_recursive import NTTRecursive
+
 from timeit import default_timer as timer
 from scripts.samplerz_KAT1024 import sampler_KAT1024
 from scripts.sign_KAT import sign_KAT
@@ -64,7 +67,7 @@ def test_fft(n, iterations=10):
 def test_ntt(n, iterations=10):
     """Test the NTT."""
     for i in range(iterations):
-        for ntt in ['NTTIterative', 'NTTRecursive']:
+        for ntt in [NTTIterative, NTTRecursive]:
             f = poly.Poly([randint(0, q-1) for j in range(n)], q, ntt=ntt)
             g = poly.Poly([randint(0, q-1) for j in range(n)], q, ntt=ntt)
             h = f*g
