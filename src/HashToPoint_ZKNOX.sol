@@ -39,7 +39,6 @@
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
-import "./ZKNOX_keccak_prng.sol";
 
 function hashToPointZKNOX(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
     pure
