@@ -199,41 +199,35 @@ NTT implementation are benchmarked against Tetration implementation. The impleme
     <th>Falcon Verification (ZKNox)</th>
     <th>FalconRec Verification (ZKNox)</th>
     <th>Epervier Verification (ZKNox)</th>
-    <th>Falcon Verification (Tetration)</th>
   </tr>
     <td>64</td>
-    <td>0.4 ms</td>
-    <td>0.5 ms</td>
-    <td>0.4 ms</td>
-    <td>?.? ms</td>
+    <td>0.3 ms</td>
+    <td>0.6 ms</td>
+    <td>0.6 ms</td>
   </tr>
   <tr>
     <td>128</td>
-    <td>0.7 ms</td>
-    <td>0.9 ms</td>
-    <td>0.8 ms</td>
-    <td>?.? ms</td>
+    <td>0.6 ms</td>
+    <td>1.1 ms</td>
+    <td>1.0 ms</td>
   </tr>
   <tr>
     <td>256</td>
-    <td>1.4 ms</td>
-    <td>1.8 ms</td>
-    <td>1.5 ms</td>
-    <td>?.? ms</td>
+    <td>1.2 ms</td>
+    <td>2.2 ms</td>
+    <td>1.9 ms</td>
   </tr>
   <tr>
     <td>512</td>
-    <td>2.7 ms</td>
-    <td>3.4 ms</td>
     <td>2.8 ms</td>
-    <td>?.? ms</td>
+    <td>4.6 ms</td>
+    <td>4.0 ms</td>
   </tr>
   <tr>
     <td>1024</td>
     <td>5.8 ms</td>
-    <td>7.4 ms</td>
-    <td>6.1 ms</td>
-    <td>?.? ms</td>
+    <td>9.6 ms</td>
+    <td>8.4 ms</td>
   </tr>
 </table> 
 

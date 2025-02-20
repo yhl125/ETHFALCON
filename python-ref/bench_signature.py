@@ -32,10 +32,11 @@ class BenchSignature():
             # Falcon Rec
             sk = RecoveryModeSecretKey(n, [f, g, F, G])
             sig = sk.sign(message)
-            assert sk.verify(message, sig)
+            pk = sk.pk
+            assert pk == sk.recover(message, sig)
             t1 = timer()
             for i in range(iterations):
-                sk.verify(message, sig)
+                sk.recover(message, sig)
             t2 = timer()
             print("{:.1f}ms".format(
                 (t2-t1)/iterations * 10**3),
@@ -44,10 +45,11 @@ class BenchSignature():
             # Epervier
             sk = EpervierSecretKey(n, [f, g, F, G])
             sig = sk.sign(message)
-            assert sk.verify(message, sig)
+            pk = sk.pk
+            assert pk == sk.recover(message, sig)
             t3 = timer()
             for i in range(iterations):
-                sk.verify(message, sig)
+                sk.recover(message, sig)
             t4 = timer()
             print("{:.1f}ms".format(
                 (t4-t3)/iterations * 10**3)
