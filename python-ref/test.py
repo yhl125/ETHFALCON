@@ -64,25 +64,6 @@ def test_fft(n, iterations=10):
     return True
 
 
-def test_ntt(n, iterations=10):
-    """Test the NTT."""
-    for i in range(iterations):
-        for ntt in [NTTIterative, NTTRecursive]:
-            f = poly.Poly([randint(0, q-1) for j in range(n)], q, ntt=ntt)
-            g = poly.Poly([randint(0, q-1) for j in range(n)], q, ntt=ntt)
-            h = f*g
-            try:
-                k = h/f
-                if k != g:
-                    print("(f * g) / f =", k)
-                    print("g =", g)
-                    print("mismatch")
-                    return False
-            except ZeroDivisionError:
-                continue
-    return True
-
-
 def check_ntru(f, g, F, G):
     """Check that f * G - g * F = q mod (x ** n + 1)."""
     a = karamul(f, G)
@@ -294,7 +275,6 @@ def test_hash_to_point(n):
 def test(n, iterations=500):
     """A battery of tests."""
     wrapper_test(test_fft, "FFT", n, iterations)
-    wrapper_test(test_ntt, "NTT", n, iterations)
     # test_ntrugen is super slow, hence performed over a single iteration
     wrapper_test(test_ntrugen, "NTRUGen", n, 1)
     wrapper_test(test_ffnp, "ffNP", n, iterations)
@@ -304,14 +284,6 @@ def test(n, iterations=500):
         wrapper_test(test_compress, "Compress", n, iterations)
         # wrapper_test(test_sign_KAT, "Signature KATs", n, iterations)
     print("")
-
-    # # Simon Tests
-    # if (n in Params):
-    #     test_keygen_different_ntt(n, 1)
-    #     test_signing_different_xof(n, iterations)
-    #     test_verif_different_ntt(n, iterations)
-    #     test_verif_different_xof(n, iterations)
-    # print("")
 
 
     # Run all the tests
