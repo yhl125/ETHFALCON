@@ -41,7 +41,7 @@ pragma solidity ^0.8.25;
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./HashToPoint_ZKNOX.sol";
+import "./ZKNOX_HashToPoint.sol";
 
 contract ZKNOX_falconrec {
     //FALCON CONSTANTS

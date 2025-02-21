@@ -5,7 +5,7 @@ import {NTT} from "./NTT_Recursive.sol";
 import {NTT_iterative} from "./NTT_Iterative.sol";
 import {Test, console} from "forge-std/Test.sol";
 // TODO: make it a library (aka unfuck constants/data)
-import "./HashToPoint_tetration.sol"; //not recommended, here for benchmarks against tetration only
+import "./Tetration_HashToPoint.sol"; //not recommended, here for benchmarks against tetration only
 
 contract ETHFalcon {
     uint256 constant n = 512;

@@ -373,7 +373,6 @@ class SecretKey:
         salt = signature[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = signature[HEAD_LEN + SALT_LEN:]
         s1 = decompress(enc_s, self.sig_bytelen - HEAD_LEN - SALT_LEN, self.n)
-        print("verif:", s1)
         # Check that the encoding is valid
         if (s1 is False):
             print("Invalid encoding")

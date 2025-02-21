@@ -34,7 +34,7 @@ contract ZKNOX_falcon_epervierTest is Test {
         epervier = new ZKNOX_falcon_epervier(ntt);
     }
 
-    function testVector0() public {
+    function testVector0() public view {
         // public key
         // forgefmt: disable-next-line
         address pk_0 = address(1241080179793602647909185613605026912518406732206);
@@ -65,7 +65,7 @@ contract ZKNOX_falcon_epervierTest is Test {
         assertEq(pk_0, recovered_pk_0);
     }
 
-    function testVector1() public {
+    function testVector1() public view {
         // public key
         // forgefmt: disable-next-line
         address pk_1 = address(1241080179793602647909185613605026912518406732206);
@@ -96,7 +96,7 @@ contract ZKNOX_falcon_epervierTest is Test {
         assertEq(pk_1, recovered_pk_1);
     }
 
-    function testVector2() public {
+    function testVector2() public view {
         // public key
         // forgefmt: disable-next-line
         address pk_2 = address(1241080179793602647909185613605026912518406732206);
@@ -127,7 +127,7 @@ contract ZKNOX_falcon_epervierTest is Test {
         assertEq(pk_2, recovered_pk_2);
     }
 
-    function testVector3() public {
+    function testVector3() public view {
         // public key
         // forgefmt: disable-next-line
         address pk_3 = address(1241080179793602647909185613605026912518406732206);

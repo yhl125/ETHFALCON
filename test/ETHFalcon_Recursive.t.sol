@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {ETHFalcon} from "../src/ETHFalcon_Recursive.sol";
-import "../src/HashToPoint_tetration.sol";
+import "../src/Tetration_HashToPoint.sol";
 import {NTT} from "../src/NTT_Recursive.sol";
 import "../src/NTT_Iterative.sol";
 

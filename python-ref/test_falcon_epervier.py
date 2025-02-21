@@ -15,7 +15,8 @@ class TestRecoveryMode(unittest.TestCase):
         sk = EpervierSecretKey(n, [f, g, F, G])
         message = b"abc"
         sig = sk.sign(message)
-        self.assertTrue(sk.verify(message, sig))
+        pk_rec = sk.recover(message, sig)
+        self.assertEqual(sk.pk, pk_rec)
 
     def test_signature_epervier_shake(self):
         n = 512
@@ -26,4 +27,5 @@ class TestRecoveryMode(unittest.TestCase):
         sk = EpervierSecretKey(n, [f, g, F, G])
         message = b"abc"
         sig = sk.sign(message, xof=SHAKE)
-        self.assertTrue(sk.verify(message, sig, xof=SHAKE))
+        pk_rec = sk.recover(message, sig, xof=SHAKE)
+        self.assertEqual(sk.pk, pk_rec)

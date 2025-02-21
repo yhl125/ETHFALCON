@@ -42,7 +42,7 @@ import {console} from "forge-std/Test.sol";
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./HashToPoint_tetration.sol";
+import "./Tetration_HashToPoint.sol";
 
 contract ZKNOX_falconrec_tetration {
     //FALCON CONSTANTS

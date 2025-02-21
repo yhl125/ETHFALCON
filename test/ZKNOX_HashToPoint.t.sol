@@ -2,8 +2,8 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import "../src/HashToPoint_ZKNOX.sol";
-import "../src/HashToPoint_tetration.sol";
+import "../src/ZKNOX_HashToPoint.sol";
+import "../src/Tetration_HashToPoint.sol";
 
 contract HashToPointZKNOXTest is Test {
     function test_H2P_Zhenfei() public {

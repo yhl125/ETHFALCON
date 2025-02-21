@@ -6,6 +6,8 @@ from keccaxof import KeccaXOF
 from scripts.sign_KAT import sign_KAT
 from shake import SHAKE
 from timeit import default_timer as timer
+from polyntt.ntt_iterative import NTTIterative
+from polyntt.ntt_recursive import NTTRecursive
 
 
 class TestFalcon(unittest.TestCase):
@@ -45,14 +47,14 @@ class TestFalcon(unittest.TestCase):
         n = 512
         iterations = 1
         d = {True: "OK    ", False: "Not OK"}
-        for ntt in ['NTTIterative', 'NTTRecursive']:
+        for (ntt, ntt_str) in [(NTTIterative, 'Iterative'), (NTTRecursive, 'Recursive')]:
             start = timer()
             for i in range(iterations):
                 sk = SecretKey(n, polys=None, ntt=ntt)
             rep = True
             end = timer()
 
-            msg = "Test keygen ({})".format(ntt[3:])
+            msg = "Test keygen ({})".format(ntt_str)
             msg = msg.ljust(20) + ": " + d[rep]
             if rep is True:
                 diff = end - start
