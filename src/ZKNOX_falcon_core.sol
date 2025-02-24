@@ -49,7 +49,7 @@ function falcon_core(
         uint256[32] memory s2,
         uint256[] memory ntth, // public key, compacted representing coefficients over 16 bits
         uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
-    ) returns (bool result) {
+    ) view returns (bool result) {
 
         if (hashed.length != 512) return false; 
         if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
