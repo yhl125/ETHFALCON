@@ -168,11 +168,4 @@ contract ZKNOX_falcon {
         return result;
     }
 } //end of contract
-/**
- *
- */
-/*                                                                  END OF CONTRACT                                                                                     */
-/**
- *
- */
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
