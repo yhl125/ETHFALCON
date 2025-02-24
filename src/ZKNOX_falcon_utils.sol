@@ -38,8 +38,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+
 uint256 constant mask16 = 0xffff;
 uint256 constant chunk16Byword = 16; //number of 1§ bits chunks in a word of 256 bits
+
+ //FALCON CONSTANTS
+uint256 constant n = 512;
+uint256 constant sigBound = 34034726;
+uint256 constant sigBytesLen = 666;
+uint256 constant q = 12289;
+uint256 constant qs1 = 6144; // q >> 1;
 
 function _ZKNOX_NTT_Compact(uint256[] memory a) pure returns (uint256[] memory b) {
     b = new uint256[](32);
@@ -61,3 +69,4 @@ function _ZKNOX_NTT_Expand(uint256[] memory a) pure returns (uint256[] memory b)
 
     return b;
 }
+
