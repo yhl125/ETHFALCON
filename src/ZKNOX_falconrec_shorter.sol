@@ -30,7 +30,7 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_falconrec.sol
+///* FILE: ZKNOX_falconrec_shorter.sol
 ///* Description: verify falcon with recovery signature
 /**
  *
@@ -103,9 +103,8 @@ contract ZKNOX_falconrec_shorter {
             s2[i] = uint256(signature.s2[i]);
         }
 
-        s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev()); //ntt(s2)
+        s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev());
 
-        /////////////////////////////////
         // recover s2.ntt().inverse() from the hint
         uint256[512] memory prefix;
         prefix[0] = s2[0];
@@ -120,7 +119,6 @@ contract ZKNOX_falconrec_shorter {
         for (i = 1; i < 512; i++) {
             s2_inverse_ntt[i] = mulmod(s2_inverse_ntt[i], prefix[i - 1], q);
         }
-        /////////////////////////////////
 
         //ntt(s2)*ntt(s2^-1)==ntt(1)?
         for (i = 0; i < 512; i++) {
