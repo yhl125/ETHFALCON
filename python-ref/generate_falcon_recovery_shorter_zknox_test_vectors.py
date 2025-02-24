@@ -68,7 +68,7 @@ file.write(header)
 for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
     # this will probably not work with a deterministic salt
     sig = sk.sign(message.encode(),
-                  randombytes=lambda x: deterministic_salt(x, seed='toto'))
+                  randombytes=lambda x: deterministic_salt(x, seed=str(i)))
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
     s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
