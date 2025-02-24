@@ -190,7 +190,7 @@ contract ZKNOX_FalconTest is Test {
         bytes memory msg4 = "Send ______ 1 USDC ______ to vitalik.eth and 50000 USDC to RektMe.eth!";
         // salt
         sig.salt = "";
-        falcon.verify(msg4, sig, pk,false);
+        falcon.verify(msg4, sig, pk, false);
         result = falcon.verify(msg4, signature, h, false);
         assertEq(result, false);
     }

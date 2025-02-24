@@ -61,7 +61,7 @@ contract ZKNOX_FalconRecTest is Test {
         sig.salt =
             "\x35\x00\x31\x8f\x75\xad\x20\xf0\xaa\x20\x62\xba\x1c\x34\x8a\xfe\xaa\x49\x23\x87\xa4\x63\xeb\x8c\x28\xaf\x77\x9d\x6a\x3e\xa6\x96\xeb\xb9\x66\x0c\xcf\xf5\x06\x2d";
         address recovered_pk_0;
-        recovered_pk_0 = falconrec.recover(message, sig);
+        recovered_pk_0 = falconrec.recover(message, sig, true);
         assertEq(pk_0, recovered_pk_0);
     }
 
@@ -92,7 +92,7 @@ contract ZKNOX_FalconRecTest is Test {
         sig.salt =
             "\xdb\xae\x77\x2d\xb2\x90\x58\xa8\x8f\x9b\xd8\x30\xe9\x57\xc6\x95\x34\x7c\x41\xb6\x16\x2a\x7e\xb9\xa9\xea\x13\xde\xf3\x4b\xe5\x6b\x8b\xbb\xb9\x64\xb3\x23\xd7\x67";
         address recovered_pk_1;
-        recovered_pk_1 = falconrec.recover(message, sig);
+        recovered_pk_1 = falconrec.recover(message, sig, true);
         assertEq(pk_1, recovered_pk_1);
     }
 
@@ -123,7 +123,7 @@ contract ZKNOX_FalconRecTest is Test {
         sig.salt =
             "\x6a\xf1\xf6\x92\xe9\x49\x6c\x6d\x0b\x66\x83\x16\xec\xcb\x93\x27\x6a\xe6\xb6\x77\x4f\xa7\x28\xaa\xc3\x1f\xf4\x0a\x38\x31\x87\x60\xba\x53\x0a\xf5\xf0\x89\x98\x14";
         address recovered_pk_2;
-        recovered_pk_2 = falconrec.recover(message, sig);
+        recovered_pk_2 = falconrec.recover(message, sig, true);
         assertEq(pk_2, recovered_pk_2);
     }
 
@@ -154,7 +154,7 @@ contract ZKNOX_FalconRecTest is Test {
         sig.salt =
             "\x96\x44\x29\x4a\xc4\xff\xb3\x09\x1e\xef\x01\x21\x9b\x3f\xe4\xfe\x46\x7f\x05\x89\x0c\xc5\x6a\xf9\x61\xdc\xe6\x8f\xdd\xbb\x77\x04\x71\x91\x37\x3e\xdc\x7d\xa9\x43";
         address recovered_pk_3;
-        recovered_pk_3 = falconrec.recover(message, sig);
+        recovered_pk_3 = falconrec.recover(message, sig, true);
         assertEq(pk_3, recovered_pk_3);
     }
 }

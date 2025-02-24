@@ -41,7 +41,7 @@ pragma solidity ^0.8.25;
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./ZKNOX_HashToPoint.sol";
+import "./HashToPoint.sol";
 
 contract ZKNOX_falconrec {
     //FALCON CONSTANTS
@@ -71,7 +71,11 @@ contract ZKNOX_falconrec {
     }
 
     /* A falcon with recovery implementation*/
-    function recover(bytes memory msgs, Signature memory signature) public view returns (address result) {
+    function recover(bytes memory msgs, Signature memory signature, bool h_zknox)
+        public
+        view
+        returns (address result)
+    {
         if (signature.salt.length != 40) revert("wrong salt length"); //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s1.length != 512) revert("Invalid s1 length"); //"Invalid s1 length"
         if (signature.s2.length != 512) revert("Invalid s2 length"); //"Invalid s2 length"
@@ -110,7 +114,12 @@ contract ZKNOX_falconrec {
             if (mulmod(s2[i], signature.hint[i], q) != 1) revert("wrong hint");
         }
 
-        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+        uint256[] memory hashed;
+        if (h_zknox) {
+            hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+        } else {
+            hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+        }
         for (i = 0; i < 512; i++) {
             //hashToPoint-s1
             hashed[i] = addmod(hashed[i], q - signature.s1[i], q);

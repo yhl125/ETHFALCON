@@ -112,7 +112,8 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("sig.salt = \"{}\"; \n".format(
         "".join(f"\\x{b:02x}" for b in salt)))
     file.write("address recovered_pk_{};\n".format(i))
-    file.write("recovered_pk_{} = falconrec.recover(message, sig);\n".format(i))
+    file.write(
+        "recovered_pk_{} = falconrec.recover(message, sig, true);\n".format(i))
     file.write("assertEq(pk_{}, recovered_pk_{});\n".format(i, i))
     file.write("}\n")
 file.write("}\n")

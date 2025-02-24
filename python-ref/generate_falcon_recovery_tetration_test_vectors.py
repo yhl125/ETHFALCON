@@ -1,8 +1,17 @@
+import hashlib
 from falcon_recovery import RecoveryModeSecretKey, HEAD_LEN, SALT_LEN, decompress
-from generate_falcon_tetration_test_vectors import deterministic_salt
 from polyntt.poly import Poly
 from common import q
 from keccaxof import KeccaXOF
+
+
+def deterministic_salt(x, seed="deterministic_salt"):
+    # This function is used for generating deterministic salt for the tests.
+    # Don't use this for a PRNG!
+    first_bytes = hashlib.sha256(f"{seed}{x}".encode()).digest()
+    last_bytes = hashlib.sha256(f"{seed}".encode()+first_bytes).digest()
+    return first_bytes + last_bytes[0:8]
+
 
 file = open("../test/ZKNOXFalconRecoveryTetrationVectors.t.sol", 'w')
 n = 512
@@ -19,15 +28,15 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
 sk = RecoveryModeSecretKey(n, [f, g, F, G])
 
 header = """
-// code generated using pythonref/generate_falcon_recovery_tetration_test_vectors.py.
+// code generated using pythonref/generate_falcon_recovery_test_vectors.py.
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_NTT.sol";
-import "../src/ZKNOX_falconrec_tetration.sol";
+import "../src/ZKNOX_falconrec.sol";
 
 contract ZKNOX_FalconRecTest is Test {
-    ZKNOX_falconrec_tetration falconrec;
+    ZKNOX_falconrec falconrec;
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
     // forgefmt: disable-next-line
@@ -52,7 +61,7 @@ contract ZKNOX_FalconRecTest is Test {
 
         ntt.update(a_psirev, a_psiInvrev, 12289, 12265); //update ntt with outer contract
 
-        falconrec = new ZKNOX_falconrec_tetration(ntt);
+        falconrec = new ZKNOX_falconrec(ntt);
     }"""
 file.write(header)
 
@@ -87,7 +96,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n\n".format(
         s2[0], ','.join(map(str, s2[1:]))))
-    file.write("ZKNOX_falconrec_tetration.Signature memory sig;\n")
+    file.write("ZKNOX_falconrec.Signature memory sig;\n")
     file.write("// signature s2 inverse ntt\n")
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_s2_inv_ntt = [uint({}), {}];\n".format(
@@ -104,7 +113,8 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("sig.salt = \"{}\"; \n".format(
         "".join(f"\\x{b:02x}" for b in salt)))
     file.write("address recovered_pk_{};\n".format(i))
-    file.write("recovered_pk_{} = falconrec.recover(message, sig);\n".format(i))
+    file.write(
+        "recovered_pk_{} = falconrec.recover(message, sig, false);\n".format(i))
     file.write("assertEq(pk_{}, recovered_pk_{});\n".format(i, i))
     file.write("}\n")
 file.write("}\n")
