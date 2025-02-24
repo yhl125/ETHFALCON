@@ -39,6 +39,8 @@
 pragma solidity ^0.8.25;
 
 contract ZKNOX_NTT {
+
+
     /**
      *
      */
@@ -56,8 +58,7 @@ contract ZKNOX_NTT {
     {
         assert(a.length == b.length);
         uint256[] memory res = new uint256[](a.length);
-        uint256 i;
-        for (i = 0; i < a.length; i++) {
+        for (uint256 i = 0; i < a.length; i++) {
             res[i] = mulmod(a[i], b[i], q);
         }
         return res;
@@ -72,8 +73,7 @@ contract ZKNOX_NTT {
     {
         assert(a.length == b.length);
         uint256[] memory res = new uint256[](a.length);
-        uint256 i;
-        for (i = 0; i < a.length; i++) {
+        for (uint256 i = 0; i < a.length; i++) {
             res[i] = addmod(a[i], b[i], q);
         }
         return res;
@@ -88,8 +88,7 @@ contract ZKNOX_NTT {
     {
         assert(a.length == b.length);
         uint256[] memory res = new uint256[](a.length);
-        uint256 i;
-        for (i = 0; i < a.length; i++) {
+        for (uint256 i = 0; i < a.length; i++) {
             res[i] = addmod(a[i], q - b[i], q);
         }
         return res;
@@ -104,6 +103,10 @@ contract ZKNOX_NTT {
     uint256 storage_q;
     uint256 storage_nm1modq; //n^-1 mod 12289
     uint256 is_immutable; //"antifuse" variable
+
+    uint256 constant mask16=0xffff;
+    uint256 constant chunk16Byword=16;//number of 1§ bits chunks in a word of 256 bits
+
 
     constructor(address Apsi_rev, address Apsi_inrev, uint256 q, uint256 nm1modq) {
         storage_q = q; //prime field modulus
@@ -239,17 +242,15 @@ contract ZKNOX_NTT {
         uint256 n = a.length;
         uint256 t = n;
         uint256 m = 1;
-        uint256 i;
-        uint256 j;
 
         while (m < n) {
             t = t >> 1;
-            for (i = 0; i < m; i++) {
+            for (uint256 i = 0; i < m; i++) {
                 uint256 j1 = (i * t) << 1;
                 uint256 j2 = j1 + t - 1;
                 uint256 S = psi_rev[m + i];
 
-                for (j = j1; j < j2 + 1; j++) {
+                for (uint256 j = j1; j < j2 + 1; j++) {
                     uint256 U = a[j];
                     uint256 V = mulmod(a[j + t], S, q);
                     a[j] = addmod(U, V, q);
@@ -261,20 +262,55 @@ contract ZKNOX_NTT {
         return a;
     }
 
+    //hardcoded compressed version when coefficient are less than 16 bits (WIP)
+    function ZKNOX_NTTFW_compact(uint256[] memory a, uint256 q) public view returns (uint256[] memory) {
+        uint256 n = a.length;
+        uint256 t = n;
+        uint256 m = 1;
+        /*
+        while (m < n) {
+            t = t >> 1;
+            for (uint256 i = 0; i < m; i++) {
+                uint256 j1 = (i * t) << 1;
+                uint256 j2 = j1 + t - 1;
+                uint256 S = psi_rev[m + i];
+                
+                for (uint256 j = j1; j < j2 + 1; j++) {
+                    uint cell=(j>>4);                           //j/16 because there are 16 chunks of 16 bits in a word
+                    uint offset=(j>>4)&mask16;                  //the offset position in target 256 bits cell
+                
+                    uint256 U = a[cell]>>offset;                //a[j];
+                    uint256 V = mulmod(a[(cell + (t>>4))+((j+t)&mask16)], S, q);         // V = mulmod(a[j + t], S, q);
+
+                    a[cell]=a[cell]|(~(mask16<<offset));         //zeroize target bits
+                    a[cell]=a[cell]^(addmod(U, V, q)<<offset);            //a[j] = addmod(U, V, q);
+                  
+
+                    cell=(cell + (t>>4))+((j+t)>>4);            //a[j+t]
+                    offset=(j+t)&mask16;
+
+                    a[cell]=a[cell]|(~(mask16<<offset));         //zeroize target bits
+                    a[cell]=a[cell]^(addmod(U, q - V, q)<<offset);            //a[j] = addmod(U, V, q);
+                }
+                }
+            m = m << 1;
+        }*/
+        return a;
+    }
+
+
     // NTT_INV as specified by EIP, stateless version
     function ZKNOX_NTTINV(uint256[] memory a, uint256 q) public view returns (uint256[] memory) {
         uint256 t = 1;
         uint256 m = a.length; //m=n
-        uint256 i;
-        uint256 j;
 
         while (m > 1) {
             uint256 j1 = 0;
             uint256 h = m >> 1;
-            for (i = 0; i < h; i++) {
+            for (uint256 i = 0; i < h; i++) {
                 uint256 j2 = j1 + t - 1;
                 uint256 S = psi_inv_rev[h + i];
-                for (j = j1; j < j2 + 1; j++) {
+                for (uint256 j = j1; j < j2 + 1; j++) {
                     uint256 U = a[j];
                     uint256 V = a[j + t];
                     a[j] = addmod(U, V, q);
@@ -307,6 +343,143 @@ contract ZKNOX_NTT {
     {
         return (ZKNOX_NTTINV(ZKNOX_VECMULMOD(ZKNOX_NTTFW(a, q), b, q), q));
     }
+
+    //// WIP
+
+     //// internal version to spare call data cost
+
+    // NTT_FW as specified by EIP, statefull version
+    //address apsirev: address of the contract storing the powers of psi
+    function _ZKNOX_NTTFW(uint256[] memory a, address apsirev) public view returns (uint256[] memory) {
+        uint256 n = a.length;
+        uint256 t = n;
+        uint256 m = 1;
+        uint256 q = storage_q;
+
+        uint256[1] memory S;
+
+        assembly ("memory-safe") {
+            for {} gt(n, m) {} {
+                //while(m<n)
+                t := shr(1, t)
+                for { let i := 0 } gt(m, i) { i := add(i, 1) } {
+                    let j1 := shl(1, mul(i, t))
+                    let j2 := sub(add(j1, t), 1) //j2=j1+t-1;
+
+                    extcodecopy(apsirev, S, mul(add(i, m), 32), 32) //psi_rev[m+i]
+                    for { let j := j1 } gt(add(j2, 1), j) { j := add(j, 1) } {
+                        let a_aj := add(a, mul(add(j, 1), 32)) //address of a[j]
+                        let U := mload(a_aj)
+
+                        a_aj := add(a_aj, mul(t, 32)) //address of a[j+t]
+                        let V := mulmod(mload(a_aj), mload(S), q)
+                        mstore(a_aj, addmod(U, sub(q, V), q))
+                        a_aj := sub(a_aj, mul(t, 32)) //back to address of a[j]
+                        mstore(a_aj, addmod(U, V, q))
+                    }
+                }
+                m := shl(1, m) //m=m<<1
+            }
+        }
+        return a;
+    }
+
+    // NTT_INV as specified by EIP, stateful version
+    //address apsiinvrev: address of the contract storing the powers of psi^-1
+    function _ZKNOX_NTTINV(uint256[] memory a, address apsiinvrev) public view returns (uint256[] memory) {
+        uint256 t = 1;
+        uint256 m = a.length;
+        uint256 q = storage_q;
+        uint256 nm1modq = storage_nm1modq;
+
+        uint256[1] memory S;
+
+        assembly ("memory-safe") {
+            for {} gt(m, 1) {} {
+                // while(m > 1)
+                let j1 := 0
+                let h := shr(1, m) //uint h = m>>1;
+                for { let i := 0 } gt(h, i) { i := add(i, 1) } {
+                    //while(m<n)
+                    let j2 := sub(add(j1, t), 1)
+                    extcodecopy(apsiinvrev, S, mul(add(i, h), 32), 32) //psi_rev[m+i]
+                    for { let j := j1 } gt(add(j2, 1), j) { j := add(j, 1) } {
+                        let a_aj := add(a, mul(add(j, 1), 32)) //address of a[j]
+                        let U := mload(a_aj) //U=a[j];
+                        a_aj := add(a_aj, mul(t, 32)) //address of a[j+t]
+                        let V := mload(a_aj)
+                        mstore(a_aj, mulmod(addmod(U, sub(q, V), q), mload(S), q)) //a[j+t]=mulmod(addmod(U,q-V,q),S[0],q);
+                        a_aj := sub(a_aj, mul(t, 32)) //back to address of a[j]
+                        mstore(a_aj, addmod(U, V, q)) // a[j]=addmod(U,V,q);
+                    } //end loop j
+                    j1 := add(j1, shl(1, t)) //j1=j1+2t
+                } //end loop i
+                t := shl(1, t)
+                m := shr(1, m)
+            } //end while
+
+            for { let j := 0 } gt(mload(a), j) { j := add(j, 1) } {
+                //j<n
+                let a_aj := add(a, mul(add(j, 1), 32)) //address of a[j]
+                mstore(a_aj, mulmod(mload(a_aj), nm1modq, q))
+            }
+        }
+
+        return a;
+    }
+
+
+    function ZKNOX_NTT_Expand(uint256[] memory a) internal pure returns (uint256[] memory b)
+    {
+        b=new uint256[](512);
+
+        for (uint256 i = 0; i < 32; i++) {
+            for(uint j=0;j<16;j++){
+                b[(i<<4)+j]=(a[i]>>(j<<4))&mask16;
+            }
+
+        }
+
+        return b;
+    }
+
+
+    function ZKNOX_NTT_Compact(uint256[] memory a)  internal pure returns (uint256[] memory b)
+    {
+         b= new uint256[](32);
+         for (uint256 i = 0; i < a.length; i++) {
+                b[i>>4]^=a[i]<<((i&0xf)<<4);
+        }
+
+        return b;
+    }
+    //Vectorized modular multiplication
+    //Multiply chunk wise vectors of n chunks modulo q
+    function _ZKNOX_VECMULMOD(uint256[] memory a, uint256[] memory b, uint256 q)
+        public
+        pure
+        returns (uint256[] memory)
+    {
+        assert(a.length == b.length);
+        uint256[] memory res = new uint256[](a.length);
+        for (uint256 i = 0; i < a.length; i++) {
+            res[i] = mulmod(a[i], b[i], q);
+        }
+        return res;
+    }
+    
+    //multiply two polynomials over Zq a being in standard canonical representation, b in ntt representation with reduction polynomial X^n+1
+    //packed input and output (16 chunks by word)
+    function ZKNOX_NTT_HALFMUL_Compact(uint256[] memory a, uint256[] memory b)
+        public
+        view
+        returns (uint256[] memory)
+    {
+     
+        return (ZKNOX_NTT_Compact(_ZKNOX_NTTINV(_ZKNOX_VECMULMOD(_ZKNOX_NTTFW(ZKNOX_NTT_Expand(a), o_psirev), ZKNOX_NTT_Expand(b), storage_q), o_psi_inv_rev)));
+    }
+
+
 } //end of contract
 /**
  *
