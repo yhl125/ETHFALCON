@@ -1,17 +1,7 @@
-import hashlib
 from falcon_recovery import RecoveryModeSecretKey, HEAD_LEN, SALT_LEN, decompress
 from polyntt.poly import Poly
 from polyntt.utils import inv_mod
-from common import q
-
-
-def deterministic_salt(x, seed="deterministic_salt"):
-    # This function is used for generating deterministic salt for the tests.
-    # Don't use this for a PRNG!
-    first_bytes = hashlib.sha256(f"{seed}{x}".encode()).digest()
-    last_bytes = hashlib.sha256(f"{seed}".encode()+first_bytes).digest()
-    return first_bytes + last_bytes[0:8]
-
+from common import q, deterministic_salt
 
 file = open("../test/ZKNOXFalconRecoveryShorterVectors.t.sol", 'w')
 n = 512

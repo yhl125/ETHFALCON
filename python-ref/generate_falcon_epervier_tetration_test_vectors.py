@@ -1,7 +1,6 @@
 from falcon_epervier import EpervierSecretKey, HEAD_LEN, SALT_LEN, decompress
-from generate_falcon_zknox_test_vectors import deterministic_salt
 from polyntt.poly import Poly
-from common import q
+from common import q, deterministic_salt
 from keccaxof import KeccaXOF
 
 file = open("../test/ZKNOXFalconEpervierTetrationVectors.t.sol", 'w')
