@@ -3,10 +3,10 @@ pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_NTT.sol";
-import "../src/ZKNOX_falcon_tetration.sol";
+import "../src/ZKNOX_falcon.sol";
 
 contract ZKNOX_FalconTest is Test {
-    ZKNOX_falcon_tetration falcon;
+    ZKNOX_falcon falcon;
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
     // forgefmt: disable-next-line
@@ -55,7 +55,7 @@ contract ZKNOX_FalconTest is Test {
             assertEq(f_mul_g_12289_512[i], g[i]);
         }
 
-        falcon = new ZKNOX_falcon_tetration(ntt);
+        falcon = new ZKNOX_falcon(ntt);
     }
 
     /**
@@ -72,7 +72,7 @@ contract ZKNOX_FalconTest is Test {
             }
         }
 
-        ZKNOX_falcon_tetration.Signature memory signature;
+        ZKNOX_falcon.Signature memory signature;
         signature.salt =
             "\xc5\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97";
         //signature.s2 = new int256[](512);
@@ -85,12 +85,12 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             h[i] = tmph[i];
         }
-        bool result = falcon.verify(msgs, signature, h);
+        bool result = falcon.verify(msgs, signature, h, false);
 
         assertEq(true, result);
     }
 
-    function test_Verify_kpubntt() public {
+    function test_Verify_kpubntt() public view {
         bytes memory msgs = "falcon in sol now?";
         // forgefmt: disable-next-line
          int[512] memory tmps2 = [int256(-106), -186, 85, 41, 99, 67, -55, -23, 224, -302, -21, 78, -237, 196, 60, 469, -112, -90, 25, -80, -234, 196, 10, -67, 92, -130, -119, 123, -419, 73, 239, -20, 65, -293, 121, 31, -378, 360, -119, -7, -57, -321, -113, 160, -98, -101, 37, 105, -282, 157, -190, 154, 164, -131, -70, -99, -181, -59, -135, 423, -167, 130, 23, -23, -444, 228, 268, -94, 125, -18, 52, -12, -159, -17, 101, 192, 137, 264, 63, -135, -70, 130, -135, 149, -37, 101, -253, 21, -110, -202, -224, -130, -1, -217, 215, -54, -121, 123, 127, 177, -58, 19, 84, -51, -34, -198, 19, 157, -329, 118, -109, -339, 279, 138, 11, -202, 3, -106, -74, 257, -21, 215, 5, 211, -168, 67, 39, 231, 135, -157, 61, -12, -1, 45, -18, 77, 231, 167, 48, 28, -56, 159, -196, 88, 28, -126, 45, -104, -110, -92, -69, -277, -120, 19, -23, 44, -116, -119, -122, 326, -238, -8, 79, -63, 383, -16, 275, -10, 328, -126, 111, -58, 122, -191, -126, -169, 237, 175, -13, -64, -164, -98, -98, 196, 63, -117, 201, -282, 207, 288, -352, 251, 69, 111, -140, 52, 125, -129, 70, 250, -276, -185, 59, -60, 376, 287, 45, 133, -443, -253, 58, -305, 170, -47, -54, -244, 181, -270, -188, 158, -171, -64, -119, 246, 101, -52, 343, -129, 38, 196, 227, 101, -144, 20, 281, -119, -235, 239, 38, -69, 293, 176, -158, -98, -100, 6, -543, -161, 427, -277, -166, 14, -61, 164, 170, -249, 76, -66, -101, 210, -306, 13, 47, 76, -293, 94, 114, -123, -102, -370, 87, -123, -52, -78, -12, 16, -29, 55, 60, 185, 131, -71, 230, 80, 157, -58, -442, 10, -98, 132, 3, 2, -28, 119, -212, 133, 205, -45, 160, -49, -186, 87, 228, 278, -248, 72, -86, -53, -286, 56, 3, -72, -20, 66, -28, -59, 225, 129, -197, 110, -237, 97, -53, 6, 83, -464, -221, 77, 7, -113, 86, 239, -198, 84, -372, 36, -260, -102, 101, -1, -177, -96, -238, -35, -98, 42, 205, -139, 20, -233, -117, -152, 114, -185, 52, 109, -12, -84, -12, 489, -274, 104, -22, 248, 144, -128, -106, 199, 99, -189, -100, -233, -266, -146, 383, 72, -216, -95, 86, 283, -254, -276, -61, -103, -264, -189, -71, 13, -186, 54, 179, 354, -159, 137, 22, 48, -101, 14, -13, -244, 5, 109, 230, 111, 151, 38, -171, 265, -30, -69, 79, -195, 126, 36, 24, 160, 214, -91, 85, -160, 157, 234, 390, 151, -189, -19, 324, -42, 82, -176, -111, 111, 113, -181, 123, -14, 165, 127, 172, -165, -328, -86, 16, -243, -174, 11, 73, 61, -12, -149, 33, -55, -287, -245, -234, -111, -40, -55, 162, -120, 213, -205, -163, -39, 444, 53, 166, 97, 47, 240, -194, -147, -139, 56, -142, 63, 147, -68, 36, -55, -62, -47, 39, -186, 133, -254, -162, -80, -75, 164, -197, -111, 199, 345, -171, -250, 252, 53, 179, 319, -192, 109, -277, 136, 15, 75, 18, -42, 353, -230, 70, 53];
@@ -100,7 +100,7 @@ contract ZKNOX_FalconTest is Test {
                 tmps2[i] = int256(12289) + tmps2[i];
             }
         }
-        ZKNOX_falcon_tetration.Signature memory signature;
+        ZKNOX_falcon.Signature memory signature;
         signature.salt =
             "\xc5\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97";
 
@@ -114,14 +114,14 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             h[i] = ntt_h[i];
         }
-        assertEq(true, falcon.verify_opt(msgs, signature, h));
+        assertEq(true, falcon.verify_opt(msgs, signature, h, false));
     }
 
     /**
      * INVALID VECTORS, expected result from signature second verification of each example is FALSE
      */
     //demonstrating critical vulnerability: forge signature from original message
-    function test_CVETH_2025_080201() public {
+    function test_CVETH_2025_080201() public view {
         bool result;
         // example with Tetration test vector
         bytes memory msg1 = "falcon in sol now?";
@@ -132,7 +132,7 @@ contract ZKNOX_FalconTest is Test {
                 tmps2[i] = int256(12289) + tmps2[i];
             }
         }
-        ZKNOX_falcon_tetration.Signature memory signature;
+        ZKNOX_falcon.Signature memory signature;
         signature.salt =
             "\xc5\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97";
         //signature.s2 = new int256[](512);
@@ -145,13 +145,13 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             h[i] = tmph[i];
         }
-        assertEq(true, falcon.verify(msg1, signature, h));
+        assertEq(true, falcon.verify(msg1, signature, h, false));
 
         // Another (message, salt) with the same signature
         bytes memory msg2 = "falcon in sol now?\xc5";
         signature.salt =
             "\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97";
-        result = falcon.verify(msg2, signature, h);
+        result = falcon.verify(msg2, signature, h, false);
         assertEq(result, false);
 
         //
@@ -175,7 +175,7 @@ contract ZKNOX_FalconTest is Test {
             }
         }
 
-        ZKNOX_falcon_tetration.Signature memory sig;
+        ZKNOX_falcon.Signature memory sig;
         //sig.s2 = new int256[](512);
         for (uint256 i = 0; i < 512; i++) {
             sig.s2[i] = uint256(tmp_s2[i]);
@@ -185,13 +185,13 @@ contract ZKNOX_FalconTest is Test {
         // salt
         sig.salt =
             "\x20\x61\x6e\x64\x20\x35\x30\x30\x30\x30\x20\x55\x53\x44\x43\x20\x74\x6f\x20\x52\x65\x6b\x74\x4d\x65\x2e\x65\x74\x68\x21";
-        assertEq(falcon.verify(msg3, sig, pk), false);
+        assertEq(falcon.verify(msg3, sig, pk, false), false);
         // message
         bytes memory msg4 = "Send ______ 1 USDC ______ to vitalik.eth and 50000 USDC to RektMe.eth!";
         // salt
         sig.salt = "";
-        falcon.verify(msg4, sig, pk); //
-        result = falcon.verify(msg4, signature, h);
+        falcon.verify(msg4, sig, pk, false);
+        result = falcon.verify(msg4, signature, h, false);
         assertEq(result, false);
     }
 }

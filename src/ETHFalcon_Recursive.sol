@@ -4,8 +4,7 @@ pragma solidity ^0.8.25;
 import {NTT} from "./NTT_Recursive.sol";
 import {NTT_iterative} from "./NTT_Iterative.sol";
 import {Test, console} from "forge-std/Test.sol";
-// TODO: make it a library (aka unfuck constants/data)
-import "./Tetration_HashToPoint.sol"; //not recommended, here for benchmarks against tetration only
+import "./HashToPoint.sol"; // Tetration implementation is used here
 
 contract ETHFalcon {
     uint256 constant n = 512;
@@ -47,7 +46,7 @@ contract ETHFalcon {
                 s1[i] = uint256(signature.s1[i]);
             }
         }
-        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
+        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         uint256[] memory s0 = ntt.subZQ(hashed, ntt.mulZQ(s1, h));
         uint256 qs1 = 6144; // q >> 1;
         // normalize s0 // to positive cuz you'll **2 anyway?
@@ -92,7 +91,7 @@ contract ETHFalcon {
                 s1[i] = uint256(signature.s1[i]);
             }
         }
-        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
+        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         uint256[] memory s0 = ntt.subZQ(hashed, ntt.mulZQ_opt(s1, ntt_h));
         uint256 qs1 = 6144; // q >> 1;
         // normalize s0 // to positive cuz you'll **2 anyway?
@@ -135,7 +134,7 @@ contract ETHFalcon {
                 s1[i] = uint256(signature.s1[i]);
             }
         }
-        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
+        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         uint256[] memory s0 = ntt_iterative.subZQ(hashed, ntt_iterative.mul_halfNTTPoly(s1, ntt_h));
         uint256 qs1 = 6144; // q >> 1;
         // normalize s0 // to positive cuz you'll **2 anyway?

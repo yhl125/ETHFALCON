@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {ETHFalcon} from "../src/ETHFalcon_Recursive.sol";
-import "../src/Tetration_HashToPoint.sol";
+import "../src/HashToPoint.sol";
 import {NTT} from "../src/NTT_Recursive.sol";
 import "../src/NTT_Iterative.sol";
 
@@ -25,7 +25,7 @@ contract FalconTest is Test {
     function testHashToPoint() public view {
         bytes memory salt = "def";
         bytes memory msgHash = "abc";
-        uint256[] memory hashed = hashToPoint(salt, msgHash, 12289, 512);
+        uint256[] memory hashed = hashToPointTETRATION(salt, msgHash, 12289, 512);
         for (uint256 i = 0; i < 512; i++) {
             require(hashed[i] == hash2PointAnswer[i], "hashed[i] != answer[i]");
         }

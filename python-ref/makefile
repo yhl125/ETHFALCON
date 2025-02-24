@@ -6,8 +6,8 @@ AUX = *.pyc *.cprof */*.pyc
 
 install:
 	$(PY) -m venv $(VENV)
-	$(PIP) install eth_abi pandas pycryptodome scipy matplotlib
-	$(PIP) install -e ../../NTT/assets/pythonref/
+	$(PIP) install eth_abi pandas pycryptodome scipy matplotlib 
+	$(PIP) install -e "git+https://github.com/ZKNoxHQ/NTT.git@main#egg=polyntt&subdirectory=assets/pythonref/"
 
 test:
 	$(PYTHON) test.py
@@ -30,12 +30,11 @@ test_epervier:
 	$(PYTHON) -m unittest test_falcon_epervier -v
 
 generate_test_vectors:
-	$(PYTHON) -m generate_falcon_tetration_test_vectors -v
-	$(PYTHON) -m generate_falcon_zknox_test_vectors -v
-	$(PYTHON) -m generate_falcon_recovery_tetration_test_vectors -v
-	$(PYTHON) -m generate_falcon_recovery_zknox_test_vectors -v
-	$(PYTHON) -m generate_falcon_epervier_tetration_test_vectors -v
-	$(PYTHON) -m generate_falcon_epervier_zknox_test_vectors -v
+	$(PYTHON) -m generate_falcon_test_vectors -v
+	$(PYTHON) -m generate_falcon_recovery_test_vectors -v
+	$(PYTHON) -m generate_falcon_recovery_shorter_zknox_test_vectors -v
+	$(PYTHON) -m generate_falcon_epervier_test_vectors -v
+	$(PYTHON) -m generate_falcon_epervier_shorter_zknox_test_vectors -v
 	forge fmt
 
 simple:

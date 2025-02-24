@@ -41,13 +41,12 @@ pragma solidity ^0.8.25;
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./ZKNOX_HashToPoint.sol";
+import "./HashToPoint.sol";
 
 contract ZKNOX_falcon {
     //FALCON CONSTANTS
     uint256 constant n = 512;
     uint256 constant sigBound = 34034726;
-    uint256 constant sigBytesLen = 666;
     uint256 constant q = 12289;
     uint256 qs1 = 6144; // q >> 1;
 
@@ -67,24 +66,31 @@ contract ZKNOX_falcon {
     function verify(
         bytes memory msgs,
         Signature memory signature,
-        uint256[] memory h // public key
+        uint256[] memory h, // public key
+        bool h_zknox // choose Tetration's or ZKNox hash function
     ) public view returns (bool result) {
         if (h.length != 512) return false; //"Invalid public key length"
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s2.length != 512) return false; //"Invalid salt length"
 
         result = false;
+        uint256 i;
 
         uint256[] memory s2 = new uint256[](512);
-        for (uint256 i = 0; i < 512; i++) {
+        for (i = 0; i < 512; i++) {
             s2[i] = uint256(signature.s2[i]);
         }
-        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+        uint256[] memory hashed;
+        if (h_zknox) {
+            hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+        } else {
+            hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+        }
 
         uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s2, h), q);
 
         // normalize s1 // to positive cuz you'll **2 anyway?
-        for (uint256 i = 0; i < n; i++) {
+        for (i = 0; i < n; i++) {
             if (s1[i] > qs1) {
                 s1[i] = q - s1[i];
             } else {
@@ -93,7 +99,7 @@ contract ZKNOX_falcon {
         }
 
         // normalize s2
-        for (uint256 i = 0; i < n; i++) {
+        for (i = 0; i < n; i++) {
             if (s2[i] > qs1) {
                 s2[i] = q - s2[i];
             } else {
@@ -102,7 +108,7 @@ contract ZKNOX_falcon {
         }
 
         uint256 norm = 0;
-        for (uint256 i = 0; i < n; i++) {
+        for (i = 0; i < n; i++) {
             norm += s1[i] * s1[i];
             norm += s2[i] * s2[i];
         }
@@ -118,24 +124,31 @@ contract ZKNOX_falcon {
     function verify_opt(
         bytes memory msgs,
         Signature memory signature,
-        uint256[] memory ntth // public key
+        uint256[] memory ntth, // public key
+        bool h_zknox
     ) public view returns (bool result) {
         if (ntth.length != 512) return false; //"Invalid public key length"
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s2.length != 512) return false; //"Invalid salt length"
 
         result = false;
+        uint256 i;
 
         uint256[] memory s2 = new uint256[](512);
-        for (uint256 i = 0; i < 512; i++) {
+        for (i = 0; i < 512; i++) {
             s2[i] = uint256(signature.s2[i]);
         }
 
-        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+        uint256[] memory hashed;
+        if (h_zknox) {
+            hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+        } else {
+            hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+        }
         uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_HALFMUL(s2, ntth), q);
 
         // normalize s1 // to positive cuz you'll **2 anyway?
-        for (uint256 i = 0; i < n; i++) {
+        for (i = 0; i < n; i++) {
             if (s1[i] > qs1) {
                 s1[i] = q - s1[i];
             } else {
@@ -144,7 +157,7 @@ contract ZKNOX_falcon {
         }
 
         // normalize s2
-        for (uint256 i = 0; i < n; i++) {
+        for (i = 0; i < n; i++) {
             if (s2[i] > qs1) {
                 s2[i] = q - s2[i];
             } else {
@@ -153,7 +166,7 @@ contract ZKNOX_falcon {
         }
 
         uint256 norm = 0;
-        for (uint256 i = 0; i < n; i++) {
+        for (i = 0; i < n; i++) {
             norm += s1[i] * s1[i];
             norm += s2[i] * s2[i];
         }
@@ -166,11 +179,4 @@ contract ZKNOX_falcon {
         return result;
     }
 } //end of contract
-/**
- *
- */
-/*                                                                  END OF CONTRACT                                                                                     */
-/**
- *
- */
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/

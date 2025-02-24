@@ -30,7 +30,7 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_HashToPoint.sol
+///* FILE: HashToPoint.sol
 ///* Description: Compute Negative Wrap Convolution NTT as specified in EIP-NTT
 /**
  *
@@ -39,6 +39,24 @@
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
+
+function uint64ToBytes(uint64 x) pure returns (bytes memory b) {
+    // convert uint64 to big-endian bytes
+    b = new bytes(8);
+    uint256 i = 0;
+    for (i = 0; i < 8; i++) {
+        b[i] = bytes1(uint8(x >> (56 - i * 8)));
+    }
+}
+
+function splitToHex(bytes32 x) pure returns (uint16[16] memory) {
+    // splits a byte32 into hex
+    uint16[16] memory res;
+    for (uint256 i = 0; i < 16; i++) {
+        res[i] = uint16(uint256(x) >> ((15 - i) * 16));
+    }
+    return res;
+}
 
 function hashToPointZKNOX(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
     pure
@@ -102,12 +120,30 @@ function hashToPointZKNOX(bytes memory salt, bytes memory msgHash, uint256 q, ui
     }
 }
 
-/**
- * convert uint64 to big-endian bytes
- */
-function uint64ToBytes(uint64 x) pure returns (bytes memory b) {
-    b = new bytes(8);
-    for (uint256 i = 0; i < 8; i++) {
-        b[i] = bytes1(uint8(x >> (56 - i * 8)));
+//Use for Poc only, as this XOF doesn't respect separation domain for input and output of internal state
+//CVETH-2025-080203
+function hashToPointTETRATION(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
+    pure
+    returns (uint256[] memory)
+{
+    uint256[] memory hashed = new uint256[](512);
+    uint256 i = 0;
+    uint256 j = 0;
+    bytes32 tmp = keccak256(abi.encodePacked(msgHash, salt));
+    uint16[16] memory sample = splitToHex(tmp);
+    uint256 k = (1 << 16) / q;
+    uint256 kq = k * q;
+    while (i < n) {
+        if (j == 16) {
+            tmp = keccak256(abi.encodePacked(tmp));
+            sample = splitToHex(tmp);
+            j = 0;
+        }
+        if (sample[j] < kq) {
+            hashed[i] = sample[j] % q;
+            i++;
+        }
+        j++;
     }
+    return hashed;
 }
