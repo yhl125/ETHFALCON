@@ -38,31 +38,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+uint256 constant mask16 = 0xffff;
+uint256 constant chunk16Byword = 16; //number of 1§ bits chunks in a word of 256 bits
 
-uint256 constant mask16=0xffff;
-uint256 constant chunk16Byword=16;//number of 1§ bits chunks in a word of 256 bits
-
-
-function _ZKNOX_NTT_Compact(uint256[] memory a) pure returns (uint256[] memory b)
-    {
-         b= new uint256[](32);
-         for (uint256 i = 0; i < a.length; i++) {
-                b[i>>4]^=a[i]<<((i&0xf)<<4);
-        }
-
-        return b;
+function _ZKNOX_NTT_Compact(uint256[] memory a) pure returns (uint256[] memory b) {
+    b = new uint256[](32);
+    for (uint256 i = 0; i < a.length; i++) {
+        b[i >> 4] ^= a[i] << ((i & 0xf) << 4);
     }
 
-function _ZKNOX_NTT_Expand(uint256[] memory a) pure returns (uint256[] memory b)
-    {
-        b=new uint256[](512);
+    return b;
+}
 
-        for (uint256 i = 0; i < 32; i++) {
-            for(uint j=0;j<16;j++){
-                b[(i<<4)+j]=(a[i]>>(j<<4))&mask16;
-            }
+function _ZKNOX_NTT_Expand(uint256[] memory a) pure returns (uint256[] memory b) {
+    b = new uint256[](512);
 
+    for (uint256 i = 0; i < 32; i++) {
+        for (uint256 j = 0; j < 16; j++) {
+            b[(i << 4) + j] = (a[i] >> (j << 4)) & mask16;
         }
-
-        return b;
     }
+
+    return b;
+}

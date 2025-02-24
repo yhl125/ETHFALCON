@@ -39,8 +39,6 @@
 pragma solidity ^0.8.25;
 
 contract ZKNOX_NTT {
-
-
     /**
      *
      */
@@ -104,9 +102,8 @@ contract ZKNOX_NTT {
     uint256 storage_nm1modq; //n^-1 mod 12289
     uint256 is_immutable; //"antifuse" variable
 
-    uint256 constant mask16=0xffff;
-    uint256 constant chunk16Byword=16;//number of 1§ bits chunks in a word of 256 bits
-
+    uint256 constant mask16 = 0xffff;
+    uint256 constant chunk16Byword = 16; //number of 1§ bits chunks in a word of 256 bits
 
     constructor(address Apsi_rev, address Apsi_inrev, uint256 q, uint256 nm1modq) {
         storage_q = q; //prime field modulus
@@ -298,7 +295,6 @@ contract ZKNOX_NTT {
         return a;
     }
 
-
     // NTT_INV as specified by EIP, stateless version
     function ZKNOX_NTTINV(uint256[] memory a, uint256 q) public view returns (uint256[] memory) {
         uint256 t = 1;
@@ -346,7 +342,7 @@ contract ZKNOX_NTT {
 
     //// WIP
 
-     //// internal version to spare call data cost
+    //// internal version to spare call data cost
 
     // NTT_FW as specified by EIP, statefull version
     //address apsirev: address of the contract storing the powers of psi
@@ -428,33 +424,29 @@ contract ZKNOX_NTT {
         return a;
     }
 
-
-    function ZKNOX_NTT_Expand(uint256[] memory a) internal pure returns (uint256[] memory b)
-    {
-        b=new uint256[](512);
+    function ZKNOX_NTT_Expand(uint256[] memory a) internal pure returns (uint256[] memory b) {
+        b = new uint256[](512);
 
         for (uint256 i = 0; i < 32; i++) {
-            for(uint j=0;j<16;j++){
-                b[(i<<4)+j]=(a[i]>>(j<<4))&mask16;
+            for (uint256 j = 0; j < 16; j++) {
+                b[(i << 4) + j] = (a[i] >> (j << 4)) & mask16;
             }
-
         }
 
         return b;
     }
 
-
-    function ZKNOX_NTT_Compact(uint256[] memory a)  internal pure returns (uint256[] memory b)
-    {
-         b= new uint256[](32);
-         for (uint256 i = 0; i < a.length; i++) {
-                b[i>>4]^=a[i]<<((i&0xf)<<4);
+    function ZKNOX_NTT_Compact(uint256[] memory a) internal pure returns (uint256[] memory b) {
+        b = new uint256[](32);
+        for (uint256 i = 0; i < a.length; i++) {
+            b[i >> 4] ^= a[i] << ((i & 0xf) << 4);
         }
 
         return b;
     }
     //Vectorized modular multiplication
     //Multiply chunk wise vectors of n chunks modulo q
+
     function _ZKNOX_VECMULMOD(uint256[] memory a, uint256[] memory b, uint256 q)
         public
         pure
@@ -467,19 +459,19 @@ contract ZKNOX_NTT {
         }
         return res;
     }
-    
+
     //multiply two polynomials over Zq a being in standard canonical representation, b in ntt representation with reduction polynomial X^n+1
     //packed input and output (16 chunks by word)
-    function ZKNOX_NTT_HALFMUL_Compact(uint256[] memory a, uint256[] memory b)
-        public
-        view
-        returns (uint256[] memory)
-    {
-     
-        return (ZKNOX_NTT_Compact(_ZKNOX_NTTINV(_ZKNOX_VECMULMOD(_ZKNOX_NTTFW(ZKNOX_NTT_Expand(a), o_psirev), ZKNOX_NTT_Expand(b), storage_q), o_psi_inv_rev)));
+    function ZKNOX_NTT_HALFMUL_Compact(uint256[] memory a, uint256[] memory b) public view returns (uint256[] memory) {
+        return (
+            ZKNOX_NTT_Compact(
+                _ZKNOX_NTTINV(
+                    _ZKNOX_VECMULMOD(_ZKNOX_NTTFW(ZKNOX_NTT_Expand(a), o_psirev), ZKNOX_NTT_Expand(b), storage_q),
+                    o_psi_inv_rev
+                )
+            )
+        );
     }
-
-
 } //end of contract
 /**
  *

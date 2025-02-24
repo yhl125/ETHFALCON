@@ -41,7 +41,6 @@ pragma solidity ^0.8.25;
 import "./ZKNOX_falcon_utils.sol";
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
-
 //choose the XOF to use here
 import "./HashToPoint.sol";
 
@@ -65,8 +64,6 @@ contract ZKNOX_falcon_compact {
         bytes salt;
         uint256[32] s2; // compacted signature
     }
-
-
 
     //same as above but takes the precomputed ntt(publickey) as input value
     function verify_compact(
@@ -101,10 +98,8 @@ contract ZKNOX_falcon_compact {
             }
         }
 
-
         uint256[] memory s2_expanded = new uint256[](512);
-        s2_expanded=_ZKNOX_NTT_Expand(s2);
-
+        s2_expanded = _ZKNOX_NTT_Expand(s2);
 
         // normalize s2
         for (uint256 i = 0; i < n; i++) {
@@ -121,15 +116,12 @@ contract ZKNOX_falcon_compact {
             norm += s2_expanded[i] * s2_expanded[i];
         }
 
-
         if (norm > sigBound) {
             result = false;
         } else {
             result = true;
         }
 
-
-        
         return result;
     }
 } //end of contract
