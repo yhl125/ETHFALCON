@@ -98,7 +98,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("bytes memory message  = \"{}\"; \n".format(message))
     file.write("sig.salt = \"{}\"; \n".format(
         "".join(f"\\x{b:02x}" for b in salt)))
-    file.write("bool result = falcon.verify(message, sig, pk);\n")
+    file.write("bool result = falcon.verify(message, sig, pk, true);\n")
     file.write("assertEq(true, result);")
     file.write("}\n")
 file.write("}\n")

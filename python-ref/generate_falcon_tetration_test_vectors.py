@@ -28,15 +28,15 @@ sk = SecretKey(n, [f, g, F, G])
 pub = PublicKey(sk)
 
 header = """
-// code generated using pythonref/generate_falcon_tetration_test_vectors.py.
+// code generated using pythonref/generate_falcon_test_vectors.py.
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_NTT.sol";
-import "../src/ZKNOX_falcon_tetration.sol";
+import "../src/ZKNOX_falcon.sol";
 
 contract ZKNOX_FalconTest is Test {
-    ZKNOX_falcon_tetration falcon;
+    ZKNOX_falcon falcon;
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
     // forgefmt: disable-next-line
@@ -60,7 +60,7 @@ contract ZKNOX_FalconTest is Test {
 
         ntt.update(a_psirev, a_psiInvrev, 12289, 12265); //update ntt with outer contract
 
-        falcon = new ZKNOX_falcon_tetration(ntt);
+        falcon = new ZKNOX_falcon(ntt);
     }
 """
 file.write(header)
@@ -89,7 +89,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n".format(
         s2[0], ','.join(map(str, s2[1:]))))
 
-    file.write("ZKNOX_falcon_tetration.Signature memory sig;\n")
+    file.write("ZKNOX_falcon.Signature memory sig;\n")
     file.write("for (uint i = 0; i < 512; i++) {\n")
     file.write("\tsig.s2[i] = tmp_s2[i];\n")
     file.write("}\n")
@@ -98,7 +98,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("bytes memory message  = \"{}\"; \n".format(message))
     file.write("sig.salt = \"{}\"; \n".format(
         "".join(f"\\x{b:02x}" for b in salt)))
-    file.write("bool result = falcon.verify(message, sig, pk);\n")
+    file.write("bool result = falcon.verify(message, sig, pk, false);\n")
     file.write("assertEq(true, result);")
     file.write("}\n")
 file.write("}\n")

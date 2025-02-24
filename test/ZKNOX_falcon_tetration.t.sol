@@ -3,10 +3,10 @@ pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_NTT.sol";
-import "../src/ZKNOX_falcon_tetration.sol";
+import "../src/ZKNOX_falcon.sol";
 
 contract ZKNOX_FalconTest is Test {
-    ZKNOX_falcon_tetration falcon;
+    ZKNOX_falcon falcon;
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
     // forgefmt: disable-next-line
@@ -55,7 +55,7 @@ contract ZKNOX_FalconTest is Test {
             assertEq(f_mul_g_12289_512[i], g[i]);
         }
 
-        falcon = new ZKNOX_falcon_tetration(ntt);
+        falcon = new ZKNOX_falcon(ntt);
     }
 
     /**
@@ -72,7 +72,7 @@ contract ZKNOX_FalconTest is Test {
             }
         }
 
-        ZKNOX_falcon_tetration.Signature memory signature;
+        ZKNOX_falcon.Signature memory signature;
         signature.salt =
             "\xc5\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97";
         //signature.s2 = new int256[](512);
@@ -85,7 +85,7 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             h[i] = tmph[i];
         }
-        bool result = falcon.verify(msgs, signature, h);
+        bool result = falcon.verify(msgs, signature, h, false);
 
         assertEq(true, result);
     }
@@ -100,7 +100,7 @@ contract ZKNOX_FalconTest is Test {
                 tmps2[i] = int256(12289) + tmps2[i];
             }
         }
-        ZKNOX_falcon_tetration.Signature memory signature;
+        ZKNOX_falcon.Signature memory signature;
         signature.salt =
             "\xc5\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97";
 
@@ -114,7 +114,7 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             h[i] = ntt_h[i];
         }
-        assertEq(true, falcon.verify_opt(msgs, signature, h));
+        assertEq(true, falcon.verify_opt(msgs, signature, h, false));
     }
 
     /**
@@ -132,7 +132,7 @@ contract ZKNOX_FalconTest is Test {
                 tmps2[i] = int256(12289) + tmps2[i];
             }
         }
-        ZKNOX_falcon_tetration.Signature memory signature;
+        ZKNOX_falcon.Signature memory signature;
         signature.salt =
             "\xc5\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97";
         //signature.s2 = new int256[](512);
@@ -145,13 +145,13 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             h[i] = tmph[i];
         }
-        assertEq(true, falcon.verify(msg1, signature, h));
+        assertEq(true, falcon.verify(msg1, signature, h, false));
 
         // Another (message, salt) with the same signature
         bytes memory msg2 = "falcon in sol now?\xc5";
         signature.salt =
             "\xb4\x0c'p\xa32 \x9f\x89\xd5\xc4\xf1\x106\x0e\xe8\x8b1\x0fU\xc6\xc7\n\xf5\x01\xee8:|\xe4r\xdb\xbd>\xff\xa0V\xac\x97";
-        result = falcon.verify(msg2, signature, h);
+        result = falcon.verify(msg2, signature, h, false);
         assertEq(result, false);
 
         //
@@ -175,7 +175,7 @@ contract ZKNOX_FalconTest is Test {
             }
         }
 
-        ZKNOX_falcon_tetration.Signature memory sig;
+        ZKNOX_falcon.Signature memory sig;
         //sig.s2 = new int256[](512);
         for (uint256 i = 0; i < 512; i++) {
             sig.s2[i] = uint256(tmp_s2[i]);
@@ -185,13 +185,13 @@ contract ZKNOX_FalconTest is Test {
         // salt
         sig.salt =
             "\x20\x61\x6e\x64\x20\x35\x30\x30\x30\x30\x20\x55\x53\x44\x43\x20\x74\x6f\x20\x52\x65\x6b\x74\x4d\x65\x2e\x65\x74\x68\x21";
-        assertEq(falcon.verify(msg3, sig, pk), false);
+        assertEq(falcon.verify(msg3, sig, pk, false), false);
         // message
         bytes memory msg4 = "Send ______ 1 USDC ______ to vitalik.eth and 50000 USDC to RektMe.eth!";
         // salt
         sig.salt = "";
-        falcon.verify(msg4, sig, pk); //
-        result = falcon.verify(msg4, signature, h);
+        falcon.verify(msg4, sig, pk,false);
+        result = falcon.verify(msg4, signature, h, false);
         assertEq(result, false);
     }
 }

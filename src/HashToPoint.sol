@@ -30,156 +30,120 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_falcon_tetration.sol
-///* Description: Compute ethereum friendly version of falcon verification
+///* FILE: HashToPoint.sol
+///* Description: Compute Negative Wrap Convolution NTT as specified in EIP-NTT
 /**
  *
  */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {console} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 
-import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
-
-//choose the XOF to use here
-import "./Tetration_HashToPoint.sol";
-
-//select the XOF to use inside HashToPoint here
-import "./Tetration_HashToPoint.sol"; //not recommended, here for benchmarks against tetration only
-
-contract ZKNOX_falcon_tetration {
-    //FALCON CONSTANTS
-    uint256 constant n = 512;
-    uint256 constant sigBound = 34034726;
-    uint256 constant sigBytesLen = 666;
-    uint256 constant q = 12289;
-    uint256 qs1 = 6144; // q >> 1;
-
-    ZKNOX_NTT ntt;
-
-    uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;
-
-    constructor(ZKNOX_NTT i_ntt) {
-        ntt = i_ntt;
+function uint64ToBytes(uint64 x) pure returns (bytes memory b) {
+    // convert uint64 to big-endian bytes
+    b = new bytes(8);
+    uint256 i = 0;
+    for (i = 0; i < 8; i++) {
+        b[i] = bytes1(uint8(x >> (56 - i * 8)));
     }
+}
 
-    struct Signature {
-        bytes salt;
-        uint256[512] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
+function splitToHex(bytes32 x) pure returns (uint16[16] memory) {
+    // splits a byte32 into hex
+    uint16[16] memory res;
+    for (uint256 i = 0; i < 16; i++) {
+        res[i] = uint16(uint256(x) >> ((15 - i) * 16));
     }
+    return res;
+}
 
-    function verify(
-        bytes memory msgs,
-        Signature memory signature,
-        uint256[] memory h // public key
-    ) public view returns (bool result) {
-        if (h.length != 512) return false; //"Invalid public key length"
-        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s2.length != 512) return false; //"Invalid salt length"
+function hashToPointZKNOX(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
+    pure
+    returns (uint256[] memory c)
+{
+    uint256 k = (1 << 16) / q;
+    bytes32 state;
+    uint64 counter;
+    bytes memory buffer;
+    bytes32 outBuffer;
+    uint8 outBufferPos;
+    bool outBufferValid;
 
-        result = false;
-        uint256 i;
+    counter = 0;
+    outBufferPos = 0;
+    outBufferValid = false;
 
-        uint256[] memory s2 = new uint256[](512);
-        for (i = 0; i < 512; i++) {
-            s2[i] = uint256(signature.s2[i]);
+    // Inject
+    buffer = abi.encodePacked("", abi.encodePacked(msgHash, salt));
+    // Flip
+    state = keccak256(buffer);
+
+    uint256 kq = k * q;
+    uint256 t;
+    c = new uint256[](512);
+    uint256 i = 0;
+    while (i < n) {
+        assembly {
+            mstore(add(buffer, 32), 0)
         }
 
-        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
-
-        uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s2, h), q);
-
-        // normalize s1 // to positive cuz you'll **2 anyway?
-        for (i = 0; i < n; i++) {
-            if (s1[i] > qs1) {
-                s1[i] = q - s1[i];
-            } else {
-                s1[i] = s1[i];
+        buffer = new bytes(2);
+        uint256 offset = 0;
+        // Use any remaining bytes in the output buffer first
+        while (outBufferValid && outBufferPos < 32 && offset < 2) {
+            buffer[offset] = outBuffer[outBufferPos];
+            outBufferPos++;
+            offset++;
+        }
+        // Generate two blocks
+        while (offset < 2) {
+            outBuffer = keccak256(abi.encodePacked(state, uint64ToBytes(counter)));
+            outBufferPos = 0;
+            outBufferValid = true;
+            while (outBufferPos < 32 && offset < 2) {
+                buffer[offset] = outBuffer[outBufferPos];
+                outBufferPos++;
+                offset++;
             }
+            counter++;
         }
 
-        // normalize s2
-        for (i = 0; i < n; i++) {
-            if (s2[i] > qs1) {
-                s2[i] = q - s2[i];
-            } else {
-                s2[i] = s2[i];
-            }
+        assembly {
+            t := mload(add(buffer, 32))
         }
-
-        uint256 norm = 0;
-        for (i = 0; i < n; i++) {
-            norm += s1[i] * s1[i];
-            norm += s2[i] * s2[i];
+        t = t >> (256 - 16);
+        if (t < kq) {
+            c[i] = t % q;
+            i++;
         }
-        if (norm > sigBound) {
-            result = false;
-        } else {
-            result = true;
-        }
-        return result;
     }
+}
 
-    //same as above but takes the precomputed ntt(publickey) as input value
-    function verify_opt(
-        bytes memory msgs,
-        Signature memory signature,
-        uint256[] memory ntth // public key
-    ) public view returns (bool result) {
-        if (ntth.length != 512) return false; //"Invalid public key length"
-        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s2.length != 512) return false; //"Invalid salt length"
-
-        result = false;
-        uint256 i;
-
-        uint256[] memory s2 = new uint256[](512);
-        for (i = 0; i < 512; i++) {
-            s2[i] = uint256(signature.s2[i]);
+//Use for Poc only, as this XOF doesn't respect separation domain for input and output of internal state
+//CVETH-2025-080203
+function hashToPointTETRATION(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
+    pure
+    returns (uint256[] memory)
+{
+    uint256[] memory hashed = new uint256[](512);
+    uint256 i = 0;
+    uint256 j = 0;
+    bytes32 tmp = keccak256(abi.encodePacked(msgHash, salt));
+    uint16[16] memory sample = splitToHex(tmp);
+    uint256 k = (1 << 16) / q;
+    uint256 kq = k * q;
+    while (i < n) {
+        if (j == 16) {
+            tmp = keccak256(abi.encodePacked(tmp));
+            sample = splitToHex(tmp);
+            j = 0;
         }
-
-        uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
-
-        uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_HALFMUL(s2, ntth), q);
-
-        // normalize s1 // to positive cuz you'll **2 anyway?
-        for (i = 0; i < n; i++) {
-            if (s1[i] > qs1) {
-                s1[i] = q - s1[i];
-            } else {
-                s1[i] = s1[i];
-            }
+        if (sample[j] < kq) {
+            hashed[i] = sample[j] % q;
+            i++;
         }
-
-        // normalize s2
-        for (i = 0; i < n; i++) {
-            if (s2[i] > qs1) {
-                s2[i] = q - s2[i];
-            } else {
-                s2[i] = s2[i];
-            }
-        }
-
-        uint256 norm = 0;
-        for (i = 0; i < n; i++) {
-            norm += s1[i] * s1[i];
-            norm += s2[i] * s2[i];
-        }
-
-        if (norm > sigBound) {
-            result = false;
-        } else {
-            result = true;
-        }
-        return result;
+        j++;
     }
-} //end of contract
-/**
- *
- */
-/*                                                                  END OF CONTRACT                                                                                     */
-/**
- *
- */
-/* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
+    return hashed;
+}
