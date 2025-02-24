@@ -96,7 +96,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("for (uint i = 0; i < 512; i++) {\n")
     file.write("\tsig.s1[i] = tmp_s1[i];\n")
     file.write("\tsig.s2[i] = tmp_s2[i];\n")
-    file.write("\tsig.ntt_sm2[i] = tmp_s2_inv_ntt[i];\n")
+    file.write("\tsig.hint[i] = tmp_s2_inv_ntt[i];\n")
     file.write("}\n")
 
     file.write("// message\n")

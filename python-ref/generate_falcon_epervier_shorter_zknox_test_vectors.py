@@ -1,10 +1,19 @@
+import hashlib
 from falcon_epervier import EpervierSecretKey, HEAD_LEN, SALT_LEN, decompress
-from generate_falcon_tetration_test_vectors import deterministic_salt
 from polyntt.poly import Poly
+from polyntt.utils import inv_mod
 from common import q
-from keccaxof import KeccaXOF
 
-file = open("../test/ZKNOXFalconEpervierTetrationVectors.t.sol", 'w')
+
+def deterministic_salt(x, seed="deterministic_salt"):
+    # This function is used for generating deterministic salt for the tests.
+    # Don't use this for a PRNG!
+    first_bytes = hashlib.sha256(f"{seed}{x}".encode()).digest()
+    last_bytes = hashlib.sha256(f"{seed}".encode()+first_bytes).digest()
+    return first_bytes + last_bytes[0:8]
+
+
+file = open("../test/ZKNOXFalconEpervierShorterVectors.t.sol", 'w')
 n = 512
 # An example of secret key
 f = [0, -7, -2, -1, 0, 0, 1, -2, 0, -2, -3, 0, 1, 8, 3, 2, -3, -3, 2, -6, 0, -7, 0, -6, 0, 5, 0, 2, 7, 3, 3, -1, -4, -2, -4, -1, -1, 3, 1, 1, -1, -1, 6, -1, -3, 4, 4, -7, 6, -2, 6, 4, 1, 5, 5, -2, -6, -1, -1, 6, 2, 4, -2, -3, 0, 5, 8, 1, 6, -1, -5, -1, 3, 2, -2, -2, -1, 0, -2, 8, 4, 9, 1, 1, -4, 1, 0, 3, -1, 0, -4, 0, 0, -2, 0, -5, 3, 4, 1, 2, 6, 3, 0, -3, 3, -5, -2, 2, 4, 0, -2, 0, -3, 4, 1, -3, -1, -5, 1, -5, 0, -4, -4, 5, -6, 10, -1, -8, -2, 8, -7, 2, 0, 3, 2, -1, -3, -5, -2, -3, 6, -5, 1, 1, 2, -6, 2, -1, -6, -2, -8, -1, -1, -5, 0, -6, -6, 1, -7, 9, 0, 1, 9, 5, 2, 3, 2, 1, 2, 3, -1, -2, 2, 6, -3, 6, -1, 3, 0, 3, 1, 3, 2, -5, -4, -1, 0, -2, 1, 8, -5, 1, 1, -4, -2, 9, -4, 3, -2, -6, -1, -3, 2, 9, -3, 0, -6, -1, -1, -6, 4, -2, -1, -2, 3, 2, -2, 5, 8, -6, 3, -5, -1, -1, -2, -2, -3, 1, 5, -1, 4, -2, -3, 6, -2, 3, -9, 10, -3, -3, -7, -5, 3, -7, -5, 1, 0, -2, -3, -6, -10,
@@ -19,15 +28,15 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
 sk = EpervierSecretKey(n, [f, g, F, G])
 
 header = """
-// code generated using pythonref/generate_falcon_epervier_tetration_test_vectors.py.
+// code generated using pythonref/generate_falcon_epervier_shorter_zknox_test_vectors.py.
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_NTT.sol";
-import "../src/ZKNOX_falcon_epervier_tetration.sol";
+import "../src/ZKNOX_falcon_epervier_shorter.sol";
 
-contract ZKNOX_falcon_epervierTest is Test {
-    ZKNOX_falcon_epervier_tetration epervier;
+contract ZKNOX_falcon_epervier_shorterTest is Test {
+    ZKNOX_falcon_epervier_shorter epervier;
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
     // forgefmt: disable-next-line
@@ -52,23 +61,28 @@ contract ZKNOX_falcon_epervierTest is Test {
 
         ntt.update(a_psirev, a_psiInvrev, 12289, 12265); //update ntt with outer contract
 
-        epervier = new ZKNOX_falcon_epervier_tetration(ntt);
+        epervier = new ZKNOX_falcon_epervier_shorter(ntt);
     }"""
 file.write(header)
 
 for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
     # this will probably not work with a deterministic salt
     sig = sk.sign(message.encode(),
-                  randombytes=lambda x: deterministic_salt(x, seed=str(i)), xof=KeccaXOF)
+                  randombytes=lambda x: deterministic_salt(x, seed=str(i)))
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
     s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
     mid = len(s)//2
     s = [elt % q for elt in s]
     s1, s2 = s[:mid], s[mid:]
-    s2_inv_ntt = Poly(s2, q).inverse().ntt()
+    s2_ntt = Poly(s2, q).ntt()
+    hint = 1
+    for j in range(sk.n):
+        hint = (hint * s2_ntt[j]) % q
+    hint = inv_mod(hint, q) % q
+    # s2_inv_ntt = Poly(s2, q).inverse().ntt()
     pk = sk.pk
-    pk_recover = sk.recover(message.encode(), sig, xof=KeccaXOF)
+    pk_recover = sk.recover(message.encode(), sig)
     assert pk == pk_recover
 
     file.write("function testVector{}() public view {{\n".format(i))
@@ -87,17 +101,14 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n\n".format(
         s2[0], ','.join(map(str, s2[1:]))))
-    file.write("ZKNOX_falcon_epervier_tetration.Signature memory sig;\n")
-    file.write("// signature s2 inverse ntt\n")
-    file.write("// forgefmt: disable-next-line\n")
-    file.write("uint[512] memory tmp_s2_inv_ntt = [uint({}), {}];\n".format(
-        s2_inv_ntt[0], ','.join(map(str, s2_inv_ntt[1:]))))
+    file.write("ZKNOX_falcon_epervier_shorter.Signature memory sig;\n")
 
     file.write("for (uint i = 0; i < 512; i++) {\n")
     file.write("\tsig.s1[i] = tmp_s1[i];\n")
     file.write("\tsig.s2[i] = tmp_s2[i];\n")
-    file.write("\tsig.hint[i] = tmp_s2_inv_ntt[i];\n")
     file.write("}\n")
+    file.write("// short hint\n")
+    file.write("sig.hint = {};\n".format(hint))
 
     file.write("// message\n")
     file.write("bytes memory message  = \"{}\"; \n".format(message))

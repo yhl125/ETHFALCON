@@ -64,7 +64,7 @@ contract ZKNOX_falconrec_tetration {
         bytes salt;
         uint256[512] s1;
         uint256[512] s2;
-        uint256[512] ntt_sm2; //the ntt of the inverse of s1, provided as a hint
+        uint256[512] hint; //the ntt of the inverse of s1, provided as a hint
     }
 
     function HashToAddress(bytes memory m) public pure returns (address) {
@@ -76,12 +76,14 @@ contract ZKNOX_falconrec_tetration {
         if (signature.salt.length != 40) revert("wrong salt length"); //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s1.length != 512) revert("Invalid s1 length"); //"Invalid s1 length"
         if (signature.s2.length != 512) revert("Invalid s2 length"); //"Invalid s2 length"
-        if (signature.ntt_sm2.length != 512) revert("Invalid hint length"); //"Invalid salt length"
+        if (signature.hint.length != 512) revert("Invalid hint length"); //"Invalid salt length"
+
+        uint256 i;
 
         // (s1,s2) must be short
         uint256 norm = 0;
         // As (σ1,σ2) are given with positive values, small negative values are actually large (close to q).
-        for (uint256 i = 0; i < n; i++) {
+        for (i = 0; i < n; i++) {
             if (signature.s1[i] > qs1) {
                 norm += (q - signature.s1[i]) * (q - signature.s1[i]);
             } else {
@@ -99,24 +101,24 @@ contract ZKNOX_falconrec_tetration {
         }
 
         uint256[] memory s2 = new uint256[](512);
-        for (uint256 i = 0; i < 512; i++) {
+        for (i = 0; i < 512; i++) {
             s2[i] = uint256(signature.s2[i]);
         }
 
         s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev()); //ntt(s2)
         //ntt(s2)*ntt(s2^-1)==ntt(1)?
-        for (uint256 i = 0; i < 512; i++) {
-            if (mulmod(s2[i], signature.ntt_sm2[i], q) != 1) revert("wrong hint");
+        for (i = 0; i < 512; i++) {
+            if (mulmod(s2[i], signature.hint[i], q) != 1) revert("wrong hint");
         }
 
         uint256[] memory hashed = hashToPoint(signature.salt, msgs, q, n);
-        for (uint256 i = 0; i < 512; i++) {
+        for (i = 0; i < 512; i++) {
             //hashToPoint-s1
             hashed[i] = addmod(hashed[i], q - signature.s1[i], q);
         }
 
-        for (uint256 i = 0; i < 512; i++) {
-            s2[i] = uint256(signature.ntt_sm2[i]);
+        for (i = 0; i < 512; i++) {
+            s2[i] = uint256(signature.hint[i]);
         }
         uint256[] memory hashed_mul_s2 = ntt.ZKNOX_NTT_HALFMUL(hashed, s2);
 

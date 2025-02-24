@@ -107,7 +107,8 @@ function hashToPointZKNOX(bytes memory salt, bytes memory msgHash, uint256 q, ui
  */
 function uint64ToBytes(uint64 x) pure returns (bytes memory b) {
     b = new bytes(8);
-    for (uint256 i = 0; i < 8; i++) {
+    uint256 i = 0;
+    for (i = 0; i < 8; i++) {
         b[i] = bytes1(uint8(x >> (56 - i * 8)));
     }
 }

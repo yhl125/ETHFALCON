@@ -56,7 +56,8 @@ contract ZKNOX_NTT {
     {
         assert(a.length == b.length);
         uint256[] memory res = new uint256[](a.length);
-        for (uint256 i = 0; i < a.length; i++) {
+        uint256 i;
+        for (i = 0; i < a.length; i++) {
             res[i] = mulmod(a[i], b[i], q);
         }
         return res;
@@ -71,7 +72,8 @@ contract ZKNOX_NTT {
     {
         assert(a.length == b.length);
         uint256[] memory res = new uint256[](a.length);
-        for (uint256 i = 0; i < a.length; i++) {
+        uint256 i;
+        for (i = 0; i < a.length; i++) {
             res[i] = addmod(a[i], b[i], q);
         }
         return res;
@@ -86,7 +88,8 @@ contract ZKNOX_NTT {
     {
         assert(a.length == b.length);
         uint256[] memory res = new uint256[](a.length);
-        for (uint256 i = 0; i < a.length; i++) {
+        uint256 i;
+        for (i = 0; i < a.length; i++) {
             res[i] = addmod(a[i], q - b[i], q);
         }
         return res;
@@ -236,15 +239,17 @@ contract ZKNOX_NTT {
         uint256 n = a.length;
         uint256 t = n;
         uint256 m = 1;
+        uint256 i;
+        uint256 j;
 
         while (m < n) {
             t = t >> 1;
-            for (uint256 i = 0; i < m; i++) {
+            for (i = 0; i < m; i++) {
                 uint256 j1 = (i * t) << 1;
                 uint256 j2 = j1 + t - 1;
                 uint256 S = psi_rev[m + i];
 
-                for (uint256 j = j1; j < j2 + 1; j++) {
+                for (j = j1; j < j2 + 1; j++) {
                     uint256 U = a[j];
                     uint256 V = mulmod(a[j + t], S, q);
                     a[j] = addmod(U, V, q);
@@ -260,14 +265,16 @@ contract ZKNOX_NTT {
     function ZKNOX_NTTINV(uint256[] memory a, uint256 q) public view returns (uint256[] memory) {
         uint256 t = 1;
         uint256 m = a.length; //m=n
+        uint256 i;
+        uint256 j;
 
         while (m > 1) {
             uint256 j1 = 0;
             uint256 h = m >> 1;
-            for (uint256 i = 0; i < h; i++) {
+            for (i = 0; i < h; i++) {
                 uint256 j2 = j1 + t - 1;
                 uint256 S = psi_inv_rev[h + i];
-                for (uint256 j = j1; j < j2 + 1; j++) {
+                for (j = j1; j < j2 + 1; j++) {
                     uint256 U = a[j];
                     uint256 V = a[j + t];
                     a[j] = addmod(U, V, q);

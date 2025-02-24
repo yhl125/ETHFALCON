@@ -54,7 +54,7 @@ contract ZKNOX_falcon_epervierTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             sig.s1[i] = tmp_s1[i];
             sig.s2[i] = tmp_s2[i];
-            sig.ntt_sm2[i] = tmp_s2_inv_ntt[i];
+            sig.hint[i] = tmp_s2_inv_ntt[i];
         }
         // message
         bytes memory message = "My name is Renaud";
@@ -85,7 +85,7 @@ contract ZKNOX_falcon_epervierTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             sig.s1[i] = tmp_s1[i];
             sig.s2[i] = tmp_s2[i];
-            sig.ntt_sm2[i] = tmp_s2_inv_ntt[i];
+            sig.hint[i] = tmp_s2_inv_ntt[i];
         }
         // message
         bytes memory message = "My name is Simon";
@@ -116,7 +116,7 @@ contract ZKNOX_falcon_epervierTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             sig.s1[i] = tmp_s1[i];
             sig.s2[i] = tmp_s2[i];
-            sig.ntt_sm2[i] = tmp_s2_inv_ntt[i];
+            sig.hint[i] = tmp_s2_inv_ntt[i];
         }
         // message
         bytes memory message = "My name is Nicolas";
@@ -147,7 +147,7 @@ contract ZKNOX_falcon_epervierTest is Test {
         for (uint256 i = 0; i < 512; i++) {
             sig.s1[i] = tmp_s1[i];
             sig.s2[i] = tmp_s2[i];
-            sig.ntt_sm2[i] = tmp_s2_inv_ntt[i];
+            sig.hint[i] = tmp_s2_inv_ntt[i];
         }
         // message
         bytes memory message = "We are ZKNox";
