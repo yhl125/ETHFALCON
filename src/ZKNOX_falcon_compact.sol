@@ -45,10 +45,8 @@ import "./ZKNOX_falcon_core.sol";
 //choose the XOF to use here
 import "./HashToPoint.sol";
 
-
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
 contract ZKNOX_falcon_compact {
-   
     ZKNOX_NTT ntt;
 
     constructor(ZKNOX_NTT i_ntt) {
@@ -60,7 +58,7 @@ contract ZKNOX_falcon_compact {
         uint256[32] s2; // compacted signature
     }
 
-    function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool){
+    function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool) {
         if (ntth.length != 32) return false; //"Invalid public key length"
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s2.length != 32) return false; //"Invalid salt length"
@@ -73,31 +71,27 @@ contract ZKNOX_falcon_compact {
         bytes memory msgs,
         CompactSignature memory signature,
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public  returns (bool result) {
-       
-        if(CheckParameters(signature, ntth) ==false) return false;
+    ) public returns (bool result) {
+        if (CheckParameters(signature, ntth) == false) return false;
 
-       uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
-       return falcon_core(ntt, msgs, signature.salt, signature.s2, ntth, hashed);
+        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+        return falcon_core(ntt, msgs, signature.salt, signature.s2, ntth, hashed);
     }
 
     function verify_tetration(
         bytes memory msgs,
         CompactSignature memory signature,
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public  returns (bool result) {
-       
-        if(CheckParameters(signature, ntth) ==false) return false;
+    ) public returns (bool result) {
+        if (CheckParameters(signature, ntth) == false) return false;
 
-       uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
-       return falcon_core(ntt, msgs, signature.salt, signature.s2, ntth, hashed);
+        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+        return falcon_core(ntt, msgs, signature.salt, signature.s2, ntth, hashed);
     }
 } //end of contract ZKNOX_falcon_compact, using hashToPointZKNOX
 
-
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
 contract ZKNOX_falcon_compact_Tetration {
-   
     ZKNOX_NTT ntt;
 
     constructor(ZKNOX_NTT i_ntt) {
@@ -109,7 +103,7 @@ contract ZKNOX_falcon_compact_Tetration {
         uint256[32] s2; // compacted signature
     }
 
-    function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool){
+    function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool) {
         if (ntth.length != 32) return false; //"Invalid public key length"
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s2.length != 32) return false; //"Invalid salt length"
@@ -121,12 +115,10 @@ contract ZKNOX_falcon_compact_Tetration {
         bytes memory msgs,
         CompactSignature memory signature,
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public  returns (bool result) {
-       
-        if(CheckParameters(signature, ntth) ==false) return false;
+    ) public returns (bool result) {
+        if (CheckParameters(signature, ntth) == false) return false;
 
-       uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
-       return falcon_core(ntt, msgs, signature.salt, signature.s2, ntth, hashed);
+        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+        return falcon_core(ntt, msgs, signature.salt, signature.s2, ntth, hashed);
     }
 } //end of contract ZKNOX_falcon_compact, using hashToPointTETRATION
-
