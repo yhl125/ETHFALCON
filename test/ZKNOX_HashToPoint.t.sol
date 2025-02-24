@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import "../src/HashToPoint.sol";
-// import "../src/Tetration_HashToPoint.sol";
 
 contract HashToPointTest is Test {
     function test_HashToPoint() public {
