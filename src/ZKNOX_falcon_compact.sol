@@ -71,21 +71,10 @@ contract ZKNOX_falcon_compact {
         bytes memory msgs,
         CompactSignature memory signature,
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public returns (bool result) {
+    ) public view returns (bool result) {
         if (CheckParameters(signature, ntth) == false) return false;
 
         uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
-        return falcon_core(ntt, msgs, signature.salt, signature.s2, ntth, hashed);
-    }
-
-    function verify_tetration(
-        bytes memory msgs,
-        CompactSignature memory signature,
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public returns (bool result) {
-        if (CheckParameters(signature, ntth) == false) return false;
-
-        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         return falcon_core(ntt, msgs, signature.salt, signature.s2, ntth, hashed);
     }
 } //end of contract ZKNOX_falcon_compact, using hashToPointZKNOX
@@ -115,7 +104,7 @@ contract ZKNOX_falcon_compact_Tetration {
         bytes memory msgs,
         CompactSignature memory signature,
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public returns (bool result) {
+    ) public view returns (bool result) {
         if (CheckParameters(signature, ntth) == false) return false;
 
         uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
