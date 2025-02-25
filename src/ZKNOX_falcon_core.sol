@@ -41,18 +41,15 @@ pragma solidity ^0.8.25;
 import "./ZKNOX_falcon_utils.sol";
 import "./ZKNOX_NTT.sol";
 
-
-function falcon_checkPolynomialRange(uint256[] memory polynomial, bool is_compact) pure returns (bool)
-{
-    uint[] memory a;
-    if(is_compact==false){
-        a=_ZKNOX_NTT_Expand(polynomial);
+function falcon_checkPolynomialRange(uint256[] memory polynomial, bool is_compact) pure returns (bool) {
+    uint256[] memory a;
+    if (is_compact == false) {
+        a = _ZKNOX_NTT_Expand(polynomial);
+    } else {
+        a = polynomial;
     }
-    else{
-        a=polynomial;
-    }
-    for(uint i=0;i<a.length;i++){
-        if(a[i]>q) return false;
+    for (uint256 i = 0; i < a.length; i++) {
+        if (a[i] > q) return false;
     }
 
     return true;
@@ -72,12 +69,10 @@ function falcon_core(
 
     result = false;
 
-   
-
     uint256[] memory s1 = _ZKNOX_NTT_Expand(ntt.ZKNOX_NTT_HALFMUL_Compact(s2, ntth));
 
     for (uint256 i = 0; i < hashed.length; i++) {
-        s1[i] = addmod(hashed[i], q-s1[i], q);
+        s1[i] = addmod(hashed[i], q - s1[i], q);
     }
 
     // normalize s1 // to positive cuz you'll **2 anyway?
@@ -137,11 +132,9 @@ function falcon_core_expanded(
 
     uint256[] memory s1 = ntt.ZKNOX_NTT_HALFMUL(s2_in, ntth);
 
-   
     for (uint256 i = 0; i < hashed.length; i++) {
-        s1[i] = addmod(hashed[i], q-s1[i], q);
+        s1[i] = addmod(hashed[i], q - s1[i], q);
     }
-
 
     // normalize s1 // to positive cuz you'll **2 anyway?
     for (uint256 i = 0; i < n; i++) {

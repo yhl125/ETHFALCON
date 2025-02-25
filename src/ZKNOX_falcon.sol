@@ -58,38 +58,34 @@ contract ZKNOX_falcon {
         uint256[512] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
     }
 
-    struct FalconPubKey{
-        uint256[] value;//polynomial representing the public key, either in canonical or ntt form;
+    struct FalconPubKey {
+        uint256[] value; //polynomial representing the public key, either in canonical or ntt form;
         bool nttform;
         bool is_compact;
-        uint256 hashID;//identifier for the internal XOF
+        uint256 hashID; //identifier for the internal XOF
+    }
+
+    struct FalconSignature {
+        bytes salt;
+        uint256[] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
+    }
+
+    function CheckKey(FalconPubKey memory Pubkey) public pure returns (bool) {
+        bool isKnownID = false;
+
+        if (Pubkey.is_compact) {
+            if (Pubkey.value.length != _FALCON_WORD256_S) return false;
+        } else {
+            if (Pubkey.value.length != _FALCON_WORD32_S) return false;
         }
 
-    struct FalconSignature{
-         bytes salt;
-         uint256[] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
-        }    
+        if (falcon_checkPolynomialRange(Pubkey.value, Pubkey.is_compact) != true) return false;
 
-    function CheckKey(FalconPubKey memory Pubkey) public pure returns(bool){
-        
-        bool isKnownID=false;
-      
-        if(Pubkey.is_compact){
-            if ( Pubkey.value.length!=_FALCON_WORD256_S) return false;
-        }
-        else{
-            if ( Pubkey.value.length!=_FALCON_WORD32_S) return false;
-        }
-
-        if(falcon_checkPolynomialRange(Pubkey.value, Pubkey.is_compact)!=true) return false;
-
-        if(Pubkey.hashID==ID_keccak) isKnownID=true;
-        if(Pubkey.hashID==ID_tetration) isKnownID=true;
+        if (Pubkey.hashID == ID_keccak) isKnownID = true;
+        if (Pubkey.hashID == ID_tetration) isKnownID = true;
 
         return isKnownID;
     }
-
-
 
     function verify(
         bytes memory msgs,
@@ -137,41 +133,37 @@ contract ZKNOX_falcon {
         return falcon_core_expanded(ntt, signature.salt, signature.s2, ntth, hashed);
     }
 
-    function verify( 
-        FalconPubKey memory pk,
-        bytes memory msgs,
-        FalconSignature memory signature
-        ) public view returns(bool result)
-        {
-         result = false;
-       
-         uint256[] memory hashed;
-         if(CheckKey(pk)==false) return false;
+    function verify(FalconPubKey memory pk, bytes memory msgs, FalconSignature memory signature)
+        public
+        view
+        returns (bool result)
+    {
+        result = false;
 
-         if(pk.hashID==ID_keccak){
-              hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
-            } else {
-                if(pk.hashID==ID_tetration){
+        uint256[] memory hashed;
+        if (CheckKey(pk) == false) return false;
+
+        if (pk.hashID == ID_keccak) {
+            hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+        } else {
+            if (pk.hashID == ID_tetration) {
                 hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
-                }
-                else return false;//unknwon ID
+            } else {
+                return false;
+            } //unknwon ID
+        }
+
+        if (pk.is_compact == false) {
+            if (pk.nttform == false) {
+                //convert public key to ntt form
+                pk.value = ntt.ZKNOX_NTTFW(pk.value, ntt.o_psirev());
             }
-
-        if(pk.is_compact==false){
-            if(pk.nttform==false){//convert public key to ntt form
-                  pk.value=ntt.ZKNOX_NTTFW(pk.value, ntt.o_psirev());
-             }
-             signature.s2=_ZKNOX_NTT_Compact(signature.s2);
+            signature.s2 = _ZKNOX_NTT_Compact(signature.s2);
         }
-       
-         return falcon_core(ntt, signature.salt, signature.s2, pk.value, hashed); //not implemented yet
-        }
-} 
 
-
-
-
-
+        return falcon_core(ntt, signature.salt, signature.s2, pk.value, hashed); //not implemented yet
+    }
+}
 
 //end of contract
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
