@@ -40,15 +40,6 @@ pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 
-function uint64ToBytes(uint64 x) pure returns (bytes memory b) {
-    // convert uint64 to big-endian bytes
-    b = new bytes(8);
-    uint256 i = 0;
-    for (i = 0; i < 8; i++) {
-        b[i] = bytes1(uint8(x >> (56 - i * 8)));
-    }
-}
-
 function splitToHex(bytes32 x) pure returns (uint16[16] memory) {
     // splits a byte32 into hex
     uint16[16] memory res;
@@ -98,7 +89,7 @@ function hashToPointZKNOX(bytes memory salt, bytes memory msgHash, uint256 q, ui
         }
         // Generate two blocks
         while (offset < 2) {
-            outBuffer = keccak256(abi.encodePacked(state, uint64ToBytes(counter)));
+            outBuffer = keccak256(abi.encodePacked(state, abi.encodePacked(counter)));
             outBufferPos = 0;
             outBufferValid = true;
             while (outBufferPos < 32 && offset < 2) {
