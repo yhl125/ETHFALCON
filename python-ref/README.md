@@ -45,13 +45,13 @@ It outputs the validity of the signature with respect to a message and a public 
 The signature needs to be provided as a (large) string.
 
 
-## Profiling
+<!-- ## Profiling
 
 I included a makefile target to performing profiling on the code. If you type `make profile` on a Linux machine, you should obtain something along these lines:
 
 ![kcachegrind](https://tprest.github.io/images/kcachegrind_falcon.png)
 
-Make sure you have `pyprof2calltree` and `kcachegrind` installed on your machine, or it will not work.
+Make sure you have `pyprof2calltree` and `kcachegrind` installed on your machine, or it will not work. -->
 
 
 ## Authors
