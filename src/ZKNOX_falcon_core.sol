@@ -93,10 +93,18 @@ function falcon_core(
 
     // normalize s2
     for (uint256 i = 0; i < n; i++) {
+        /*
         if (s1[i] > qs1) {
             s1[i] = q - s1[i];
         }
         norm += s1[i] * s1[i];
+        */
+        assembly {
+            let s1i := mload(add(s1, add(32, mul(32, i)))) //s1[i]
+            let cond := gt(s1i, qs1) //s1[i] > qs1 ?
+            s1i := add(mul(cond, sub(q, s1i)), mul(sub(1, cond), s1i))
+            norm := add(norm, mul(s1i, s1i))
+        }
     }
 
     if (norm > sigBound) {
