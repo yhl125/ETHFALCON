@@ -101,20 +101,19 @@ contract ZKNOX_falcon {
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s2.length != 512) return false; //"Invalid salt length"
 
-        h=ntt.ZKNOX_NTTFW(h, ntt.o_psirev());
+        h = ntt.ZKNOX_NTTFW(h, ntt.o_psirev());
 
         result = false;
-       
+
         uint256[] memory hashed;
         if (h_zknox) {
             hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }
-       
+
         return falcon_core_expanded(ntt, signature.salt, signature.s2, h, hashed);
     }
-
 
     function verify_opt(
         bytes memory msgs,
@@ -127,14 +126,14 @@ contract ZKNOX_falcon {
         if (signature.s2.length != 512) return false; //"Invalid salt length"
 
         result = false;
-       
+
         uint256[] memory hashed;
         if (h_zknox) {
             hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }
-       
+
         return falcon_core_expanded(ntt, signature.salt, signature.s2, ntth, hashed);
     }
 

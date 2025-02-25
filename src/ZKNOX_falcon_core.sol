@@ -116,7 +116,6 @@ function falcon_core(
     return result;
 }
 
-
 //core falcon verification function, expanded input, WIP (untested)
 function falcon_core_expanded(
     ZKNOX_NTT ntt,
@@ -153,7 +152,6 @@ function falcon_core_expanded(
         }
     }
 
-   
     // normalize s2
     for (uint256 i = 0; i < n; i++) {
         if (s2_in[i] > qs1) {
