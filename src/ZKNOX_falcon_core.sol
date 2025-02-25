@@ -83,8 +83,8 @@ function falcon_core(
         assembly {
             let offset := add(32, mul(32, i)) //offset to read at address tab[i]
             let s1i := addmod(mload(add(hashed, offset)), sub(q, mload(add(s1, offset))), q) //s1[i] = addmod(hashed[i], q - s1[i], q);
-            let cond := gt(mload(add(hashed, offset)), mload(add(s1, offset))) //s1[i] > qs1 ?
-            s1i := add(mul(cond, sub(q, s1)), mul(sub(1, cond), s1i))
+            let cond := gt(s1i, qs1) //s1[i] > qs1 ?
+            s1i := add(mul(cond, sub(q, s1i)), mul(sub(1, cond), s1i))
             norm := add(norm, mul(s1i, s1i))
         }
     }
@@ -105,7 +105,6 @@ function falcon_core(
         result = true;
     }
 
-    return true;
     return result;
 }
 
