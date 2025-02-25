@@ -66,7 +66,6 @@ contract ZKNOX_falcon_compact {
         return true;
     }
 
-    //same as above but takes the precomputed ntt(publickey) as input value
     function verify(
         bytes memory msgs,
         CompactSignature memory signature,
@@ -77,30 +76,8 @@ contract ZKNOX_falcon_compact {
         uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
         return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
-} //end of contract ZKNOX_falcon_compact, using hashToPointZKNOX
 
-/* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
-contract ZKNOX_falcon_compact_Tetration {
-    ZKNOX_NTT ntt;
-
-    constructor(ZKNOX_NTT i_ntt) {
-        ntt = i_ntt;
-    }
-
-    struct CompactSignature {
-        bytes salt;
-        uint256[] s2; // compacted signature
-    }
-
-    function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool) {
-        if (ntth.length != 32) return false; //"Invalid public key length"
-        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s2.length != 32) return false; //"Invalid salt length"
-
-        return true;
-    }
-
-    function verify(
+    function verifyTetration(
         bytes memory msgs,
         CompactSignature memory signature,
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
@@ -110,4 +87,6 @@ contract ZKNOX_falcon_compact_Tetration {
         uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
-} //end of contract ZKNOX_falcon_compact, using hashToPointTETRATION
+
+} //end of contract ZKNOX_falcon_compact
+

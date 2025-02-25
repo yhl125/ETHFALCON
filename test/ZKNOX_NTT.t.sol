@@ -187,7 +187,7 @@ contract NTTTest is Test {
         return b;
     }
 
-    function test_compact() public view {
+    function test_Compact() public view {
         uint256[] memory f_12289_512c = _ZKNOX_NTT_Compact(f_12289_512);
         uint256[] memory g_12289_512c = _ZKNOX_NTT_Compact(g_ntt_12289_512);
 
