@@ -42,18 +42,13 @@ import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
 import "./HashToPoint.sol";
+import "./ZKNOX_falcon_utils.sol";
+import "./ZKNOX_falcon_core.sol";
 
 contract ZKNOX_falcon {
-    //FALCON CONSTANTS
-    uint256 constant n = 512;
-    uint256 constant sigBound = 34034726;
-    uint256 constant q = 12289;
-    uint256 qs1 = 6144; // q >> 1;
-
     ZKNOX_NTT ntt;
 
-    uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;
-
+    //Outer NTT contract, initialized with falcon field parameters
     constructor(ZKNOX_NTT i_ntt) {
         ntt = i_ntt;
     }
@@ -61,6 +56,13 @@ contract ZKNOX_falcon {
     struct Signature {
         bytes salt;
         uint256[512] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
+    }
+
+    struct Pubkey{
+        bool nttform;
+        bool compact;
+
+        uint256[512] value;
     }
 
     function verify(
@@ -73,54 +75,21 @@ contract ZKNOX_falcon {
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
         if (signature.s2.length != 512) return false; //"Invalid salt length"
 
-        result = false;
-        uint256 i;
+        h=ntt.ZKNOX_NTTFW(h, ntt.o_psirev());
 
-        uint256[] memory s2 = new uint256[](512);
-        for (i = 0; i < 512; i++) {
-            s2[i] = uint256(signature.s2[i]);
-        }
+        result = false;
+       
         uint256[] memory hashed;
         if (h_zknox) {
             hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }
-
-        uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_MUL(s2, h), q);
-
-        // normalize s1 // to positive cuz you'll **2 anyway?
-        for (i = 0; i < n; i++) {
-            if (s1[i] > qs1) {
-                s1[i] = q - s1[i];
-            } else {
-                s1[i] = s1[i];
-            }
-        }
-
-        // normalize s2
-        for (i = 0; i < n; i++) {
-            if (s2[i] > qs1) {
-                s2[i] = q - s2[i];
-            } else {
-                s2[i] = s2[i];
-            }
-        }
-
-        uint256 norm = 0;
-        for (i = 0; i < n; i++) {
-            norm += s1[i] * s1[i];
-            norm += s2[i] * s2[i];
-        }
-        if (norm > sigBound) {
-            result = false;
-        } else {
-            result = true;
-        }
-        return result;
+       
+        return falcon_core_expanded(ntt, signature.salt, signature.s2, h, hashed);
     }
 
-    //same as above but takes the precomputed ntt(publickey) as input value
+
     function verify_opt(
         bytes memory msgs,
         Signature memory signature,
@@ -132,51 +101,23 @@ contract ZKNOX_falcon {
         if (signature.s2.length != 512) return false; //"Invalid salt length"
 
         result = false;
-        uint256 i;
-
-        uint256[] memory s2 = new uint256[](512);
-        for (i = 0; i < 512; i++) {
-            s2[i] = uint256(signature.s2[i]);
-        }
-
+       
         uint256[] memory hashed;
         if (h_zknox) {
             hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }
-        uint256[] memory s1 = ntt.ZKNOX_VECSUBMOD(hashed, ntt.ZKNOX_NTT_HALFMUL(s2, ntth), q);
-
-        // normalize s1 // to positive cuz you'll **2 anyway?
-        for (i = 0; i < n; i++) {
-            if (s1[i] > qs1) {
-                s1[i] = q - s1[i];
-            } else {
-                s1[i] = s1[i];
-            }
-        }
-
-        // normalize s2
-        for (i = 0; i < n; i++) {
-            if (s2[i] > qs1) {
-                s2[i] = q - s2[i];
-            } else {
-                s2[i] = s2[i];
-            }
-        }
-
-        uint256 norm = 0;
-        for (i = 0; i < n; i++) {
-            norm += s1[i] * s1[i];
-            norm += s2[i] * s2[i];
-        }
-
-        if (norm > sigBound) {
-            result = false;
-        } else {
-            result = true;
-        }
-        return result;
+       
+        return falcon_core_expanded(ntt, signature.salt, signature.s2, ntth, hashed);
     }
-} //end of contract
+
+} 
+
+
+
+
+
+
+//end of contract
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/

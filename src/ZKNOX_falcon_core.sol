@@ -41,13 +41,12 @@ pragma solidity ^0.8.25;
 import "./ZKNOX_falcon_utils.sol";
 import "./ZKNOX_NTT.sol";
 
-//same as above but takes the precomputed ntt(publickey) as input value
+//core falcon verification function, compacted input, WIP (KO on norm)
 function falcon_core(
     ZKNOX_NTT ntt,
-    bytes memory msgs,
     bytes memory salt,
     uint256[32] memory s2,
-    uint256[] memory ntth, // public key, compacted representing coefficients over 16 bits
+    uint256[] memory ntth, // public key, compacted 16  coefficients of 16 bits per word
     uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
 ) view returns (bool result) {
     if (hashed.length != 512) return false;
@@ -92,6 +91,66 @@ function falcon_core(
     for (uint256 i = 0; i < n; i++) {
         norm += s1[i] * s1[i];
         norm += s2_expanded[i] * s2_expanded[i];
+    }
+
+    if (norm > sigBound) {
+        result = false;
+    } else {
+        result = true;
+    }
+
+    return result;
+}
+
+
+//core falcon verification function, expanded input, WIP (untested)
+function falcon_core_expanded(
+    ZKNOX_NTT ntt,
+    bytes memory salt,
+    uint256[512] memory s2,
+    uint256[] memory ntth, // public key, compacted 16  coefficients of 16 bits per word
+    uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
+) view returns (bool result) {
+    if (hashed.length != 512) return false;
+    if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+    if (s2.length != 512) return false; //"Invalid salt length"
+
+    result = false;
+
+    uint256[] memory s2_in = new uint256[](512);
+    for (uint256 i = 0; i < s2.length; i++) {
+        s2_in[i] = uint256(s2[i]);
+    }
+
+    uint256[] memory s1 = ntt.ZKNOX_NTT_HALFMUL(s2_in, ntth);
+
+   
+   s1 = ntt.ZKNOX_VECSUBMOD(hashed, s1, q);
+
+
+    // normalize s1 // to positive cuz you'll **2 anyway?
+    for (uint256 i = 0; i < n; i++) {
+        if (s1[i] > qs1) {
+            s1[i] = q - s1[i];
+        } else {
+            s1[i] = s1[i];
+        }
+    }
+
+   
+    // normalize s2
+    for (uint256 i = 0; i < n; i++) {
+        if (s2_in[i] > qs1) {
+            s2_in[i] = q - s2_in[i];
+        } else {
+            s2_in[i] = s2_in[i];
+        }
+    }
+
+    uint256 norm = 0;
+    for (uint256 i = 0; i < n; i++) {
+        norm += s1[i] * s1[i];
+        norm += s2_in[i] * s2_in[i];
     }
 
     if (norm > sigBound) {

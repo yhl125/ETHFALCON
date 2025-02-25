@@ -75,7 +75,7 @@ contract ZKNOX_falcon_compact {
         if (CheckParameters(signature, ntth) == false) return false;
 
         uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
-        return falcon_core(ntt, msgs, signature.salt, signature.s2, ntth, hashed);
+        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
 } //end of contract ZKNOX_falcon_compact, using hashToPointZKNOX
 
@@ -108,6 +108,6 @@ contract ZKNOX_falcon_compact_Tetration {
         if (CheckParameters(signature, ntth) == false) return false;
 
         uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
-        return falcon_core(ntt, msgs, signature.salt, signature.s2, ntth, hashed);
+        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
 } //end of contract ZKNOX_falcon_compact, using hashToPointTETRATION
