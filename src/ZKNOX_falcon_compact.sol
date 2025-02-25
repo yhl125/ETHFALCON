@@ -87,6 +87,4 @@ contract ZKNOX_falcon_compact {
         uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
-
 } //end of contract ZKNOX_falcon_compact
-
