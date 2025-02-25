@@ -37,10 +37,6 @@ generate_test_vectors:
 	$(PYTHON) -m generate_falcon_epervier_shorter_zknox_test_vectors -v
 	forge fmt
 
-simple:
-	$(PYTHON) -m simple_gen_test_vector -v
-
-
 profile:
 	rm -f $(AUX)
 	rm -rf __pycache__

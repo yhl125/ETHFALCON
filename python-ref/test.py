@@ -5,10 +5,6 @@ Test the code with:
 > make test
 """
 from keccak_prng import KeccakPRNG
-from polyntt import poly
-from polyntt.ntt_iterative import NTTIterative
-from polyntt.ntt_recursive import NTTRecursive
-
 from timeit import default_timer as timer
 from scripts.samplerz_KAT1024 import sampler_KAT1024
 from scripts.sign_KAT import sign_KAT

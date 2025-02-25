@@ -180,24 +180,83 @@ def normalize_tree(tree, sigma):
         tree[1] = 0
 
 
+def hash_to_point(n, message, salt, xof=KeccakPRNG):
+    """
+    Hash a message to a point in Z[x] mod(Phi, q).
+    Inspired by the Parse function from NewHope.
+    """
+    if q > (1 << 16):
+        raise ValueError("The modulus is too large")
+
+    k = (1 << 16) // q
+    # Create a XOF object and hash the salt and message.
+    xof = xof.new()
+    xof.update(message)
+    xof.update(salt)
+    xof.flip()
+    # Output pseudorandom bytes and map them to coefficients.
+    hashed = [0 for i in range(n)]
+    i = 0
+    while i < n:
+        # Takes 2 bytes, transform them in a 16 bits integer
+        twobytes = xof.read(2)
+        elt = (twobytes[0] << 8) + twobytes[1]  # This breaks in Python 2.x
+        # Implicit rejection sampling
+        if elt < k * q:
+            hashed[i] = elt % q
+            i += 1
+    return hashed
+
+
 class PublicKey:
     """
     This class contains methods for performing public key operations in Falcon.
     """
 
-    def __init__(self, sk):
+    def __init__(self, n, h):
         """Initialize a public key."""
-        self.n = sk.n
-        self.h = sk.h
-        self.hash_to_point = sk.hash_to_point
-        self.signature_bound = sk.signature_bound
-        self.verify = sk.verify
+        self.n = n
+        self.h = h
+        self.hash_to_point = hash_to_point
+        self.signature_bound = Params[n]["sig_bound"]
+        self.sig_bytelen = Params[n]["sig_bytelen"]
 
     def __repr__(self):
         """Print the object in readable form."""
         rep = "Public for n = {n}:\n\n".format(n=self.n)
         rep += "h = {h}\n".format(h=self.h)
         return rep
+
+    def verify(self, message, signature, ntt=NTTIterative, xof=KeccakPRNG):
+        """
+        Verify a signature.
+        """
+        # Unpack the salt and the short polynomial s1
+        salt = signature[HEAD_LEN:HEAD_LEN + SALT_LEN]
+        enc_s = signature[HEAD_LEN + SALT_LEN:]
+        s1 = decompress(enc_s, self.sig_bytelen - HEAD_LEN - SALT_LEN, self.n)
+        # Check that the encoding is valid
+        if (s1 is False):
+            print("Invalid encoding")
+            return False
+
+        # Compute s0 and normalize its coefficients in (-q/2, q/2]
+        hashed = Poly(
+            self.hash_to_point(self.n, message, salt, xof=xof),
+            q, ntt=ntt
+        )
+        s1 = Poly(s1, q, ntt=ntt)
+        self_h = Poly(self.h, q, ntt=ntt)
+        s0 = hashed - s1 * self_h
+        s0 = [(coef + (q >> 1)) % q - (q >> 1) for coef in s0.coeffs]
+
+        # Check that the (s0, s1) is short
+        norm_sign = sum(coef ** 2 for coef in s0)
+        norm_sign += sum(coef ** 2 for coef in s1.coeffs)
+        if norm_sign > self.signature_bound:
+            print("Squared norm of signature is too large:", norm_sign)
+            return False
+        return True
 
 
 class SecretKey:
@@ -254,6 +313,7 @@ class SecretKey:
         poly_g = Poly(self.g, q, ntt=ntt)
         poly_h = poly_g/poly_f
         self.h = poly_h.coeffs
+        self.hash_to_point = hash_to_point
 
     def __repr__(self, verbose=False):
         """Print the object in readable form."""
@@ -266,34 +326,6 @@ class SecretKey:
             rep += "\nFFT tree\n"
             rep += print_tree(self.T_fft, pref="")
         return rep
-
-    def hash_to_point(self, message, salt, xof=KeccakPRNG):
-        """
-        Hash a message to a point in Z[x] mod(Phi, q).
-        Inspired by the Parse function from NewHope.
-        """
-        n = self.n
-        if q > (1 << 16):
-            raise ValueError("The modulus is too large")
-
-        k = (1 << 16) // q
-        # Create a XOF object and hash the salt and message.
-        xof = xof.new()
-        xof.update(message)
-        xof.update(salt)
-        xof.flip()
-        # Output pseudorandom bytes and map them to coefficients.
-        hashed = [0 for i in range(n)]
-        i = 0
-        while i < n:
-            # Takes 2 bytes, transform them in a 16 bits integer
-            twobytes = xof.read(2)
-            elt = (twobytes[0] << 8) + twobytes[1]  # This breaks in Python 2.x
-            # Implicit rejection sampling
-            if elt < k * q:
-                hashed[i] = elt % q
-                i += 1
-        return hashed
 
     def sample_preimage(self, point, seed=None):
         """
@@ -334,7 +366,7 @@ class SecretKey:
         s = [sub(point, v0), neg(v1)]
         return s
 
-    def sign(self, message, randombytes=urandom, xof=KeccakPRNG, pk_recovery=False):
+    def sign(self, message, randombytes=urandom, xof=KeccakPRNG):
         """
         Sign a message. The message MUST be a byte string or byte array.
         Optionally, one can select the source of (pseudo-)randomness used
@@ -344,7 +376,7 @@ class SecretKey:
         header = int_header.to_bytes(1, "little")
 
         salt = randombytes(SALT_LEN)
-        hashed = self.hash_to_point(message, salt, xof=xof)
+        hashed = self.hash_to_point(self.n, message, salt, xof=xof)
 
         # We repeat the signing procedure until we find a signature that is
         # short enough (both the Euclidean norm and the bytelength)
@@ -354,7 +386,7 @@ class SecretKey:
             else:
                 seed = randombytes(SEED_LEN)
                 s = self.sample_preimage(hashed, seed=seed)
-            if not (pk_recovery) or all(elt % q != 0 for elt in Poly(s[1], q).ntt()):
+            if all(elt % q != 0 for elt in Poly(s[1], q).ntt()):
                 norm_sign = sum(coef ** 2 for coef in s[0])
                 norm_sign += sum(coef ** 2 for coef in s[1])
                 # Check the Euclidean norm
@@ -364,33 +396,3 @@ class SecretKey:
                     # Check that the encoding is valid (sometimes it fails)
                     if (enc_s is not False):
                         return header + salt + enc_s
-
-    def verify(self, message, signature, ntt=NTTIterative, xof=KeccakPRNG):
-        """
-        Verify a signature.
-        """
-        # Unpack the salt and the short polynomial s1
-        salt = signature[HEAD_LEN:HEAD_LEN + SALT_LEN]
-        enc_s = signature[HEAD_LEN + SALT_LEN:]
-        s1 = decompress(enc_s, self.sig_bytelen - HEAD_LEN - SALT_LEN, self.n)
-        # Check that the encoding is valid
-        if (s1 is False):
-            print("Invalid encoding")
-            return False
-
-        # Compute s0 and normalize its coefficients in (-q/2, q/2]
-        hashed = Poly(self.hash_to_point(message, salt, xof=xof), q, ntt=ntt)
-        s1 = Poly(s1, q, ntt=ntt)
-        self_h = Poly(self.h, q, ntt=ntt)
-        s0 = hashed - s1 * self_h
-        s0 = [(coef + (q >> 1)) % q - (q >> 1) for coef in s0.coeffs]
-
-        # Check that the (s0, s1) is short
-        norm_sign = sum(coef ** 2 for coef in s0)
-        norm_sign += sum(coef ** 2 for coef in s1.coeffs)
-        if norm_sign > self.signature_bound:
-            print("Squared norm of signature is too large:", norm_sign)
-            return False
-
-        # If all checks are passed, accept
-        return True

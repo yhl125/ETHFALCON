@@ -1,4 +1,4 @@
-from falcon_epervier import EpervierSecretKey, HEAD_LEN, SALT_LEN, decompress
+from falcon_epervier import EpervierPublicKey, EpervierSecretKey, HEAD_LEN, SALT_LEN, decompress
 from polyntt.poly import Poly
 from common import q, deterministic_salt
 from keccak_prng import KeccakPRNG
@@ -16,6 +16,7 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
      67, -27, -35, -6, 26, 13, -12, 24, 35, -21, 24, -16, 16, 10, 47, -14, 3, -5, 2, 3, -26, 0, -29, 4, 21, -17, -16, -20, 7, -44, -34, 26, 2, 6, -8, -17, 17, -14, 7, -5, 6, -33, 13, 6, 35, 21, -42, 3, 5, 8, 23, 27, -10, -40, 4, -20, 9, -31, -40, 14, 9, 45, -12, -32, 4, 7, 15, 25, 7, 9, 23, 4, 33, -35, 47, 2, 30, -22, 8, -38, -28, 62, -16, 13, -4, 5, 16, 34, -8, 44, 26, -45, 27, -42, 26, 33, -22, -25, 0, -3, -29, 6, 18, 11, 4, 9, -20, -9, 1, 14, -8, -6, -34, -11, -26, -2, -10, 35, -1, -24, 17, 4, 3, 76, -18, -13, 4, 19, 4, -41, 8, -17, -31, -4, -27, 24, -14, -1, 41, -7, -38, 27, 24, 12, 1, -25, 22, 10, -28, 25, 7, 29, -19, 9, 20, 5, -17, -24, 38, 0, 18, -23, 6, -30, -9, -38, -21, -32, 16, -5, 16, 1, -24, -17, 17, 34, -39, -25, -16, 26, 13, -18, -11, -8, -46, 27, 14, -27, -22, -22, -1, -41, -5, 11, -2, 57, 1, -16, -30, 25, 46, -20, 2, 9, 25, -30, 18, 39, -9, -53, 30, 14, 24, -22, 29, -8, 0, -18, 22, -2, -11, -35, -12, 24, 9, -20, -17, -39, 2, -3, -36, 31, -23, -4, 22, -40, 4, 0, 23, 26, -7, -8, 12, -31, -32, -10, -18, 24, 17, 0, 63, -29, 67, 44, 3, 13, 35, 11, -36]
 
 sk = EpervierSecretKey(n, [f, g, F, G])
+pk = EpervierPublicKey(n, sk.h)
 
 for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
     file = open("../test/ZKNOXFalconEpervier" +
@@ -70,16 +71,15 @@ for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
         s = [elt % q for elt in s]
         s1, s2 = s[:mid], s[mid:]
         s2_inv_ntt = Poly(s2, q).inverse().ntt()
-        pk = sk.pk
-        pk_recover = sk.recover(message.encode(), sig, xof=XOF)
-        assert pk == pk_recover
+        pk_recover = pk.recover(message.encode(), sig, xof=XOF)
+        assert sk.pk == pk_recover
 
         file.write("function testVector{}() public view {{\n".format(i))
         file.write("// public key\n")
         file.write("// forgefmt: disable-next-line\n")
         file.write("address pk_{} = address({});\n\n".format(
             i,
-            pk
+            sk.pk
         ))
 
         file.write("// signature s1\n")

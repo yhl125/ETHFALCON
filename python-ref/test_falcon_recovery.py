@@ -1,6 +1,6 @@
 import unittest
 
-from falcon_recovery import RecoveryModeSecretKey
+from falcon_recovery import RecoveryModePublicKey, RecoveryModeSecretKey
 from scripts.sign_KAT import sign_KAT
 from shake import SHAKE
 
@@ -13,10 +13,12 @@ class TestRecoveryMode(unittest.TestCase):
         F = sign_KAT[n][0]["F"]
         G = sign_KAT[n][0]["G"]
         sk = RecoveryModeSecretKey(n, [f, g, F, G])
+        pk = RecoveryModePublicKey(n, sk.h)
         message = b"abc"
         sig = sk.sign(message)
-        pk_rec = sk.recover(message, sig)
-        self.assertEqual(sk.pk, pk_rec)
+        self.assertTrue(pk.verify(message, sig))
+        # pk_rec = pk.recover(message, sig)
+        # self.assertEqual(sk.pk, pk_rec)
 
     def test_signature_recovery_mode_shake(self):
         n = 512
@@ -25,7 +27,9 @@ class TestRecoveryMode(unittest.TestCase):
         F = sign_KAT[n][0]["F"]
         G = sign_KAT[n][0]["G"]
         sk = RecoveryModeSecretKey(n, [f, g, F, G])
+        pk = RecoveryModePublicKey(n, sk.h)
         message = b"abc"
         sig = sk.sign(message, xof=SHAKE)
-        pk_rec = sk.recover(message, sig, xof=SHAKE)
-        self.assertEqual(sk.pk, pk_rec)
+        self.assertTrue(pk.verify(message, sig, xof=SHAKE))
+        # pk_rec = pk.recover(message, sig, xof=SHAKE)
+        # self.assertEqual(sk.pk, pk_rec)

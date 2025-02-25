@@ -19,9 +19,10 @@ class TestFalcon(unittest.TestCase):
         F = sign_KAT[n][0]["F"]
         G = sign_KAT[n][0]["G"]
         sk = SecretKey(n, [f, g, F, G])
+        pk = PublicKey(n, sk.h)
         message = b"abc"
         sig = sk.sign(message, xof=SHAKE)
-        self.assertTrue(sk.verify(message, sig, xof=SHAKE))
+        self.assertTrue(pk.verify(message, sig, xof=SHAKE))
 
     def test_signature(self):
         """
@@ -34,7 +35,7 @@ class TestFalcon(unittest.TestCase):
         F = sign_KAT[n][0]["F"]
         G = sign_KAT[n][0]["G"]
         sk = SecretKey(n, [f, g, F, G])
-        pk = PublicKey(sk)
+        pk = PublicKey(n, sk.h)
         for i in range(iterations):
             message = b"abc"
             sig = sk.sign(message)
@@ -71,7 +72,7 @@ class TestFalcon(unittest.TestCase):
         F = sign_KAT[n][0]["F"]
         G = sign_KAT[n][0]["G"]
         sk = SecretKey(n, [f, g, F, G])
-        pk = PublicKey(sk)
+        pk = PublicKey(n, sk.h)
         message = b"abc"
         sig = sk.sign(message)
 
@@ -101,7 +102,7 @@ class TestFalcon(unittest.TestCase):
         F = sign_KAT[n][0]["F"]
         G = sign_KAT[n][0]["G"]
         sk = SecretKey(n, [f, g, F, G])
-        pk = PublicKey(sk)
+        pk = PublicKey(n, sk.h)
         message = b"abc"
 
         d = {True: "OK    ", False: "Not OK"}
@@ -129,7 +130,7 @@ class TestFalcon(unittest.TestCase):
         F = sign_KAT[n][0]["F"]
         G = sign_KAT[n][0]["G"]
         sk = SecretKey(n, [f, g, F, G])
-        pk = PublicKey(sk)
+        pk = PublicKey(n, sk.h)
         message = b"I like to change hash functions"
         d = {True: "OK    ", False: "Not OK"}
         for (xof, xof_str) in [(SHAKE, 'SHAKE'), (KeccaXOF, 'KeccaXOF'), (KeccakPRNG, 'KeccakPRNG')]:
