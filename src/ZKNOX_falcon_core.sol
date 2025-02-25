@@ -41,11 +41,28 @@ pragma solidity ^0.8.25;
 import "./ZKNOX_falcon_utils.sol";
 import "./ZKNOX_NTT.sol";
 
+
+function falcon_checkPolynomialRange(uint256[] memory polynomial, bool is_compact) pure returns (bool)
+{
+    uint[] memory a;
+    if(is_compact==false){
+        a=_ZKNOX_NTT_Expand(polynomial);
+    }
+    else{
+        a=polynomial;
+    }
+    for(uint i=0;i<a.length;i++){
+        if(a[i]>q) return false;
+    }
+
+    return true;
+}
+
 //core falcon verification function, compacted input, WIP (KO on norm)
 function falcon_core(
     ZKNOX_NTT ntt,
     bytes memory salt,
-    uint256[32] memory s2,
+    uint256[] memory s2,
     uint256[] memory ntth, // public key, compacted 16  coefficients of 16 bits per word
     uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
 ) view returns (bool result) {
@@ -55,15 +72,12 @@ function falcon_core(
 
     result = false;
 
-    uint256[] memory s2_in = new uint256[](32);
-    for (uint256 i = 0; i < s2.length; i++) {
-        s2_in[i] = uint256(s2[i]);
-    }
+   
 
-    uint256[] memory s1 = _ZKNOX_NTT_Expand(ntt.ZKNOX_NTT_HALFMUL_Compact(s2_in, ntth));
+    uint256[] memory s1 = _ZKNOX_NTT_Expand(ntt.ZKNOX_NTT_HALFMUL_Compact(s2, ntth));
 
     for (uint256 i = 0; i < hashed.length; i++) {
-        s1[i] = mulmod(hashed[i], s1[i], q);
+        s1[i] = addmod(hashed[i], q-s1[i], q);
     }
 
     // normalize s1 // to positive cuz you'll **2 anyway?
@@ -76,7 +90,7 @@ function falcon_core(
     }
 
     uint256[] memory s2_expanded = new uint256[](512);
-    s2_expanded = _ZKNOX_NTT_Expand(s2_in);
+    s2_expanded = _ZKNOX_NTT_Expand(s2);
 
     // normalize s2
     for (uint256 i = 0; i < n; i++) {
@@ -125,7 +139,9 @@ function falcon_core_expanded(
     uint256[] memory s1 = ntt.ZKNOX_NTT_HALFMUL(s2_in, ntth);
 
    
-   s1 = ntt.ZKNOX_VECSUBMOD(hashed, s1, q);
+    for (uint256 i = 0; i < hashed.length; i++) {
+        s1[i] = addmod(hashed[i], q-s1[i], q);
+    }
 
 
     // normalize s1 // to positive cuz you'll **2 anyway?

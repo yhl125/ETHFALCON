@@ -41,6 +41,15 @@ pragma solidity ^0.8.25;
 uint256 constant mask16 = 0xffff;
 uint256 constant chunk16Byword = 16; //number of 1§ bits chunks in a word of 256 bits
 
+//implemented hash identifiers
+uint256 constant ID_keccak=0x00;
+uint256 constant ID_shake=0x01;
+
+uint256 constant _FALCON_WORD256_S=32;
+uint256 constant _FALCON_WORD32_S=512;
+
+
+
 //FALCON CONSTANTS
 uint256 constant n = 512;
 uint256 constant sigBound = 34034726;

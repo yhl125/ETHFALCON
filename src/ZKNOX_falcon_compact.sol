@@ -55,7 +55,7 @@ contract ZKNOX_falcon_compact {
 
     struct CompactSignature {
         bytes salt;
-        uint256[32] s2; // compacted signature
+        uint256[] s2; // compacted signature
     }
 
     function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool) {
@@ -89,7 +89,7 @@ contract ZKNOX_falcon_compact_Tetration {
 
     struct CompactSignature {
         bytes salt;
-        uint256[32] s2; // compacted signature
+        uint256[] s2; // compacted signature
     }
 
     function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool) {

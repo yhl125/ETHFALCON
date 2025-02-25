@@ -58,12 +58,38 @@ contract ZKNOX_falcon {
         uint256[512] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
     }
 
-    struct Pubkey{
+    struct FalconPubKey{
+        uint256[] value;//polynomial representing the public key, either in canonical or ntt form;
         bool nttform;
-        bool compact;
+        bool is_compact;
+        uint256 hashID;//identifier for the internal XOF
+        }
 
-        uint256[512] value;
+    struct FalconSignature{
+         bytes salt;
+         uint256[] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
+        }    
+
+    function CheckKey(FalconPubKey memory Pubkey) public pure returns(bool){
+        
+        bool isKnownID=false;
+      
+        if(Pubkey.is_compact){
+            if ( Pubkey.value.length!=_FALCON_WORD256_S) return false;
+        }
+        else{
+            if ( Pubkey.value.length!=_FALCON_WORD32_S) return false;
+        }
+
+        if(falcon_checkPolynomialRange(Pubkey.value, Pubkey.is_compact)!=true) return false;
+
+        if(Pubkey.hashID==ID_keccak) isKnownID=true;
+        if(Pubkey.hashID==ID_shake) isKnownID=true;
+
+        return isKnownID;
     }
+
+
 
     function verify(
         bytes memory msgs,
@@ -112,6 +138,32 @@ contract ZKNOX_falcon {
         return falcon_core_expanded(ntt, signature.salt, signature.s2, ntth, hashed);
     }
 
+    function verify( 
+        FalconPubKey memory pk,
+        bytes memory msgs,
+        FalconSignature memory signature
+        ) public view returns(bool result)
+        {
+         result = false;
+       
+         uint256[] memory hashed;
+         if(CheckKey(pk)==false) return false;
+
+         if(pk.hashID==ID_keccak){
+              hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+            } else {
+              hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+        }
+
+        if(pk.is_compact==false){
+            if(pk.nttform==false){//convert public key to ntt form
+                  pk.value=ntt.ZKNOX_NTTFW(pk.value, ntt.o_psirev());
+             }
+             signature.s2=_ZKNOX_NTT_Compact(signature.s2);
+        }
+       
+         return falcon_core(ntt, signature.salt, signature.s2, pk.value, hashed); //not implemented yet
+        }
 } 
 
 
