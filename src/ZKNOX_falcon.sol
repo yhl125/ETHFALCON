@@ -84,7 +84,7 @@ contract ZKNOX_falcon {
         if(falcon_checkPolynomialRange(Pubkey.value, Pubkey.is_compact)!=true) return false;
 
         if(Pubkey.hashID==ID_keccak) isKnownID=true;
-        if(Pubkey.hashID==ID_shake) isKnownID=true;
+        if(Pubkey.hashID==ID_tetration) isKnownID=true;
 
         return isKnownID;
     }
@@ -152,8 +152,11 @@ contract ZKNOX_falcon {
          if(pk.hashID==ID_keccak){
               hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
             } else {
-              hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
-        }
+                if(pk.hashID==ID_tetration){
+                hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+                }
+                else return false;//unknwon ID
+            }
 
         if(pk.is_compact==false){
             if(pk.nttform==false){//convert public key to ntt form

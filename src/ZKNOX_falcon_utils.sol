@@ -43,7 +43,7 @@ uint256 constant chunk16Byword = 16; //number of 1§ bits chunks in a word of 25
 
 //implemented hash identifiers
 uint256 constant ID_keccak=0x00;
-uint256 constant ID_shake=0x01;
+uint256 constant ID_tetration=0x01;
 
 uint256 constant _FALCON_WORD256_S=32;
 uint256 constant _FALCON_WORD32_S=512;
