@@ -80,28 +80,24 @@ function falcon_core(
         } 
         norm += s1[i] * s1[i];
         */
-        assembly{
-            let offset:=add(32,mul(32,i)) //offset to read at address tab[i]
-            let s1i:=addmod(mload(add(hashed, offset)), sub(q, mload(add(s1, offset))), q) //s1[i] = addmod(hashed[i], q - s1[i], q);
-            let cond:= gt(mload(add(hashed, offset)), mload(add(s1, offset))) //s1[i] > qs1 ?
-            s1i:=add( mul(cond,sub(q,s1)), mul(sub(1,cond), s1i))
-            norm:= add(norm, mul(s1i, s1i))
+        assembly {
+            let offset := add(32, mul(32, i)) //offset to read at address tab[i]
+            let s1i := addmod(mload(add(hashed, offset)), sub(q, mload(add(s1, offset))), q) //s1[i] = addmod(hashed[i], q - s1[i], q);
+            let cond := gt(mload(add(hashed, offset)), mload(add(s1, offset))) //s1[i] > qs1 ?
+            s1i := add(mul(cond, sub(q, s1)), mul(sub(1, cond), s1i))
+            norm := add(norm, mul(s1i, s1i))
         }
     }
 
-
-
-
-    s1 = _ZKNOX_NTT_Expand(s2);//avoiding another memory expansion
+    s1 = _ZKNOX_NTT_Expand(s2); //avoiding another memory expansion
 
     // normalize s2
     for (uint256 i = 0; i < n; i++) {
         if (s1[i] > qs1) {
             s1[i] = q - s1[i];
-        } 
+        }
         norm += s1[i] * s1[i];
     }
-
 
     if (norm > sigBound) {
         result = false;
