@@ -55,7 +55,7 @@ contract ZKNOX_FalconTest is Test {
         bool result = falcon.verify(message, sig, pk, true);
         assertEq(true, result);
 
-        pk=ntt.ZKNOX_NTTFW(pk, ntt.o_psirev());
+        pk = ntt.ZKNOX_NTTFW(pk, ntt.o_psirev());
         result = falcon.verify_opt(message, sig, pk, true);
 
         assertEq(true, result);
