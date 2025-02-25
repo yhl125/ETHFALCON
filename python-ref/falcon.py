@@ -216,15 +216,15 @@ class PublicKey:
     def __init__(self, n, h):
         """Initialize a public key."""
         self.n = n
-        self.h = h
+        self.pk = h
         self.hash_to_point = hash_to_point
         self.signature_bound = Params[n]["sig_bound"]
         self.sig_bytelen = Params[n]["sig_bytelen"]
 
     def __repr__(self):
         """Print the object in readable form."""
-        rep = "Public for n = {n}:\n\n".format(n=self.n)
-        rep += "h = {h}\n".format(h=self.h)
+        rep = "Public for n = {}:\n\n".format(self.n)
+        rep += "pk = {}\n".format(self.pk)
         return rep
 
     def verify(self, message, signature, ntt=NTTIterative, xof=KeccakPRNG):
@@ -246,8 +246,8 @@ class PublicKey:
             q, ntt=ntt
         )
         s1 = Poly(s1, q, ntt=ntt)
-        self_h = Poly(self.h, q, ntt=ntt)
-        s0 = hashed - s1 * self_h
+        pk = Poly(self.pk, q, ntt=ntt)
+        s0 = hashed - s1 * pk
         s0 = [(coef + (q >> 1)) % q - (q >> 1) for coef in s0.coeffs]
 
         # Check that the (s0, s1) is short
@@ -308,7 +308,7 @@ class SecretKey:
         normalize_tree(self.T_fft, self.sigma)
 
         # The public key is a polynomial such that h*f = g mod (Phi,q)
-        # self.h = div_zq(self.g, self.f)
+        # self.pk = div_zq(self.g, self.f)
         poly_f = Poly(self.f, q, ntt=ntt)
         poly_g = Poly(self.g, q, ntt=ntt)
         poly_h = poly_g/poly_f

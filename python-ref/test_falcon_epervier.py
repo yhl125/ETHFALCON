@@ -13,7 +13,7 @@ class TestEpervier(unittest.TestCase):
         F = sign_KAT[n][0]["F"]
         G = sign_KAT[n][0]["G"]
         sk = EpervierSecretKey(n, [f, g, F, G])
-        pk = EpervierPublicKey(n, sk.h)
+        pk = EpervierPublicKey(n, sk.pk)
         message = b"abc"
         sig = sk.sign(message)
         self.assertTrue(pk.verify(message, sig))
@@ -25,7 +25,7 @@ class TestEpervier(unittest.TestCase):
         F = sign_KAT[n][0]["F"]
         G = sign_KAT[n][0]["G"]
         sk = EpervierSecretKey(n, [f, g, F, G])
-        pk = EpervierPublicKey(n, sk.h)
+        pk = EpervierPublicKey(n, sk.pk)
         message = b"abc"
         sig = sk.sign(message, xof=SHAKE)
         self.assertTrue(pk.verify(message, sig, xof=SHAKE))

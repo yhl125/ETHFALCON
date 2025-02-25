@@ -21,22 +21,28 @@ This repository contains the following files (roughly in order of dependency):
 We provide an interface for key generation, signature and verification.
 
 ###### Key generation
+
+
 ```
-./sign_cli.py genkeys --version='falcon' # or falconrec or epervier
+./sign_cli.py genkeys --version='falcon' # or 'falconrec' or 'epervier'
 ```
 It creates two files `private_key.pem` and `public_key.pem` storing the private and public keys.
+It also prints the public key in Solidity format.
 
 ###### Signature
 ```
-./sign_cli.py sign --message="Example of message" --privkey=private_key.pem
+./sign_cli.py sign --message="Example of message" --privkey=private_key.pem --version='falcon' # or 'falconrec' or 'epervier'
 ```
-It signs a message using a private key, and outputs the signature in hexadecimal format.
+It create a signature file `sig` for the given  message and the private key.
+The signature is stored in hexadecimal format.
+It also prints the signature in Solidity format.
 
 ###### Verification
 ```
-./sign_cli.py verify --message="Example of message" --pubkey=public_key.pem --signature="394...000"
+./sign_cli.py verify --message="Example of message" --pubkey=public_key.pem --signature='sig'
 ```
-It outputs the validity of the signature with respect to a message and a public key given as input. The signature needs to be provided as a (large) string.
+It outputs the validity of the signature with respect to a message and a public key given as input.
+The signature needs to be provided as a (large) string.
 
 
 ## Profiling
@@ -49,11 +55,9 @@ Make sure you have `pyprof2calltree` and `kcachegrind` installed on your machine
 
 
 ## Authors
+Renaud Dubois and Simon Masson.
 
-* **Thomas Prest** (thomas.prest@ens.fr) original author of Falcon implementation
-* **Renaud Dubois** author of the modifications for ZKNox project.
-* **Simon Masson** author of the modifications for ZKNox project.
-
+Acknowledgments: Thomas Prest, for the original developer of the python implementation, Zhenfei Zhang, for some optimizations tricks.
 
 ## Disclaimer
 This is an experimental code. The reference code of Falcon is on https://falcon-sign.info/. It is not to be considered secure or suitable for production. 

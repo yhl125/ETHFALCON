@@ -1,7 +1,7 @@
 """Python implementation of Recovery Falcon"""
 from common import q
 from encoding import compress, decompress
-from falcon import HEAD_LEN, SALT_LEN, SEED_LEN, PublicKey, SecretKey, logn
+from falcon import HEAD_LEN, SALT_LEN, SEED_LEN, Params, PublicKey, SecretKey, hash_to_point, logn
 from keccak_prng import KeccakPRNG
 from polyntt.poly import Poly
 from polyntt.ntt_iterative import NTTIterative
@@ -12,15 +12,20 @@ from eth_abi.packed import encode_packed
 from os import urandom
 
 
-class RecoveryModePublicKey(PublicKey):
+class RecoveryModePublicKey:
 
-    def __init__(self, n, h):
-        super().__init__(n, h)
-        keccak_ctx = keccak.new(digest_bytes=32)
-        keccak_ctx.update(encode_packed(
-            ["uint256"] * len(self.h), self.h))
-        # get the uint160 part of the keccak256 output
-        self.pk = int.from_bytes(keccak_ctx.digest()[-20:], byteorder='big')
+    def __init__(self, n, pk):
+        self.n = n
+        self.hash_to_point = hash_to_point
+        self.signature_bound = Params[n]["sig_bound"]
+        self.sig_bytelen = Params[n]["sig_bytelen"]
+        self.pk = pk
+        # # compute pk from h
+        # keccak_ctx = keccak.new(digest_bytes=32)
+        # keccak_ctx.update(encode_packed(
+        #     ["uint256"] * len(h), h))
+        # # get the uint160 part of the keccak256 output
+        # self.pk = int.from_bytes(keccak_ctx.digest()[-20:], byteorder='big')
 
     def recover(self, message, signature, ntt=NTTIterative, xof=KeccakPRNG):
         """
