@@ -67,10 +67,25 @@ function _ZKNOX_NTT_Compact(uint256[] memory a) pure returns (uint256[] memory b
 function _ZKNOX_NTT_Expand(uint256[] memory a) pure returns (uint256[] memory b) {
     b = new uint256[](512);
 
+    /*
     for (uint256 i = 0; i < 32; i++) {
         uint256 ai = a[i];
         for (uint256 j = 0; j < 16; j++) {
             b[(i << 4) + j] = (ai >> (j << 4)) & mask16;
+        }
+    }
+    */
+
+    assembly {
+        let aa := a
+        let bb := add(b, 32)
+        for { let i := 0 } gt(32, i) { i := add(i, 1) } {
+            aa := add(aa, 32)
+            let ai := mload(aa)
+
+            for { let j := 0 } gt(16, j) { j := add(j, 1) } {
+                mstore(add(bb, mul(32, add(j, shl(4, i)))), and(shr(shl(4, j), ai), 0xffff)) //b[(i << 4) + j] = (ai >> (j << 4)) & mask16;
+            }
         }
     }
 
