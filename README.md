@@ -179,14 +179,18 @@ We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For hardw
 ### Yul
 
 Upon confirmation of the optimal algorithm for NTT, its critical parts have been implemented in Yul, benefiting from the extcodecopy trick described in 3.3, stack optimization, and variable control.
-
+As there are still experiments, concurrent versions are benched here. 
 
 | Function                   | Description               | gas cost | Tests Status |
 |------------------------|---------------------|---------------------|---------------------|
+| falcon_compact.verify       | ZKNOX_NTT      | 2.8M | OK|
+| falcon_compact.verifyTETRATION       | ZKNOX_NTT      | 2.5M | OK|
+| falcon.verify       | ZKNOX_NTT      | 4.2M | OK|
 | falcon.verify       | ZKNOX_NTT      | 4.2M | OK|
 | falcon.verify_opt       | ZKNOX_NTT with precomputations         | 3.8M | OK|
 | falcon.recover          | Use of hinted $s_2^{-1}$, custom iterative NTT  | 4.3M | OK|
 | falcon.recover_opt      | pk is $\text{Hash}\circ\text{ntt}$ |	  3.8M | OK|
+
 
 
 ### Python
