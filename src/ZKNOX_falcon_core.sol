@@ -72,6 +72,8 @@ function falcon_core(
     uint256[] memory s1 = _ZKNOX_NTT_Expand(ntt.ZKNOX_NTT_HALFMUL_Compact(s2, ntth));
 
     uint256 norm = 0;
+
+    /*
     for (uint256 i = 0; i < hashed.length; i++) {
         /*
         s1[i] = addmod(hashed[i], q - s1[i], q);
@@ -79,9 +81,10 @@ function falcon_core(
             s1[i] = q - s1[i];
         } 
         norm += s1[i] * s1[i];
-        */
-        assembly {
-            let offset := add(32, mul(32, i)) //offset to read at address tab[i]
+    } */
+
+    assembly {
+        for { let offset := 32 } gt(16384, offset) { offset := add(offset, 32) } {
             let s1i := addmod(mload(add(hashed, offset)), sub(q, mload(add(s1, offset))), q) //s1[i] = addmod(hashed[i], q - s1[i], q);
             let cond := gt(s1i, qs1) //s1[i] > qs1 ?
             s1i := add(mul(cond, sub(q, s1i)), mul(sub(1, cond), s1i))
@@ -92,15 +95,9 @@ function falcon_core(
     s1 = _ZKNOX_NTT_Expand(s2); //avoiding another memory expansion
 
     // normalize s2
-    for (uint256 i = 0; i < n; i++) {
-        /*
-        if (s1[i] > qs1) {
-            s1[i] = q - s1[i];
-        }
-        norm += s1[i] * s1[i];
-        */
-        assembly {
-            let s1i := mload(add(s1, add(32, mul(32, i)))) //s1[i]
+    assembly {
+        for { let offset := add(s1, 32) } gt(16384, offset) { offset := add(offset, 32) } {
+            let s1i := mload(offset) //s1[i]
             let cond := gt(s1i, qs1) //s1[i] > qs1 ?
             s1i := add(mul(cond, sub(q, s1i)), mul(sub(1, cond), s1i))
             norm := add(norm, mul(s1i, s1i))

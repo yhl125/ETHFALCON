@@ -428,8 +428,9 @@ contract ZKNOX_NTT {
         b = new uint256[](512);
 
         for (uint256 i = 0; i < 32; i++) {
+            uint256 ai=a[i];
             for (uint256 j = 0; j < 16; j++) {
-                b[(i << 4) + j] = (a[i] >> (j << 4)) & mask16;
+                b[(i << 4) + j] = (ai >> (j << 4)) & mask16;
             }
         }
 
