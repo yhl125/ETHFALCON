@@ -90,24 +90,27 @@ function falcon_core(
             s1i := add(mul(cond, sub(q, s1i)), mul(sub(1, cond), s1i))
             norm := add(norm, mul(s1i, s1i))
         }
-    }
 
-    s1 = _ZKNOX_NTT_Expand(s2); //avoiding another memory expansion
+        //s1 = _ZKNOX_NTT_Expand(s2); //avoiding another memory declaration
+        let aa := s2
+        let bb := add(s1, 32)
+        for { let i := 0 } gt(32, i) { i := add(i, 1) } {
+            aa := add(aa, 32)
+            let ai := mload(aa)
 
-    // normalize s2
-    assembly {
+            for { let j := 0 } gt(16, j) { j := add(j, 1) } {
+                mstore(add(bb, mul(32, add(j, shl(4, i)))), and(shr(shl(4, j), ai), 0xffff)) //b[(i << 4) + j] = (ai >> (j << 4)) & mask16;
+            }
+        }
+
         for { let offset := add(s1, 32) } gt(16384, offset) { offset := add(offset, 32) } {
             let s1i := mload(offset) //s1[i]
             let cond := gt(s1i, qs1) //s1[i] > qs1 ?
             s1i := add(mul(cond, sub(q, s1i)), mul(sub(1, cond), s1i))
             norm := add(norm, mul(s1i, s1i))
         }
-    }
 
-    if (norm > sigBound) {
-        result = false;
-    } else {
-        result = true;
+        result := gt(sigBound, norm) //norm < SigBound ?
     }
 
     return result;

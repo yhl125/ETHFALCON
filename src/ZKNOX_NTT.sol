@@ -451,8 +451,20 @@ contract ZKNOX_NTT {
 
     function ZKNOX_NTT_Compact(uint256[] memory a) internal pure returns (uint256[] memory b) {
         b = new uint256[](32);
+
+        /*
         for (uint256 i = 0; i < a.length; i++) {
             b[i >> 4] ^= a[i] << ((i & 0xf) << 4);
+        }*/
+
+        assembly {
+            let aa := a
+            let bb := add(b, 32)
+            for { let i := 0 } gt(512, i) { i := add(i, 1) } {
+                aa := add(aa, 32)
+                let bi := add(bb, mul(32, shr(4, i))) //shr(4,i)*32 !=shl(1,i)
+                mstore(bi, xor(mload(bi), shl(shl(4, and(i, 0xf)), mload(aa))))
+            }
         }
 
         return b;
