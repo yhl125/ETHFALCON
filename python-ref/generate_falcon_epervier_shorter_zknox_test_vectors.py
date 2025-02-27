@@ -92,7 +92,6 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n\n".format(
         s2[0], ','.join(map(str, s2[1:]))))
     file.write("ZKNOX_falcon_epervier_shorter.Signature memory sig;\n")
-
     file.write("for (uint i = 0; i < 512; i++) {\n")
     file.write("\tsig.s1[i] = tmp_s1[i];\n")
     file.write("\tsig.s2[i] = tmp_s2[i];\n")

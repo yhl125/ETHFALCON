@@ -84,6 +84,7 @@ for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
             s2[0], ','.join(map(str, s2[1:]))))
 
         file.write("ZKNOX_falcon.Signature memory sig;\n")
+        file.write("sig.s2=new uint256[](512);\n")
         file.write("for (uint i = 0; i < 512; i++) {\n")
         file.write("\tsig.s2[i] = tmp_s2[i];\n")
         file.write("}\n")
