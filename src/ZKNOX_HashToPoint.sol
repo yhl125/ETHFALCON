@@ -56,6 +56,7 @@ function hashToPointRIP(bytes memory salt, bytes memory msgHash) pure returns (u
         let counter := 0
         let i := 0
         let offset := add(output, 32)
+        let extendedAdress:=add(extendedState, 64)
         for {} lt(i, n) {} {
             let buffer := keccak256(add(extendedState, 32), 40)
             for { let j := 240 } gt(666, j) { j := sub(j, 16) } {
@@ -68,8 +69,8 @@ function hashToPointRIP(bytes memory salt, bytes memory msgHash) pure returns (u
                 }
             }
 
-            counter := add(counter, 6277101735386680763835789423207666416102355444464034512896)
-            mstore(add(extendedState, 64), counter)
+            counter := add(counter, 6277101735386680763835789423207666416102355444464034512896)//counter+=1, shift by 192 to increment directly memory buffer by a 64 bits counter.
+            mstore(extendedAdress, counter)
         }
     }
 }
