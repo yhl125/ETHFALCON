@@ -275,7 +275,7 @@ class SecretKey:
     - verify the signature of a message
     """
 
-    def __init__(self, n, polys=None, ntt=NTTIterative):
+    def __init__(self, n, polys=None, ntt=NTTIterative, randombytes=urandom):
         """Initialize a secret key."""
         # Public parameters
         self.n = n
@@ -286,7 +286,8 @@ class SecretKey:
 
         # Compute NTRU polynomials f, g, F, G verifying fG - gF = q mod Phi
         if polys is None:
-            self.f, self.g, self.F, self.G = ntru_gen(n)
+            self.f, self.g, self.F, self.G = ntru_gen(
+                n, randombytes=randombytes)
         else:
             [f, g, F, G] = polys
             assert all((len(poly) == n) for poly in [f, g, F, G])
