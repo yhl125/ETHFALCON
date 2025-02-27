@@ -53,3 +53,16 @@ def deterministic_salt(x, seed="deterministic_salt"):
     first_bytes = sha256(f"{seed}{x}".encode()).digest()
     last_bytes = sha256(f"{seed}".encode()+first_bytes).digest()
     return first_bytes + last_bytes[0:8]
+
+
+def falcon_compact(a):
+    # compact a list of 512 small elements into a 32 large elements
+    # lets us compact public key and signature in Falcon
+    assert len(a) % 16 == 0
+    for elt in a:
+        assert elt < (1 << 16)
+    b = [0] * (len(a) >> 4)
+    for i in range(len(a)):
+        b[i >> 4] |= a[i] << ((i & 0xF) * 16)
+
+    return b

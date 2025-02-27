@@ -31,6 +31,7 @@ test_epervier:
 
 generate_test_vectors:
 	$(PYTHON) -m generate_falcon_test_vectors -v
+	$(PYTHON) -m generate_falcon_compact_test_vectors -v
 	$(PYTHON) -m generate_falcon_recovery_test_vectors -v
 	$(PYTHON) -m generate_falcon_recovery_shorter_zknox_test_vectors -v
 	$(PYTHON) -m generate_falcon_epervier_test_vectors -v
