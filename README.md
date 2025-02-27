@@ -6,6 +6,7 @@ ETHFALCON gather experimentations around FALCON adaptations for the ETHEREUM eco
 In this section, a signature is generated using Python and verified using Solidity.
 ```bash
 cd python-ref
+make install
 ```
 The public and private keys are generated using Python:
 ```bash
