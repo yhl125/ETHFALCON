@@ -1,16 +1,17 @@
 #!myenv/bin/python
 import argparse
 import ast
-from common import q
+from common import deterministic_salt, q
 from encoding import decompress
 from falcon import HEAD_LEN, SALT_LEN, PublicKey, SecretKey
 from falcon_epervier import EpervierPublicKey, EpervierSecretKey
 from falcon_recovery import RecoveryModePublicKey, RecoveryModeSecretKey
 from polyntt.poly import Poly
-from scripts.sign_KAT import sign_KAT512
+
+import random
 
 
-def generate_keys(n, version, fixed=False):
+def generate_keys(n, version, seed=None):
     # private key
     if version == 'falcon':
         SK = SecretKey
@@ -23,18 +24,18 @@ def generate_keys(n, version, fixed=False):
         return
 
     # public key
-    if fixed:
-        f = sign_KAT512[0]["f"]
-        g = sign_KAT512[0]["g"]
-        F = sign_KAT512[0]["F"]
-        G = sign_KAT512[0]["G"]
-        sk = SK(n, polys=[f, g, F, G])
-    else:
-        print("This might take few seconds")
-        print(".\n.\n.\n")
-        print("```")
-        print("// Solidity public key:")
-        sk = SK(n)
+    print("This might take few seconds")
+    print(".\n.\n.\n")
+    print("```")
+    print("// Solidity public key:")
+
+    # deterministic random
+    if seed == None:
+        seed = 0
+    rng = random.Random(seed)
+    def deterministic_urandom(n): return bytes(
+        rng.randint(0, 255) for _ in range(n))
+    sk = SK(n, randombytes=deterministic_urandom)
 
     if version == 'falcon':
         pk = PublicKey(n, sk.h)
@@ -125,14 +126,14 @@ def load_signature(filename):
     return bytes.fromhex(signature)
 
 
-def signature(sk, message, version, fixed=False):
-    if fixed:
-        sig = sk.sign(
-            message.encode(),
-            randombytes=lambda x: b"\x0e\x14\x4c\x47\xc6\x5a\xfe\x7d\x97\xc6\x54\x2a\x49\x83\x45\x5a\x77\x98\xd2\x06\xcc\x7b\xa2\x33\x7d\xe9\xb7\x08\x13\x37\x6c\xc4\xef\xcf\x49\x58\x62\xb3\x9a\x99"
-        )
-    else:
-        sig = sk.sign(message.encode())
+def signature(sk, message, version, seed=None):
+    if seed == None:
+        seed = 0
+    salt = deterministic_salt(seed)
+    sig = sk.sign(
+        message.encode(),
+        randombytes=lambda x: deterministic_salt(x, seed)
+    )
     if version == 'falcon':
         salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:]
@@ -221,8 +222,8 @@ def cli():
                         "genkeys", "sign", "verify"], help="Action to perform")
     parser.add_argument("--version", type=str,
                         help="Version to use (falcon or falconrec)")
-    parser.add_argument("--fixed", type=str,
-                        help="Choose polynomials from the KAT file")
+    parser.add_argument("--seed", type=int,
+                        help="Choose a seed")
     parser.add_argument("--message", type=str,
                         help="Message to sign or verify")
     parser.add_argument("--privkey", type=str,
@@ -239,7 +240,7 @@ def cli():
             return
         # TODO make it parameterizable?
         n = 512
-        priv, pub = generate_keys(n, args.version, args.fixed)
+        priv, pub = generate_keys(n, args.version, args.seed)
         save_pk(pub, "public_key.pem", args.version)
         save_sk(priv, "private_key.pem", args.version)
         print("Keys generated and saved.")
@@ -249,7 +250,7 @@ def cli():
             print("Error: Provide --message, --privkey and --version")
             return
         sk = load_sk(args.privkey)
-        sig = signature(sk, args.message, args.version, args.fixed)
+        sig = signature(sk, args.message, args.version, args.seed)
         save_signature(sig, 'sig')
 
     elif args.action == "verify":

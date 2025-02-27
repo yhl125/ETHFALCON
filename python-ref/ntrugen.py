@@ -6,11 +6,9 @@ from fft import add, mul, div, adj
 from polyntt.ntt_recursive import NTTRecursive
 from polyntt.ntt_iterative import NTTIterative
 from polyntt.poly import Poly
-from common import sqnorm
+from common import sqnorm, q
 from samplerz import samplerz
-
-
-q = 12 * 1024 + 1
+from os import urandom
 
 
 def karatsuba(a, b, n):
@@ -207,7 +205,7 @@ def gs_norm(f, g, q):
     return max(sqnorm_fg, sqnorm_FG)
 
 
-def gen_poly(n, ntt=NTTIterative):
+def gen_poly(n, ntt=NTTIterative, randombytes=urandom):
     """
     Generate a polynomial of degree at most (n - 1), with coefficients
     following a discrete Gaussian distribution D_{Z, 0, sigma_fg} with
@@ -216,7 +214,8 @@ def gen_poly(n, ntt=NTTIterative):
     # 1.17 * sqrt(12289 / 8192)
     sigma = 1.43300980528773
     assert (n < 4096)
-    f0 = [samplerz(0, sigma, sigma - 0.001) for _ in range(4096)]
+    f0 = [samplerz(0, sigma, sigma - 0.001, randombytes=randombytes)
+          for _ in range(4096)]
     f = [0] * n
     k = 4096 // n
     for i in range(n):
@@ -226,15 +225,15 @@ def gen_poly(n, ntt=NTTIterative):
     return Poly(f, q, ntt=ntt)
 
 
-def ntru_gen(n, ntt=NTTIterative):
+def ntru_gen(n, ntt=NTTIterative, randombytes=urandom):
     """
     Implement the algorithm 5 (NTRUGen) of Falcon's documentation.
     At the end of the function, polynomials f, g, F, G in Z[x]/(x ** n + 1)
     are output, which verify f * G - g * F = q mod (x ** n + 1).
     """
     while True:
-        f = gen_poly(n).coeffs
-        g = gen_poly(n).coeffs
+        f = gen_poly(n, randombytes=randombytes).coeffs
+        g = gen_poly(n, randombytes=randombytes).coeffs
         if gs_norm(f, g, q) > (1.17 ** 2) * q:
             continue
         if ntt == NTTRecursive:
