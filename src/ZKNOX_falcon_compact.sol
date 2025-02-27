@@ -73,7 +73,7 @@ contract ZKNOX_falcon_compact {
     ) public view returns (bool result) {
         if (CheckParameters(signature, ntth) == false) return false;
 
-        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs);
         return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
 

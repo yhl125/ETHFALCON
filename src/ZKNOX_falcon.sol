@@ -103,7 +103,7 @@ contract ZKNOX_falcon {
 
         uint256[] memory hashed;
         if (h_zknox) {
-            hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+            hashed = hashToPointZKNOX(signature.salt, msgs);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }
@@ -125,7 +125,7 @@ contract ZKNOX_falcon {
 
         uint256[] memory hashed;
         if (h_zknox) {
-            hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+            hashed = hashToPointZKNOX(signature.salt, msgs);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }
@@ -144,7 +144,7 @@ contract ZKNOX_falcon {
         if (CheckKey(pk) == false) return false;
 
         if (pk.hashID == ID_keccak) {
-            hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+            hashed = hashToPointZKNOX(signature.salt, msgs);
         } else {
             if (pk.hashID == ID_tetration) {
                 hashed = hashToPointTETRATION(signature.salt, msgs, q, n);

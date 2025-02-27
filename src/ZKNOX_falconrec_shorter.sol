@@ -124,7 +124,7 @@ contract ZKNOX_falconrec_shorter {
             if (mulmod(s2[i], s2_inverse_ntt[i], q) != 1) revert("wrong hint");
         }
 
-        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs);
         for (i = 0; i < 512; i++) {
             //hashToPoint-s1
             hashed[i] = addmod(hashed[i], q - signature.s1[i], q);

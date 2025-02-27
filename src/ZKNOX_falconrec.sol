@@ -115,7 +115,7 @@ contract ZKNOX_falconrec {
 
         uint256[] memory hashed;
         if (h_zknox) {
-            hashed = hashToPointZKNOX(signature.salt, msgs, q, n);
+            hashed = hashToPointZKNOX(signature.salt, msgs);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }

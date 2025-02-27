@@ -39,40 +39,38 @@
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
+import "./ZKNOX_falcon_utils.sol";
 
 uint256 constant MASK_2BYTES = uint256(0xFFFF);
 
-function hashToPointZKNOX(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
-    pure
-    returns (uint256[] memory output)
-{
+function hashToPointZKNOX(bytes memory salt, bytes memory msgHash) pure returns (uint256[] memory output) {
     output = new uint256[](n);
-    uint256 kq = ((1 << 16) / q) * q;
+
     bytes32 state;
-    bytes32 buffer;
 
     // Initial state
     state = keccak256(abi.encodePacked(msgHash, salt));
-    uint256 j;
+    bytes memory extendedState = abi.encodePacked(state, uint64(0x00));
 
-    uint64 counter = 0;
-    uint256 i = 0;
-    while (i < n) {
-        // updating buffer = keccak(state||counter)
-        buffer = keccak256(abi.encodePacked(state, counter));
-
-        for (j = 0; j < 16; j++) {
-            // consider slices of two bytes
-            if (i >= n) break;
-            // MSB (for LSB, simply replace (15 - j) by j)
-            uint256 chunk = uint256(buffer >> (16 * (15 - j))) & MASK_2BYTES;
-            // rejection sampling before modular reduction
-            if (chunk < kq) {
-                output[i] = chunk % q;
-                i += 1;
+    assembly {
+        let counter := 0
+        let i := 0
+        let offset := add(output, 32)
+        for {} lt(i, n) {} {
+            let buffer := keccak256(add(extendedState, 32), 40)
+            for { let j := 240 } gt(666, j) { j := sub(j, 16) } {
+                let chunk := and(shr(j, buffer), 0xffff)
+                if lt(chunk, kq) {
+                    mstore(offset, mod(chunk, q))
+                    offset := add(offset, 32)
+                    i := add(i, 1)
+                    if eq(i, 512) { break }
+                }
             }
+
+            counter := add(counter, 6277101735386680763835789423207666416102355444464034512896)
+            mstore(add(extendedState, 64), counter)
         }
-        counter += 1;
     }
 }
 

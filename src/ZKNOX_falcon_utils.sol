@@ -54,6 +54,7 @@ uint256 constant sigBound = 34034726;
 uint256 constant sigBytesLen = 666;
 uint256 constant q = 12289;
 uint256 constant qs1 = 6144; // q >> 1;
+uint256 constant kq = 61445;
 
 function _ZKNOX_NTT_Compact(uint256[] memory a) pure returns (uint256[] memory b) {
     b = new uint256[](32);

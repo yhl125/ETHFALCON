@@ -6,7 +6,7 @@ libs = ["lib"]
 [profile.lite]
 # change this label for slower compilation but faster execution
 #optimizer = false
-optimizer = true
+#optimizer = true
 optimizer_runs = 10000
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
