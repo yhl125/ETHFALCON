@@ -41,7 +41,7 @@ pragma solidity ^0.8.25;
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./HashToPoint.sol";
+import "./ZKNOX_HashToPoint.sol";
 
 contract ZKNOX_falconrec {
     //FALCON CONSTANTS
@@ -115,7 +115,7 @@ contract ZKNOX_falconrec {
 
         uint256[] memory hashed;
         if (h_zknox) {
-            hashed = hashToPointZKNOX(signature.salt, msgs);
+            hashed = hashToPointRIP(signature.salt, msgs);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }

@@ -41,7 +41,7 @@ pragma solidity ^0.8.25;
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./HashToPoint.sol";
+import "./ZKNOX_HashToPoint.sol";
 import "./ZKNOX_falcon_utils.sol";
 import "./ZKNOX_falcon_core.sol";
 
@@ -103,7 +103,7 @@ contract ZKNOX_falcon {
 
         uint256[] memory hashed;
         if (h_zknox) {
-            hashed = hashToPointZKNOX(signature.salt, msgs);
+            hashed = hashToPointRIP(signature.salt, msgs);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }
@@ -125,7 +125,7 @@ contract ZKNOX_falcon {
 
         uint256[] memory hashed;
         if (h_zknox) {
-            hashed = hashToPointZKNOX(signature.salt, msgs);
+            hashed = hashToPointRIP(signature.salt, msgs);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }
@@ -144,7 +144,7 @@ contract ZKNOX_falcon {
         if (CheckKey(pk) == false) return false;
 
         if (pk.hashID == ID_keccak) {
-            hashed = hashToPointZKNOX(signature.salt, msgs);
+            hashed = hashToPointRIP(signature.salt, msgs);
         } else {
             if (pk.hashID == ID_tetration) {
                 hashed = hashToPointTETRATION(signature.salt, msgs, q, n);

@@ -41,7 +41,7 @@ pragma solidity ^0.8.25;
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./HashToPoint.sol";
+import "./ZKNOX_HashToPoint.sol";
 
 contract ZKNOX_falconrec_shorter {
     //FALCON CONSTANTS
@@ -124,7 +124,7 @@ contract ZKNOX_falconrec_shorter {
             if (mulmod(s2[i], s2_inverse_ntt[i], q) != 1) revert("wrong hint");
         }
 
-        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs);
+        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
         for (i = 0; i < 512; i++) {
             //hashToPoint-s1
             hashed[i] = addmod(hashed[i], q - signature.s1[i], q);

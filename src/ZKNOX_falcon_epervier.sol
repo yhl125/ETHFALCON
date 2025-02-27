@@ -42,7 +42,7 @@ import {console} from "forge-std/Test.sol";
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./HashToPoint.sol";
+import "./ZKNOX_HashToPoint.sol";
 
 contract ZKNOX_falcon_epervier {
     //FALCON CONSTANTS
@@ -116,7 +116,7 @@ contract ZKNOX_falcon_epervier {
 
         uint256[] memory hashed;
         if (h_zknox) {
-            hashed = hashToPointZKNOX(signature.salt, msgs);
+            hashed = hashToPointRIP(signature.salt, msgs);
         } else {
             hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         }

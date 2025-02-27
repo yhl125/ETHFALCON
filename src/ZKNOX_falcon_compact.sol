@@ -43,7 +43,7 @@ import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 import "./ZKNOX_falcon_core.sol";
 
 //choose the XOF to use here
-import "./HashToPoint.sol";
+import "./ZKNOX_HashToPoint.sol";
 
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
 contract ZKNOX_falcon_compact {
@@ -73,7 +73,7 @@ contract ZKNOX_falcon_compact {
     ) public view returns (bool result) {
         if (CheckParameters(signature, ntth) == false) return false;
 
-        uint256[] memory hashed = hashToPointZKNOX(signature.salt, msgs);
+        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
         return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
 

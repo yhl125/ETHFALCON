@@ -43,7 +43,7 @@ import "./ZKNOX_falcon_utils.sol";
 
 uint256 constant MASK_2BYTES = uint256(0xFFFF);
 
-function hashToPointZKNOX(bytes memory salt, bytes memory msgHash) pure returns (uint256[] memory output) {
+function hashToPointRIP(bytes memory salt, bytes memory msgHash) pure returns (uint256[] memory output) {
     output = new uint256[](n);
 
     bytes32 state;
