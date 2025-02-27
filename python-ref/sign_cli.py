@@ -7,31 +7,46 @@ from falcon import HEAD_LEN, SALT_LEN, PublicKey, SecretKey
 from falcon_epervier import EpervierPublicKey, EpervierSecretKey
 from falcon_recovery import RecoveryModePublicKey, RecoveryModeSecretKey
 from polyntt.poly import Poly
+from scripts.sign_KAT import sign_KAT512
 
 
-def generate_keys(n, version):
-    print("This might take few seconds")
-    print(".\n.\n.\n")
-    print("```")
-    print("// Solidity public key:")
+def generate_keys(n, version, fixed=False):
+    # private key
     if version == 'falcon':
-        sk = SecretKey(n)
+        SK = SecretKey
+    elif version == 'falconrec':
+        SK = RecoveryModeSecretKey
+    elif version == 'epervier':
+        SK = EpervierSecretKey
+    else:
+        print("This version does not exist.")
+        return
+    if fixed:
+        f = sign_KAT512[0]["f"]
+        g = sign_KAT512[0]["g"]
+        F = sign_KAT512[0]["F"]
+        G = sign_KAT512[0]["G"]
+        sk = SK(n, polys=[f, g, F, G])
+    else:
+        print("This might take few seconds")
+        print(".\n.\n.\n")
+        print("```")
+        print("// Solidity public key:")
+        sk = SK(n)
+
+    if version == 'falcon':
         pk = PublicKey(n, sk.h)
         print("// forgefmt: disable-next-line")
         print("uint[512] memory pk = [uint({}), {}];\n".format(
             pk.pk[0], ','.join(map(str, pk.pk[1:]))))
     elif version == 'falconrec':
-        sk = RecoveryModeSecretKey(n)
         pk = RecoveryModePublicKey(n, sk.pk)
         print("address pk = address({});".format(pk.pk))
     elif version == 'epervier':
-        sk = EpervierSecretKey(n)
         pk = EpervierPublicKey(n, sk.pk)
         print("address pk = address({});".format(pk.pk))
-    else:
-        print("This version does not exist.")
-        return
     print("```")
+
     return sk, pk
 
 
@@ -108,8 +123,14 @@ def load_signature(filename):
     return bytes.fromhex(signature)
 
 
-def signature(sk, message, version):
-    sig = sk.sign(message.encode())
+def signature(sk, message, version, fixed=False):
+    if fixed:
+        sig = sk.sign(
+            message.encode(),
+            randombytes=lambda x: b"\x0e\x14\x4c\x47\xc6\x5a\xfe\x7d\x97\xc6\x54\x2a\x49\x83\x45\x5a\x77\x98\xd2\x06\xcc\x7b\xa2\x33\x7d\xe9\xb7\x08\x13\x37\x6c\xc4\xef\xcf\x49\x58\x62\xb3\x9a\x99"
+        )
+    else:
+        sig = sk.sign(message.encode())
     if version == 'falcon':
         salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:]
@@ -121,8 +142,11 @@ def signature(sk, message, version):
         print("// forgefmt: disable-next-line")
         print("uint[512] memory s2 = [uint({}), {}];\n".format(
             s2[0], ', '.join(map(str, s2[1:]))))
+        print("sig.salt = \"{}\"; \n".format(
+            "".join(f"\\x{b:02x}" for b in salt)))
         print("```")
     elif version == 'falconrec' or version == 'epervier':
+        print("TODO SALT !!! AND also s2invntt in epervier!!!")
         salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
         s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
@@ -163,6 +187,8 @@ def cli():
                         "genkeys", "sign", "verify"], help="Action to perform")
     parser.add_argument("--version", type=str,
                         help="Version to use (falcon or falconrec)")
+    parser.add_argument("--fixed", type=str,
+                        help="Choose polynomials from the KAT file")
     parser.add_argument("--message", type=str,
                         help="Message to sign or verify")
     parser.add_argument("--privkey", type=str,
@@ -179,7 +205,7 @@ def cli():
             return
         # TODO make it parameterizable
         n = 512
-        priv, pub = generate_keys(n, args.version)
+        priv, pub = generate_keys(n, args.version, args.fixed)
         save_pk(pub, "public_key.pem", args.version)
         save_sk(priv, "private_key.pem", args.version)
         print("Keys generated and saved.")
@@ -189,7 +215,7 @@ def cli():
             print("Error: Provide --message, --privkey and --version")
             return
         sk = load_sk(args.privkey)
-        sig = signature(sk, args.message, args.version)
+        sig = signature(sk, args.message, args.version, args.fixed)
         save_signature(sig, 'sig')
 
     elif args.action == "verify":
