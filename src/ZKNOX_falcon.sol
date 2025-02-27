@@ -55,7 +55,7 @@ contract ZKNOX_falcon {
 
     struct Signature {
         bytes salt;
-        uint256[512] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
+        uint256[] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
     }
 
     struct FalconPubKey {
