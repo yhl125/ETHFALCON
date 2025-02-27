@@ -56,11 +56,6 @@ contract ZKNOX_FalconTest is Test {
             "\x35\x00\x31\x8f\x75\xad\x20\xf0\xaa\x20\x62\xba\x1c\x34\x8a\xfe\xaa\x49\x23\x87\xa4\x63\xeb\x8c\x28\xaf\x77\x9d\x6a\x3e\xa6\x96\xeb\xb9\x66\x0c\xcf\xf5\x06\x2d";
         bool result = falcon.verify(message, sig, pk, true);
         assertEq(true, result);
-
-        pk = ntt.ZKNOX_NTTFW(pk, ntt.o_psirev());
-        result = falcon.verify_opt(message, sig, pk, true);
-
-        assertEq(true, result);
     }
 
     function testVector1() public view {

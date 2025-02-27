@@ -21,6 +21,8 @@ def generate_keys(n, version, fixed=False):
     else:
         print("This version does not exist.")
         return
+
+    # public key
     if fixed:
         f = sign_KAT512[0]["f"]
         g = sign_KAT512[0]["g"]
@@ -37,7 +39,7 @@ def generate_keys(n, version, fixed=False):
     if version == 'falcon':
         pk = PublicKey(n, sk.h)
         print("// forgefmt: disable-next-line")
-        print("uint[512] memory pk = [uint({}), {}];\n".format(
+        print("uint[512] memory tmp_pk = [uint({}), {}];\n".format(
             pk.pk[0], ','.join(map(str, pk.pk[1:]))))
     elif version == 'falconrec':
         pk = RecoveryModePublicKey(n, sk.pk)
@@ -145,8 +147,7 @@ def signature(sk, message, version, fixed=False):
         print("sig.salt = \"{}\"; \n".format(
             "".join(f"\\x{b:02x}" for b in salt)))
         print("```")
-    elif version == 'falconrec' or version == 'epervier':
-        print("TODO SALT !!! AND also s2invntt in epervier!!!")
+    elif version == 'falconrec':
         salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
         s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
@@ -170,6 +171,38 @@ def signature(sk, message, version, fixed=False):
         print("uint[512] memory s2_inv_ntt = [uint({}), {}];\n".format(
             s2_inv_ntt[0], ', '.join(map(str, s2_inv_ntt[1:]))))
         print("")
+        print("sig.salt = \"{}\"; \n".format(
+            "".join(f"\\x{b:02x}" for b in salt)))
+        print("")
+        print("```")
+    elif version == 'epervier':
+        salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
+        enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
+        s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
+        mid = len(s)//2
+        s = [elt % q for elt in s]
+        s1, s2 = s[:mid], s[mid:]
+        s2_inv_ntt = Poly(s2, q).inverse().ntt()
+        s2_inv_ntt_prod = 1
+        for elt in s2_inv_ntt:
+            s2_inv_ntt_prod = (s2_inv_ntt_prod * elt) % q
+        print("```")
+        print("// Solidity raw signature:")
+        print("// s1")
+        print("// forgefmt: disable-next-line")
+        print("uint[512] memory s1 = [uint({}), {}];\n".format(
+            s1[0], ', '.join(map(str, s1[1:]))))
+        print("// s2")
+        print("// forgefmt: disable-next-line")
+        print("uint[512] memory s2 = [uint({}), {}];\n".format(
+            s2[0], ', '.join(map(str, s2[1:]))))
+        print("")
+        print("// s2_inv_ntt_prod")
+        print("uint256 memory s2_inv_ntt_prod = {};".format(s2_inv_ntt_prod))
+        print("")
+        print("sig.salt = \"{}\"; \n".format(
+            "".join(f"\\x{b:02x}" for b in salt)))
+        print("")
         print("```")
     else:
         print("This version is not implemented.")
@@ -178,6 +211,7 @@ def signature(sk, message, version, fixed=False):
 
 
 def verify_signature(pk, message, sig):
+    print(pk.pk[0:5])
     return pk.verify(message.encode(), sig)
 
 
@@ -203,7 +237,7 @@ def cli():
         if not args.version:
             print("Error: Provide --version")
             return
-        # TODO make it parameterizable
+        # TODO make it parameterizable?
         n = 512
         priv, pub = generate_keys(n, args.version, args.fixed)
         save_pk(pub, "public_key.pem", args.version)
