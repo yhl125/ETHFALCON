@@ -3,7 +3,7 @@
 ETHFALCON gather experimentations around FALCON adaptations for the ETHEREUM ecosystem. [Falcon signature scheme](https://falcon-sign.info/) is a post-quantum digital signature algorithm. 
 
 ## EXAMPLE
-In this section, a signature is generated using Pythonm and verified using Solidity.
+In this section, a signature is generated using Python and verified using Solidity.
 ```
 cd python-ref
 ```
