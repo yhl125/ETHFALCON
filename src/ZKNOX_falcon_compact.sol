@@ -83,7 +83,6 @@ contract ZKNOX_falcon_compact {
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
     ) public view returns (bool result) {
         if (CheckParameters(signature, ntth) == false) return false;
-
         uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
