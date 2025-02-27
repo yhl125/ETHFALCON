@@ -172,7 +172,7 @@ We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For hardw
 | falcon.verify      | ZKNOX fork, recursive NTT | 20.8 M| OK|
 | falcon.verify_opt         | Use of precomputed NTT public key form, recursive NTT | 14.6 M| OK|
 | falcon.verify_iterative         | Use of precomputed NTT public key form, custom iterative NTT | 8.3 M| OK|
-| falcon.recover         | Use of hinted $s_2^{-1}$, custom iterative NTT | 8.3 M | OK|
+
 
 
 
@@ -183,10 +183,10 @@ As there are still experiments, concurrent versions are benched here.
 
 | Function                   | Description               | gas cost | Tests Status |
 |------------------------|---------------------|---------------------|---------------------|
-| ZKNOX_falcon_compact.verify       | ZKNOX_NTT      | 2.08M | OK|
+| ZKNOX_falcon_compact.verify       | ZKNOX_NTT      | 1.9 M | OK|
 | ZKNOX_falcon_compact.verifyTETRATION       | ZKNOX_NTT      | 2.23M | OK|
 
-
+**Note on the encoding**: polynomials are encoded as $(a_0 || a_1|| \ldots|| a_k)$, where $P=\sum {a_i}X^i$, the operator || being concatenation, each $a_i$ being encoded on 16 bits. This leads to a representation of $P$ over 32 uint256.
 
 
 ### Python
