@@ -48,6 +48,13 @@ import "./ZKNOX_HashToPoint.sol";
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
 contract ZKNOX_falcon_compact {
     ZKNOX_NTT ntt;
+    address public psirev;
+    address public psiInvrev;
+
+    function update(address i_psirev, address i_psiInvrev ) public{
+        psirev = i_psirev;
+        psiInvrev = i_psiInvrev;
+    }
 
     constructor(ZKNOX_NTT i_ntt) {
         ntt = i_ntt;
@@ -86,4 +93,16 @@ contract ZKNOX_falcon_compact {
         uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
+    
+    function verify_spec(
+        bytes memory msgs,
+        CompactSignature memory signature,
+        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) public view returns (bool result) {
+        if (CheckParameters(signature, ntth) == false) return false;
+
+        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
+        return falcon_core_spec(psirev, psiInvrev, signature.salt, signature.s2, ntth, hashed);
+    }
+
 } //end of contract ZKNOX_falcon_compact
