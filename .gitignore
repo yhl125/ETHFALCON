@@ -12,3 +12,9 @@ docs/
 
 # Dotenv file
 .env
+
+# Falcon example files
+python-ref/sig
+python-ref/public_key.pem
+python-ref/private_key.pem
+pyython-ref/myenv/
