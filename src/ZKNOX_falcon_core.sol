@@ -60,8 +60,7 @@ function falcon_normalize(
     uint256[] memory s1,
     uint256[] memory s2,
     uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
-    ) pure returns (bool result) {
-  
+) pure returns (bool result) {
     uint256 norm = 0;
 
     assembly {
@@ -109,7 +108,7 @@ function falcon_core(
 
     result = false;
 
-    uint256[] memory s1 = _ZKNOX_NTT_Expand(ntt.ZKNOX_NTT_HALFMUL_Compact(s2, ntth));//build on top of EIP-7885
+    uint256[] memory s1 = _ZKNOX_NTT_Expand(ntt.ZKNOX_NTT_HALFMUL_Compact(s2, ntth)); //build on top of EIP-7885
 
     return falcon_normalize(s1, s2, hashed);
 }
@@ -129,7 +128,6 @@ function falcon_core_expanded(
     return falcon_core(ntt, salt, _ZKNOX_NTT_Compact(s2), _ZKNOX_NTT_Compact(ntth), hashed);
 }
 
-
 //core falcon verification function, compacted input and external contract (WIP)
 function falcon_core_spec(
     address psiRev,
@@ -145,7 +143,7 @@ function falcon_core_spec(
 
     result = false;
 
-    uint256[] memory s1 = _ZKNOX_NTT_Expand(_ZKNOX_NTT_HALFMUL_Compact(s2, ntth, psiRev, psiInvRev));//build on top of specific NTT
+    uint256[] memory s1 = _ZKNOX_NTT_Expand(_ZKNOX_NTT_HALFMUL_Compact(s2, ntth, psiRev, psiInvRev)); //build on top of specific NTT
 
     return falcon_normalize(s1, s2, hashed);
 }

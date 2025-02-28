@@ -31,7 +31,8 @@ contract ZKNOX_FalconTest is Test {
 
         ntt.update(a_psirev, a_psiInvrev, 12289, 12265); //update ntt with outer contract
 
-        falcon = new ZKNOX_falcon_compact(ntt);
+        falcon = new ZKNOX_falcon_compact();
+        falcon.updateNTT(ntt);
     }
 
     function testVectorCompact_RIP() public view {

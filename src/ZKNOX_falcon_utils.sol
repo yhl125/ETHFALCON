@@ -50,7 +50,7 @@ uint256 constant _FALCON_WORD32_S = 512;
 
 //FALCON CONSTANTS
 uint256 constant n = 512;
-uint256 constant nm1modq= 12265;
+uint256 constant nm1modq = 12265;
 uint256 constant sigBound = 34034726;
 uint256 constant sigBytesLen = 666;
 uint256 constant q = 12289;

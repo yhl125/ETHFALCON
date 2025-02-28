@@ -50,13 +50,15 @@ contract ZKNOX_falcon_compact {
     ZKNOX_NTT ntt;
     address public psirev;
     address public psiInvrev;
+    bool EIP7885;
 
-    function update(address i_psirev, address i_psiInvrev ) public{
+    function update(address i_psirev, address i_psiInvrev) public {
         psirev = i_psirev;
         psiInvrev = i_psiInvrev;
+        EIP7885 = false;
     }
 
-    constructor(ZKNOX_NTT i_ntt) {
+    function updateNTT(ZKNOX_NTT i_ntt) public {
         ntt = i_ntt;
     }
 
@@ -93,7 +95,7 @@ contract ZKNOX_falcon_compact {
         uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
         return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
-    
+
     function verify_spec(
         bytes memory msgs,
         CompactSignature memory signature,
@@ -104,5 +106,4 @@ contract ZKNOX_falcon_compact {
         uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
         return falcon_core_spec(psirev, psiInvrev, signature.salt, signature.s2, ntth, hashed);
     }
-
 } //end of contract ZKNOX_falcon_compact
