@@ -1,24 +1,19 @@
-# falcon.py
+# Falcon in python
 
 This repository implements the signature scheme Falcon (https://falcon-sign.info/).
 Falcon stands for **FA**st Fourier **L**attice-based **CO**mpact signatures over **N**TRU
 
-## Content
+**Authors: Renaud Dubois and Simon Masson.**
 
-This repository contains the following files (roughly in order of dependency):
+<small>Acknowledgements: Thomas Prest for the originial code, Zhenfei Zhang for the possible optimizations.</small>
 
-1. [`common.py`](common.py) contains shared functions and constants
-1. [`rng.py`](rng.py) implements a ChaCha20-based PRNG, useful for KATs (standalone)
-1. [`samplerz.py`](samplerz.py) implements a Gaussian sampler over the integers (standalone)
-1. [`fft_constants.py`](fft_constants.py) contains precomputed constants used in the FFT
-1. [`fft.py`](fft.py) implements the FFT over R[x] / (x<sup>n</sup> + 1)
-1. [`ntrugen.py`](ntrugen.py) generate polynomials f,g,F,G in Z[x] / (x<sup>n</sup> + 1) such that f G - g F = q
-1. [`ffsampling.py`](ffsampling.py) implements the fast Fourier sampling algorithm
-1. [`falcon.py`](falcon.py) implements Falcon
-1. [`test.py`](test.py) implements tests to check that everything is properly implemented
+:warning: This is an experimental code, not the [reference code](https://falcon-sign.info/) of Falcon.. It is not considered secure or suitable for production. 
+
+License: MIT.
 
 ## Interface
-We provide an interface for key generation, signature and verification.
+
+It is possible to generate a key pair, sign a message and verify a signature in one command-line.
 
 ###### Key generation
 
@@ -53,21 +48,6 @@ I included a makefile target to performing profiling on the code. If you type `m
 
 Make sure you have `pyprof2calltree` and `kcachegrind` installed on your machine, or it will not work. -->
 
-
-## Authors
-Renaud Dubois and Simon Masson.
-
-Acknowledgments: Thomas Prest, for the original developer of the python implementation, Zhenfei Zhang, for some optimizations tricks.
-
-## Disclaimer
-This is an experimental code. The reference code of Falcon is on https://falcon-sign.info/. It is not to be considered secure or suitable for production. 
-
-## License
-
-MIT
-
-
-
 ## Tests
 
 Tests of key generation, signing and verification can be done in iterative and recursive NTT. The HashToPoint can be set with the SHAKE256, KeccaXOF (implemented in Tetration), or KeccakPRNG (a PRNG based on Keccak).
@@ -76,7 +56,9 @@ make test
 ```
 This runs the original tests, and additional tests made in `test_xxx.py`.
 
-## (new) Benchmarks
+## Benchmarks
+
+:warning: This implementation is not optimized.
 
 <table>
   <tr>
