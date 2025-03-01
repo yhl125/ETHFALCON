@@ -51,15 +51,22 @@ contract ZKNOX_falcon_compact {
     address public psirev;
     address public psiInvrev;
     bool EIP7885;
+    bool immutableMe;
+
 
     function update(address i_psirev, address i_psiInvrev) public {
+        if(immutableMe==true) revert();
         psirev = i_psirev;
         psiInvrev = i_psiInvrev;
         EIP7885 = false;
+        immutableMe=true;
     }
 
     function updateNTT(ZKNOX_NTT i_ntt) public {
+        if(immutableMe==true) revert();
         ntt = i_ntt;
+        EIP7885 = true;
+        immutableMe=true;
     }
 
     struct CompactSignature {
@@ -104,6 +111,24 @@ contract ZKNOX_falcon_compact {
         if (CheckParameters(signature, ntth) == false) return false;
 
         uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
-        return falcon_core_spec(psirev, psiInvrev, signature.salt, signature.s2, ntth, hashed);
+        return falcon_core_spec(psirev, psiInvrev, signature.s2, ntth, hashed);
     }
+
+    function verify(
+     bytes memory h,//a 32 bytes hash   
+     bytes memory salt,   // compacted signature salt part
+     uint256[] memory s2, // compacted signature s2 part
+     uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) public view returns (bool result) {
+        if(h.length!=32) return false;
+        if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+        if (s2.length != 32) return false; //"Invalid salt length"
+        if (ntth.length != 32) return false; //"Invalid public key length"
+      
+      
+        uint256[] memory hashed = hashToPointRIP(salt, h);
+        return falcon_core_spec(psirev, psiInvrev, s2, ntth, hashed);
+    }
+
+
 } //end of contract ZKNOX_falcon_compact

@@ -132,13 +132,12 @@ function falcon_core_expanded(
 function falcon_core_spec(
     address psiRev,
     address psiInvRev,
-    bytes memory salt,
+   
     uint256[] memory s2,
     uint256[] memory ntth, // public key, compacted 16  coefficients of 16 bits per word
     uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
 ) view returns (bool result) {
     if (hashed.length != 512) return false;
-    if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
     if (s2.length != 32) return false; //"Invalid salt length"
 
     result = false;

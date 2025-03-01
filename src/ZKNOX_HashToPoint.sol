@@ -38,7 +38,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {Test, console} from "forge-std/Test.sol";
 import "./ZKNOX_falcon_utils.sol";
 
 uint256 constant MASK_2BYTES = uint256(0xFFFF);

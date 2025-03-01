@@ -88,7 +88,7 @@ function Deploy(bytes32 salt) returns (address a_psirev, address a_psiInvrev) {
     assembly {
         a_psirev := create2(0, add(bytecode_psirev, 0x20), mload(bytecode_psirev), salt)
     }
-    //require(a_psirev != address(0), "Deployment failed");
+    require(a_psirev != address(0), "Deployment failed");
 
     //************deploy psiInvrev
     for (uint256 i = 0; i < 1024; i++) {
@@ -103,5 +103,5 @@ function Deploy(bytes32 salt) returns (address a_psirev, address a_psiInvrev) {
     assembly {
         a_psiInvrev := create2(0, add(bytecode_psirev, 0x20), mload(bytecode_psirev), salt)
     }
-    //require(a_psiInvrev != address(0), "Deployment failed");
+    require(a_psiInvrev != address(0), "Deployment failed");
 }
