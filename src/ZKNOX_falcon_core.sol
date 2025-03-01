@@ -132,7 +132,6 @@ function falcon_core_expanded(
 function falcon_core_spec(
     address psiRev,
     address psiInvRev,
-   
     uint256[] memory s2,
     uint256[] memory ntth, // public key, compacted 16  coefficients of 16 bits per word
     uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
