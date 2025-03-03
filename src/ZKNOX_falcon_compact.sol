@@ -45,13 +45,17 @@ import "./ZKNOX_falcon_core.sol";
 //choose the XOF to use here
 import "./ZKNOX_HashToPoint.sol";
 
+//import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+//import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
-contract ZKNOX_falcon_compact {
+contract ZKNOX_falcon_compact { /*is Initializable, UUPSUpgradeable*/
     ZKNOX_NTT ntt;
     address public psirev;
     address public psiInvrev;
     bool EIP7885;
     bool immutableMe;
+    uint256 err_flag; //a debug flag
 
     function update(address i_psirev, address i_psiInvrev) public {
         if (immutableMe == true) revert();
@@ -66,6 +70,10 @@ contract ZKNOX_falcon_compact {
         ntt = i_ntt;
         EIP7885 = true;
         immutableMe = true;
+    }
+
+    function setflag(uint256 value) public {
+        err_flag = value;
     }
 
     struct CompactSignature {
@@ -118,7 +126,7 @@ contract ZKNOX_falcon_compact {
         bytes memory salt, // compacted signature salt part
         uint256[] memory s2, // compacted signature s2 part
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view returns (bool result) {
+    ) public returns (bool result) {
         // if (h.length != 32) return false;
         if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
         if (s2.length != 32) return false; //"Invalid salt length"

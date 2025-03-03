@@ -3,6 +3,8 @@
 ETHFALCON gather experimentations around FALCON adaptations for the ETHEREUM ecosystem. [Falcon signature scheme](https://falcon-sign.info/) is a post-quantum digital signature algorithm. 
 
 
+
+
 ## SPECIFICATION
 The repository implements several tweaked version of FALCON, optimized for different constraints. In the rest of this note, the following versions will be distinguished:
 
@@ -158,6 +160,11 @@ We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For hardw
 - the NTT used here is the NWC defined in NTT-EIP
 - PRNG_Keccak is a construction that generates the desired output only using keccak (EVM friendly) 
 - Defining H as H=ntt(keccak(c) remove to use Inverse NTT, this reduces the surface of hardware implementation. -->
+
+
+## Installation
+
+forge install OpenZeppelin/openzeppelin-contracts
 
 
 ## BENCHMARKS
