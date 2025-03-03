@@ -257,11 +257,10 @@ The signature is computed from the private key (stored in `private_key.pem`):
 ```
 The signature can be verified on chain:
 ```bash
-./sign_cli.py verifyonchain --pubkey='public_key.pem' --message="This is a demo" --signature='sig'
+./sign_cli.py verifyonchain --pubkey='public_key.pem' --message="This is a demo" --signature='sig' --contract_address='0xD2d8e3a5bCf8E177A627698176bC9a99E03D358D' --rpc='https://ethereum-holesky-rpc.publicnode.com'
 ```
 This should output:
 ```
-0x0000000000000000000000000000000000000000000000000000000000000001
 Signature is valid.
 ```
 

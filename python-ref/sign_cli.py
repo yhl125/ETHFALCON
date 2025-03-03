@@ -2,6 +2,7 @@
 import argparse
 import ast
 import os
+import subprocess
 from common import deterministic_salt, falcon_compact, q
 from encoding import decompress
 from falcon import HEAD_LEN, SALT_LEN, PublicKey, SecretKey
@@ -188,24 +189,24 @@ def signature(sk, message, version, seed=None):
         s2_inv_ntt_prod = 1
         for elt in s2_inv_ntt:
             s2_inv_ntt_prod = (s2_inv_ntt_prod * elt) % q
-        print("```")
-        print("// Solidity raw signature:")
-        print("// s1")
-        print("// forgefmt: disable-next-line")
-        print("uint[512] memory s1 = [uint({}), {}];\n".format(
-            s1[0], ', '.join(map(str, s1[1:]))))
-        print("// s2")
-        print("// forgefmt: disable-next-line")
-        print("uint[512] memory s2 = [uint({}), {}];\n".format(
-            s2[0], ', '.join(map(str, s2[1:]))))
-        print("")
-        print("// s2_inv_ntt_prod")
-        print("uint256 memory s2_inv_ntt_prod = {};".format(s2_inv_ntt_prod))
-        print("")
-        print("sig.salt = \"{}\"; \n".format(
-            "".join(f"\\x{b:02x}" for b in salt)))
-        print("")
-        print("```")
+        # print("```")
+        # print("// Solidity raw signature:")
+        # print("// s1")
+        # print("// forgefmt: disable-next-line")
+        # print("uint[512] memory s1 = [uint({}), {}];\n".format(
+        #     s1[0], ', '.join(map(str, s1[1:]))))
+        # print("// s2")
+        # print("// forgefmt: disable-next-line")
+        # print("uint[512] memory s2 = [uint({}), {}];\n".format(
+        #     s2[0], ', '.join(map(str, s2[1:]))))
+        # print("")
+        # print("// s2_inv_ntt_prod")
+        # print("uint256 memory s2_inv_ntt_prod = {};".format(s2_inv_ntt_prod))
+        # print("")
+        # print("sig.salt = \"{}\"; \n".format(
+        #     "".join(f"\\x{b:02x}" for b in salt)))
+        # print("")
+        # print("```")
     else:
         print("This version is not implemented.")
         return
@@ -216,10 +217,7 @@ def verify_signature(pk, message, sig):
     return pk.verify(message.encode(), sig)
 
 
-def verify_signature_on_chain(pk, message, sig):
-
-    RPC = "https://ethereum-holesky-rpc.publicnode.com"
-    CONTRACT_ADDRESS = "0xD2d8e3a5bCf8E177A627698176bC9a99E03D358D"
+def verify_signature_on_chain(pk, message, sig, contract_address, rpc):
 
     MSG = "0x" + message.encode().hex()
 
@@ -234,9 +232,14 @@ def verify_signature_on_chain(pk, message, sig):
     pk_compact = falcon_compact(Poly(pk.pk, q).ntt())
     PK = str(pk_compact)
 
-    os.system("cast call {} \"verify(bytes,bytes,uint256[],uint256[])\" {} {} \"{}\" \"{}\" --rpc-url {}".format(
-        CONTRACT_ADDRESS, MSG, SALT, S2, PK, RPC))
-    return True
+    result = subprocess.run(
+        "cast call {} \"verify(bytes,bytes,uint256[],uint256[])\" {} {} \"{}\" \"{}\" --rpc-url {}".format(
+            contract_address, MSG, SALT, S2, PK, rpc),
+        shell=True,
+        capture_output=True,
+        text=True
+    )
+    return result.stdout == "0x0000000000000000000000000000000000000000000000000000000000000001\n" and result.stderr == ''
 
 
 def cli():
@@ -253,6 +256,10 @@ def cli():
                         help="Private key file for signing")
     parser.add_argument("--pubkey", type=str,
                         help="Public key file for verification")
+    parser.add_argument("--contractaddress", type=str,
+                        help="Contract address for on-chain verification")
+    parser.add_argument("--rpc", type=str,
+                        help="RPC for on-chain verification")
     parser.add_argument("--signature", type=str, help="Signature to verify")
 
     args = parser.parse_args()
@@ -288,12 +295,13 @@ def cli():
             print("Invalid signature.")
 
     elif args.action == "verifyonchain":
-        if not args.message or not args.pubkey or not args.signature:
-            print("Error: Provide --message, --pubkey and --signature")
+        if not args.message or not args.pubkey or not args.signature or not args.rpc or not args.contractaddress:
+            print(
+                "Error: Provide --message, --pubkey, --signature, --contractaddress and --rpc")
             return
         pk = load_pk(args.pubkey)
         sig = load_signature(args.signature)
-        if verify_signature_on_chain(pk, args.message, sig):
+        if verify_signature_on_chain(pk, args.message, sig, args.contractaddress, args.rpc):
             print("Signature is valid.")
         else:
             print("Invalid signature.")
