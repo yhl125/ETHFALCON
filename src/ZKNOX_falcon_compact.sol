@@ -126,7 +126,7 @@ contract ZKNOX_falcon_compact { /*is Initializable, UUPSUpgradeable*/
         bytes memory salt, // compacted signature salt part
         uint256[] memory s2, // compacted signature s2 part
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public returns (bool result) {
+    ) public view returns (bool result) {
         // if (h.length != 32) return false;
         if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
         if (s2.length != 32) return false; //"Invalid salt length"
