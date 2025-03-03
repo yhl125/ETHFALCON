@@ -1,7 +1,6 @@
 #!myenv/bin/python
 import argparse
 import ast
-import os
 import subprocess
 from common import deterministic_salt, falcon_compact, q
 from encoding import decompress
