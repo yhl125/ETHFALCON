@@ -3,6 +3,7 @@ from polyntt.poly import Poly
 from common import q, deterministic_salt
 from keccak_prng import KeccakPRNG
 from keccaxof import KeccaXOF
+from generate_falcon_test_vectors import list_of_messages
 
 n = 512
 # An example of secret key
@@ -60,7 +61,7 @@ for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
         }"""
     file.write(header)
 
-    for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
+    for (i, message) in enumerate(list_of_messages):
         # this will probably not work with a deterministic salt
         sig = sk.sign(message.encode(),
                       randombytes=lambda x: deterministic_salt(x, seed=str(i)), xof=XOF)

@@ -2,6 +2,7 @@ from falcon_epervier import EpervierPublicKey, EpervierSecretKey, HEAD_LEN, SALT
 from polyntt.poly import Poly
 from polyntt.utils import inv_mod
 from common import q, deterministic_salt
+from generate_falcon_test_vectors import list_of_messages
 
 file = open("../test/ZKNOXFalconEpervierShorterVectors.t.sol", 'w')
 n = 512
@@ -56,7 +57,7 @@ contract ZKNOX_falcon_epervier_shorterTest is Test {
     }"""
 file.write(header)
 
-for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
+for (i, message) in enumerate(list_of_messages):
     # this will probably not work with a deterministic salt
     sig = sk.sign(message.encode(),
                   randombytes=lambda x: deterministic_salt(x, seed=str(i)))
