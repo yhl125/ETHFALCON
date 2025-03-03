@@ -26,11 +26,6 @@ def generate_keys(n, version, seed=None):
         return
 
     # public key
-    # print("This might take few seconds")
-    # print(".\n.\n.\n")
-    # print("```")
-    # print("// Solidity public key:")
-
     # deterministic random
     if seed == None:
         seed = 0
@@ -41,16 +36,10 @@ def generate_keys(n, version, seed=None):
 
     if version == 'falcon':
         pk = PublicKey(n, sk.h)
-        # print("// forgefmt: disable-next-line")
-        # print("uint[512] memory tmp_pk = [uint({}), {}];\n".format(
-        #     pk.pk[0], ','.join(map(str, pk.pk[1:]))))
     elif version == 'falconrec':
         pk = RecoveryModePublicKey(n, sk.pk)
-        # print("address pk = address({});".format(pk.pk))
     elif version == 'epervier':
         pk = EpervierPublicKey(n, sk.pk)
-        # print("address pk = address({});".format(pk.pk))
-    # print("```")
 
     return sk, pk
 
@@ -141,15 +130,6 @@ def signature(sk, message, version, seed=None):
         enc_s = sig[HEAD_LEN + SALT_LEN:]
         s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
         s2 = [elt % q for elt in s2]
-        # print("```")
-        # print("// Solidity raw signature:")
-        # print("// s2")
-        # print("// forgefmt: disable-next-line")
-        # print("uint[512] memory s2 = [uint({}), {}];\n".format(
-        #     s2[0], ', '.join(map(str, s2[1:]))))
-        # print("sig.salt = \"{}\"; \n".format(
-        #     "".join(f"\\x{b:02x}" for b in salt)))
-        # print("```")
     elif version == 'falconrec':
         salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
@@ -158,26 +138,6 @@ def signature(sk, message, version, seed=None):
         s = [elt % q for elt in s]
         s1, s2 = s[:mid], s[mid:]
         s2_inv_ntt = Poly(s2, q).inverse().ntt()
-        # print("```")
-        # print("// Solidity raw signature:")
-        # print("// s1")
-        # print("// forgefmt: disable-next-line")
-        # print("uint[512] memory s1 = [uint({}), {}];\n".format(
-        #     s1[0], ', '.join(map(str, s1[1:]))))
-        # print("// s2")
-        # print("// forgefmt: disable-next-line")
-        # print("uint[512] memory s2 = [uint({}), {}];\n".format(
-        #     s2[0], ', '.join(map(str, s2[1:]))))
-        # print("")
-        # print("// s2_inv_ntt")
-        # print("// forgefmt: disable-next-line")
-        # print("uint[512] memory s2_inv_ntt = [uint({}), {}];\n".format(
-        #     s2_inv_ntt[0], ', '.join(map(str, s2_inv_ntt[1:]))))
-        # print("")
-        # print("sig.salt = \"{}\"; \n".format(
-        #     "".join(f"\\x{b:02x}" for b in salt)))
-        # print("")
-        # print("```")
     elif version == 'epervier':
         salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
@@ -189,24 +149,6 @@ def signature(sk, message, version, seed=None):
         s2_inv_ntt_prod = 1
         for elt in s2_inv_ntt:
             s2_inv_ntt_prod = (s2_inv_ntt_prod * elt) % q
-        # print("```")
-        # print("// Solidity raw signature:")
-        # print("// s1")
-        # print("// forgefmt: disable-next-line")
-        # print("uint[512] memory s1 = [uint({}), {}];\n".format(
-        #     s1[0], ', '.join(map(str, s1[1:]))))
-        # print("// s2")
-        # print("// forgefmt: disable-next-line")
-        # print("uint[512] memory s2 = [uint({}), {}];\n".format(
-        #     s2[0], ', '.join(map(str, s2[1:]))))
-        # print("")
-        # print("// s2_inv_ntt_prod")
-        # print("uint256 memory s2_inv_ntt_prod = {};".format(s2_inv_ntt_prod))
-        # print("")
-        # print("sig.salt = \"{}\"; \n".format(
-        #     "".join(f"\\x{b:02x}" for b in salt)))
-        # print("")
-        # print("```")
     else:
         print("This version is not implemented.")
         return
