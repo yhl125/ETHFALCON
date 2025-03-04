@@ -48,3 +48,13 @@ interface ISigVerifier {
 
     function GetPublicKey(address _from) external view returns (uint256[] memory Kpub);
 }
+
+/*id-falcon-shake256 OBJECT IDENTIFIER ::= { joint-iso-ccitt(2)
+   country(16) us(840) organization(1) gov(101) csor(3) algorithms(4)
+   id-falcon-shake(3) 21 }.*/
+uint256 constant FALCONSHAKE_ID = 0x216840110134321;
+
+/*id-falcon-shake256 OBJECT IDENTIFIER ::= { joint-iso-ccitt(2)
+   country(16) us(840) organization(1) gov(101) csor(3) algorithms(4)
+   id-falcon-keccak(4) 21 }.*/
+uint256 constant FALCONKECCAK_ID = 0x216840110134421;
