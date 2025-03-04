@@ -39,10 +39,15 @@ pragma solidity ^0.8.25;
 
 import "./ZKNOX_common.sol";
 
+//forge install OpenZeppelin/openzeppelin-contracts --no-commit
+import "../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+import "../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+
 // SPDX-License-Identifier: MIT
 
 /// @notice Contract designed for being delegated to by EOAs to authorize an aggregated Musig2 key to transact on their behalf.
-contract ZKNOX_Delegate {
+contract ZKNOX_Delegate is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice Address of the contract storing the public key
     address authorizedPublicKey;
     /// @notice Address of the verification contract logic
@@ -53,13 +58,23 @@ contract ZKNOX_Delegate {
     /// @notice Internal nonce used for replay protection, must be tracked and included into prehashed message.
     uint256 public nonce;
 
+    function initialize(uint256 iAlgoID, address iVerifier_logic, address iPublicKey) public initializer {
+        __UUPSUpgradeable_init(); // Initialize UUPS
+        __Ownable_init(msg.sender); // Initialize Ownable
+        verifier_logic = iVerifier_logic;
+
+        algoID = iAlgoID;
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
+        // Only the owner should be allowed to upgrade the contract
+    }
+
     /// @notice Authorizes provided public key to transact on behalf of this account. Only callable by EOA itself.
     function authorize(uint256 iAlgoID, address iVerifier_logic, address iPublicKey) public {
         require(msg.sender == address(this));
 
-        verifier_logic = iVerifier_logic;
         authorizedPublicKey = iPublicKey;
-        algoID = iAlgoID;
         //todo: add a checking of parameters related to algoID and public Key
     }
 
