@@ -12,7 +12,7 @@ from polyntt.poly import Poly
 import random
 
 
-def generate_keys(n, version, seed=None):
+def generate_keys(n, version):
     # private key
     if version == 'falcon':
         SK = SecretKey
@@ -24,14 +24,7 @@ def generate_keys(n, version, seed=None):
         print("This version does not exist.")
         return
 
-    # public key
-    # deterministic random
-    if seed == None:
-        seed = 0
-    rng = random.Random(seed)
-    def deterministic_urandom(n): return bytes(
-        rng.randint(0, 255) for _ in range(n))
-    sk = SK(n, randombytes=deterministic_urandom)
+    sk = SK(n)
 
     if version == 'falcon':
         pk = PublicKey(n, sk.h)

@@ -248,7 +248,7 @@ make install
 The public and private keys are generated using Python:
 ```bash
 # generate public and private keys
-./sign_cli.py genkeys --version='falcon' # --seed=0 
+./sign_cli.py genkeys --version='falcon'
 ```
 The signature is computed from the private key (stored in `private_key.pem`):
 ```bash
