@@ -33,24 +33,25 @@ git clone https://github.com/ZKNoxHQ/ETHFALCON.git
 
 3. Install dependencies:
 
-```
+```bash
 forge install OpenZeppelin/openzeppelin-contracts-upgradeable --no-commit
 ```
 
-4. Build the project:
+4. Build the project (slow):
 
 ```bash
 forge build
 ```
 
+(fast, more gas)
+```bash
+ FOUNDRY_PROFILE=lite forge build 
+```
+
 5. Run tests:
 (slow)
 ```bash
-forge test
-```
-(fast, more gas)
-```
- FOUNDRY_PROFILE=lite forge test -vv 
+forge test -vv
 ```
 ### Python
 
