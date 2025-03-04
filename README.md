@@ -48,11 +48,17 @@ forge build
  FOUNDRY_PROFILE=lite forge build 
 ```
 
-5. Run tests:
+5. Run tests (slow):
 
 ```bash
 forge test -vv
 ```
+
+(fast, more gas)
+```bash
+FOUNDRY_PROFILE=lite forge test -vv
+```
+
 ### Python
 
 Go to python-ref then
