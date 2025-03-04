@@ -73,9 +73,6 @@ Benchmarks for both solidity code and python are available [here](./doc/benchmar
 
 Current fastest implementation is 1.9M gas.
 
-## EXAMPLE
-
-
 ## CONCLUSION
 
 This repo provides a highly optimized version of FALCON. Order of magnitudes were gained compared to other implementations. In our search, we also devise a way to implement falcon with recovery without requiring the inverse NTT transformation (only forward).
