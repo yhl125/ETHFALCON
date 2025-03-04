@@ -387,13 +387,12 @@ class SecretKey:
             else:
                 seed = randombytes(SEED_LEN)
                 s = self.sample_preimage(hashed, seed=seed)
-            if all(elt % q != 0 for elt in Poly(s[1], q).ntt()):
-                norm_sign = sum(coef ** 2 for coef in s[0])
-                norm_sign += sum(coef ** 2 for coef in s[1])
-                # Check the Euclidean norm
-                if norm_sign <= self.signature_bound:
-                    enc_s = compress(
-                        s[1], self.sig_bytelen - HEAD_LEN - SALT_LEN)
-                    # Check that the encoding is valid (sometimes it fails)
-                    if (enc_s is not False):
-                        return header + salt + enc_s
+            norm_sign = sum(coef ** 2 for coef in s[0])
+            norm_sign += sum(coef ** 2 for coef in s[1])
+            # Check the Euclidean norm
+            if norm_sign <= self.signature_bound:
+                enc_s = compress(
+                    s[1], self.sig_bytelen - HEAD_LEN - SALT_LEN)
+                # Check that the encoding is valid (sometimes it fails)
+                if (enc_s is not False):
+                    return header + salt + enc_s
