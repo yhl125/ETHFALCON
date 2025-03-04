@@ -49,7 +49,7 @@ forge build
 ```
 
 5. Run tests:
-(slow)
+
 ```bash
 forge test -vv
 ```
