@@ -8,6 +8,7 @@ from falcon import HEAD_LEN, SALT_LEN, PublicKey, SecretKey
 from falcon_epervier import EpervierPublicKey, EpervierSecretKey
 from falcon_recovery import RecoveryModePublicKey, RecoveryModeSecretKey
 from polyntt.poly import Poly
+from shake import SHAKE
 
 import random
 
@@ -109,13 +110,25 @@ def load_signature(filename):
     return bytes.fromhex(signature)
 
 
-def signature(sk, message, version, seed=None):
-    if seed == None:
-        seed = 0
-    salt = deterministic_salt(seed)
+def signature(sk, message, version):
+    # De-randomization of urandom as RFC 6979 page 10-11.
+    deterministic_bytes = SHAKE()
+    # v = 0x00 32 times in the case of a hash function with output 256 bits.
+    # WARNING: this is probably not secure as it is implemented.
+    deterministic_bytes.update(bytes(
+        [0x01]*32
+    ))
+    # separator
+    deterministic_bytes.update(bytes([0x00]))
+    # secret key encoded
+    deterministic_bytes.update(b''.join(x.to_bytes(2, 'big') for x in sk.h))
+    # message TODO consider h(M) instead here.
+    # if H does not output 32 bytes, change V above.
+    deterministic_bytes.update(message.encode())
+
     sig = sk.sign(
         message.encode(),
-        randombytes=lambda x: deterministic_salt(x, seed)
+        randombytes=deterministic_bytes.read
     )
     if version == 'falcon':
         salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
@@ -223,8 +236,6 @@ def cli():
                         "genkeys", "sign", "verify", "verifyonchain", "verifyonchainsend"], help="Action to perform")
     parser.add_argument("--version", type=str,
                         help="Version to use (falcon or falconrec)")
-    parser.add_argument("--seed", type=int,
-                        help="Choose a seed")
     parser.add_argument("--message", type=str,
                         help="Message to sign or verify")
     parser.add_argument("--privkey", type=str,
@@ -247,7 +258,7 @@ def cli():
             return
         # TODO make it parameterizable?
         n = 512
-        priv, pub = generate_keys(n, args.version, args.seed)
+        priv, pub = generate_keys(n, args.version)
         save_pk(pub, "public_key.pem", args.version)
         save_sk(priv, "private_key.pem", args.version)
         print("Keys generated and saved.")
@@ -257,7 +268,7 @@ def cli():
             print("Error: Provide --message, --privkey and --version")
             return
         sk = load_sk(args.privkey)
-        sig = signature(sk, args.message, args.version, args.seed)
+        sig = signature(sk, args.message, args.version)
         save_signature(sig, 'sig')
 
     elif args.action == "verify":

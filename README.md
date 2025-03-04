@@ -253,7 +253,7 @@ The public and private keys are generated using Python:
 The signature is computed from the private key (stored in `private_key.pem`):
 ```bash
 # generate a signature for the message "This is a demo"
-./sign_cli.py sign --privkey='private_key.pem' --message="This is a demo" --version='falcon' # --seed=0
+./sign_cli.py sign --privkey='private_key.pem' --message="This is a demo" --version='falcon'
 ```
 The signature can be verified on chain:
 ```bash
