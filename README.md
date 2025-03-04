@@ -261,7 +261,7 @@ The signature can be verified on chain:
 ```
 This should output:
 ```
-Signature is valid.
+0x0000000000000000000000000000000000000000000000000000000000000001
 ```
 
 ## CONCLUSION

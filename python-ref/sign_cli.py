@@ -175,18 +175,59 @@ def verify_signature_on_chain(pk, message, sig, contract_address, rpc):
 
     result = subprocess.run(
         "cast call {} \"verify(bytes,bytes,uint256[],uint256[])\" {} {} \"{}\" \"{}\" --rpc-url {}".format(
-            contract_address, MSG, SALT, S2, PK, rpc),
+            contract_address,
+            MSG,
+            SALT,
+            S2,
+            PK,
+            rpc
+        ),
         shell=True,
         capture_output=True,
         text=True
     )
-    return result.stdout == "0x0000000000000000000000000000000000000000000000000000000000000001\n" and result.stderr == ''
+    assert result.stderr == ''
+    print(result.stdout)
+
+
+def verify_signature_on_chain_with_transaction(pk, message, sig, contract_address, rpc, private_key):
+
+    MSG = "0x" + message.encode().hex()
+
+    salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
+    SALT = "0x"+salt.hex()
+
+    enc_s = sig[HEAD_LEN + SALT_LEN:]
+    s2 = decompress(enc_s, pk.sig_bytelen - HEAD_LEN - SALT_LEN, 512)
+    s2 = [elt % q for elt in s2]
+    s2_compact = falcon_compact(s2)
+    S2 = str(s2_compact)
+    pk_compact = falcon_compact(Poly(pk.pk, q).ntt())
+    PK = str(pk_compact)
+
+    result = subprocess.run(
+        "cast send --private-key {} {} \"verify(bytes,bytes,uint256[],uint256[])\" {} {} \"{}\" \"{}\" --rpc-url {}".format(
+            private_key,
+            contract_address,
+            MSG,
+            SALT,
+            S2,
+            PK,
+            rpc
+        ),
+        shell=True,
+        capture_output=True,
+        text=True
+    )
+    print(result.stderr)
+    assert result.stderr == ''
+    print(result.stdout)
 
 
 def cli():
     parser = argparse.ArgumentParser(description="CLI for Falcon Signature")
     parser.add_argument("action", choices=[
-                        "genkeys", "sign", "verify", "verifyonchain"], help="Action to perform")
+                        "genkeys", "sign", "verify", "verifyonchain", "verifyonchainsend"], help="Action to perform")
     parser.add_argument("--version", type=str,
                         help="Version to use (falcon or falconrec)")
     parser.add_argument("--seed", type=int,
@@ -201,6 +242,8 @@ def cli():
                         help="Contract address for on-chain verification")
     parser.add_argument("--rpc", type=str,
                         help="RPC for on-chain verification")
+    parser.add_argument("--privatekey", type=str,
+                        help="Ethereum ECDSA private key for sending a transaction")
     parser.add_argument("--signature", type=str, help="Signature to verify")
 
     args = parser.parse_args()
@@ -242,10 +285,18 @@ def cli():
             return
         pk = load_pk(args.pubkey)
         sig = load_signature(args.signature)
-        if verify_signature_on_chain(pk, args.message, sig, args.contractaddress, args.rpc):
-            print("Signature is valid.")
-        else:
-            print("Invalid signature.")
+        verify_signature_on_chain(
+            pk, args.message, sig, args.contractaddress, args.rpc)
+
+    elif args.action == "verifyonchainsend":
+        if not args.message or not args.pubkey or not args.signature or not args.rpc or not args.contractaddress or not args.privatekey:
+            print(
+                "Error: Provide --message, --pubkey, --signature, --contractaddress, --rpc and --privatekey")
+            return
+        pk = load_pk(args.pubkey)
+        sig = load_signature(args.signature)
+        verify_signature_on_chain_with_transaction(
+            pk, args.message, sig, args.contractaddress, args.rpc, args.privatekey)
 
 
 if __name__ == "__main__":
