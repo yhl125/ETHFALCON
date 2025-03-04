@@ -117,7 +117,7 @@ contract ZKNOX_falconrec {
         if (h_zknox) {
             hashed = hashToPointRIP(signature.salt, msgs);
         } else {
-            hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+            hashed = hashToPointTETRATION(signature.salt, msgs);
         }
         for (i = 0; i < 512; i++) {
             //hashToPoint-s1

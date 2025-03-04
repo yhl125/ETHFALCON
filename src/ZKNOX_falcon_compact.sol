@@ -51,7 +51,7 @@ import "./ZKNOX_HashToPoint.sol";
 //import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
-contract ZKNOX_falcon_compact is ISigVerifier{ 
+contract ZKNOX_falcon_compact is ISigVerifier {
     ZKNOX_NTT ntt;
     address public psirev;
     address public psiInvrev;
@@ -84,9 +84,9 @@ contract ZKNOX_falcon_compact is ISigVerifier{
     }
 
     function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool) {
-        if (ntth.length != 32) return false; //"Invalid public key length"
+        if (ntth.length != falcon_S256) return false; //"Invalid public key length"
         if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s2.length != 32) return false; //"Invalid salt length"
+        if (signature.s2.length != falcon_S256) return false; //"Invalid salt length"
 
         return true;
     }
@@ -108,7 +108,7 @@ contract ZKNOX_falcon_compact is ISigVerifier{
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
     ) public view returns (bool result) {
         if (CheckParameters(signature, ntth) == false) return false;
-        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs);
         return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
     }
 
@@ -116,7 +116,7 @@ contract ZKNOX_falcon_compact is ISigVerifier{
         bytes memory msgs,
         CompactSignature memory signature,
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view  returns (bool result) {
+    ) public view returns (bool result) {
         if (CheckParameters(signature, ntth) == false) return false;
 
         uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
@@ -128,16 +128,26 @@ contract ZKNOX_falcon_compact is ISigVerifier{
         bytes memory salt, // compacted signature salt part
         uint256[] memory s2, // compacted signature s2 part
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) external view override returns (bool result){
+    ) external view returns (bool result) {
         // if (h.length != 32) return false;
         if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-        if (s2.length != 32) return false; //"Invalid salt length"
-        if (ntth.length != 32) return false; //"Invalid public key length"
+        if (s2.length != falcon_S256) return false; //"Invalid salt length"
+        if (ntth.length != falcon_S256) return false; //"Invalid public key length"
 
         uint256[] memory hashed = hashToPointRIP(salt, h);
         return falcon_core_spec(psirev, psiInvrev, s2, ntth, hashed);
     }
 
-    function GetPublicKey(address _from) external view override returns (uint256[] memory Kpub){}
+    function GetPublicKey(address _from) external view override returns (uint256[] memory Kpub) {
+        assembly {
+            let offset := Kpub
 
+            for { let i := 0 } gt(1024, i) { i := add(i, 32) } {
+                //read the 32 words
+                offset := add(offset, Kpub)
+
+                extcodecopy(_from, offset, i, 32) //psi_rev[m+i])
+            }
+        }
+    }
 } //end of contract ZKNOX_falcon_compact

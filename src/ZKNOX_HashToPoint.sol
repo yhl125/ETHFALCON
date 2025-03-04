@@ -85,17 +85,13 @@ function splitToHex(bytes32 x) pure returns (uint16[16] memory) {
 
 //Use for Poc only, as this XOF doesn't respect separation domain for input and output of internal state
 //CVETH-2025-080203
-function hashToPointTETRATION(bytes memory salt, bytes memory msgHash, uint256 q, uint256 n)
-    pure
-    returns (uint256[] memory)
-{
+function hashToPointTETRATION(bytes memory salt, bytes memory msgHash) pure returns (uint256[] memory) {
     uint256[] memory hashed = new uint256[](512);
     uint256 i = 0;
     uint256 j = 0;
     bytes32 tmp = keccak256(abi.encodePacked(msgHash, salt));
     uint16[16] memory sample = splitToHex(tmp);
-    uint256 k = (1 << 16) / q;
-    uint256 kq = k * q;
+
     while (i < n) {
         if (j == 16) {
             tmp = keccak256(abi.encodePacked(tmp));

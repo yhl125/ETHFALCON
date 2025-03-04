@@ -105,7 +105,7 @@ contract ZKNOX_falcon {
         if (h_zknox) {
             hashed = hashToPointRIP(signature.salt, msgs);
         } else {
-            hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+            hashed = hashToPointTETRATION(signature.salt, msgs);
         }
 
         return falcon_core_expanded(ntt, signature.salt, signature.s2, h, hashed);
@@ -127,7 +127,7 @@ contract ZKNOX_falcon {
         if (h_zknox) {
             hashed = hashToPointRIP(signature.salt, msgs);
         } else {
-            hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+            hashed = hashToPointTETRATION(signature.salt, msgs);
         }
 
         return falcon_core_expanded(ntt, signature.salt, signature.s2, ntth, hashed);
@@ -147,7 +147,7 @@ contract ZKNOX_falcon {
             hashed = hashToPointRIP(signature.salt, msgs);
         } else {
             if (pk.hashID == ID_tetration) {
-                hashed = hashToPointTETRATION(signature.salt, msgs, q, n);
+                hashed = hashToPointTETRATION(signature.salt, msgs);
             } else {
                 return false;
             } //unknwon ID
