@@ -16,63 +16,16 @@ The repo implements several versions of FALCON, some are tunned to EVM constrain
 
 The repo contains a solidity verifier and a python signer. 
 
-### Solidity
-
-1. Install Foundry:
-
-```bash
-curl -L https://foundry.paradigm.xyz | bash
-foundryup
-```
-
-2. Clone the repository:
-
-```bash
-git clone https://github.com/ZKNoxHQ/ETHFALCON.git
-```
-
-3. Install dependencies:
-
-```bash
-forge install OpenZeppelin/openzeppelin-contracts-upgradeable --no-commit
-```
-
-4. Build the project (slow):
-
-```bash
-forge build
-```
-
-(fast, more gas)
-```bash
- FOUNDRY_PROFILE=lite forge build 
-```
-
-5. Run tests (slow):
-
-```bash
-forge test -vv
-```
-
-(fast, more gas)
-```bash
-FOUNDRY_PROFILE=lite forge test -vv
-```
-
-### Python
-
-Go to python-ref then
-
-1. Install:
-
-```bash
-make install
-```
-1. Run tests:
-
-```bash
-make tests
-```
+* **Installation:**
+    ```bash
+    make install
+    ```
+    (or `make install_signer` or `make install_verifier`)
+* **Tests:**
+    ```bash
+    make test
+    ```
+    (or `make test_signer` or `make test_verifier`)
 
 ## BENCHMARKS
 

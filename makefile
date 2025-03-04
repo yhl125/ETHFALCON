@@ -1,5 +1,6 @@
 DIRSIGNER = 'python-ref'
 PYTHON=python-ref/myenv/bin/python
+CORES := $(shell grep -c ^processor /proc/cpuinfo)
 
 # INSTALL
 
@@ -31,7 +32,7 @@ test_verifier:
 	FOUNDRY_PROFILE=lite forge test -vv
 
 test_verifier_slow:
-	forge test -vv
+	forge test -j$(CORES) -vv
 
 test_onchain:
 	# Generate public and private keys, sign a message, and verify it on-chain.
