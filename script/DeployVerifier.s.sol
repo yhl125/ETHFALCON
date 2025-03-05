@@ -71,7 +71,7 @@ contract Script_Deploy_Verifier is BaseScript {
     function run() external {
         vm.startBroadcast();
 
-        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.17"));
+        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.19"));
 
         //those arguments must be passed to the script, like
         uint256 iAlgoID = vm.envUint("_ALGOID");
@@ -79,25 +79,33 @@ contract Script_Deploy_Verifier is BaseScript {
         string memory pubstring = vm.envString("_PUBLICKEY");
         uint256[] memory PublicKey = parseUintArray(pubstring); //extracting the public key as uint256[] from input to script
 
+        console.log("PublicKey read:");
+        for (uint256 i = 0; i < 32; i++) {
+            console.log("%d ,%x", PublicKey[i], PublicKey[i]);
+        }
+
         //deploy the public key into a dedicated contract
         address iPublicKey = DeployPolynomial(salty, PublicKey);
+        console.log("PublicKey recovered:");
+        bytes memory recovered = getBytecode(iPublicKey);
+        console.logBytes(recovered);
 
         ZKNOX_Verifier Verifier_logic = new ZKNOX_Verifier{salt: salty}();
 
-        console.log("AlgoID, @Contract, @", iAlgoID, iVerifier_algo, iPublicKey);
+        console.log("AlgoID, @Corealgo, @PubKey", iAlgoID, iVerifier_algo, iPublicKey);
 
         bytes memory initData =
             abi.encodeWithSignature("initialize(uint256,address, address)", iAlgoID, iVerifier_algo, iPublicKey); //uint256 iAlgoID, address iVerifier_logic, address iPublicKey
-        ZKNOX_Verifier_Proxy proxy = new ZKNOX_Verifier_Proxy(address(Verifier_logic), initData);
+
+        ZKNOX_Verifier_Proxy proxy = new ZKNOX_Verifier_Proxy(address(Verifier_logic), initData); //failing here
+
+        vm.stopBroadcast();
+        return ();
         ZKNOX_Verifier Verifier = ZKNOX_Verifier(address(proxy));
 
         console.log("adress of core Algorithm: %x", uint256(uint160(Verifier.CoreAddress())));
         console.log("adress of Verifier: %x", uint256(uint160(address(Verifier))));
         console.log("adress of Public Key contract: %x", uint256(uint160(address(Verifier))));
-
-        bytes memory recovered = getBytecode(iPublicKey);
-        console.log("recovered PublicKey:");
-        console.logBytes(recovered);
 
         vm.stopBroadcast();
     }

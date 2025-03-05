@@ -59,6 +59,7 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice Internal nonce used for replay protection, must be tracked and included into prehashed message.
     uint256 public nonce;
 
+    //input are AlgoIdentifier, Signature verification address, publickey storing contract address
     function initialize(uint256 iAlgoID, address iCore, address iPublicKey) public initializer {
         __UUPSUpgradeable_init(); // Initialize UUPS
         __Ownable_init(msg.sender); // Initialize Ownable
