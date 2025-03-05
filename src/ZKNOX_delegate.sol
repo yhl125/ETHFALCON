@@ -66,6 +66,7 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         CoreAddress = iCore; // Address of contract of Signature verification (FALCON, DILITHIUM)
         algoID = iAlgoID;
         authorizedPublicKey = iPublicKey;
+        nonce=0;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {

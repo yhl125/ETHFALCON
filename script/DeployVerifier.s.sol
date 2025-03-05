@@ -71,7 +71,7 @@ contract Script_Deploy_Verifier is BaseScript {
     function run() external {
         vm.startBroadcast();
 
-        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.21"));
+        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.23"));
 
         //those arguments must be passed to the script, like
         uint256 iAlgoID = vm.envUint("_ALGOID");
