@@ -38,6 +38,7 @@
 pragma solidity ^0.8.25;
 
 import "./ZKNOX_common.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 //forge install OpenZeppelin/openzeppelin-contracts --no-commit
 import "../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
@@ -47,23 +48,23 @@ import "../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgrad
 // SPDX-License-Identifier: MIT
 
 /// @notice Contract designed for being delegated to by EOAs to authorize an aggregated Musig2 key to transact on their behalf.
-contract ZKNOX_Delegate is Initializable, UUPSUpgradeable, OwnableUpgradeable {
+contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice Address of the contract storing the public key
     address authorizedPublicKey;
     /// @notice Address of the verification contract logic
-    address verifier_logic;
-    ISigVerifier Sign;
+
+    address public CoreAddress; //adress of the core verifier (FALCON, DILITHIUM, etc.), shall be the adress of a ISigVerifier
     uint256 algoID;
 
     /// @notice Internal nonce used for replay protection, must be tracked and included into prehashed message.
     uint256 public nonce;
 
-    function initialize(uint256 iAlgoID, address iVerifier_logic, address iPublicKey) public initializer {
+    function initialize(uint256 iAlgoID, address iCore, address iPublicKey) public initializer {
         __UUPSUpgradeable_init(); // Initialize UUPS
         __Ownable_init(msg.sender); // Initialize Ownable
-        verifier_logic = iVerifier_logic;
-
+        CoreAddress = iCore; // Address of contract of Signature verification (FALCON, DILITHIUM)
         algoID = iAlgoID;
+        authorizedPublicKey = iPublicKey;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
@@ -71,7 +72,7 @@ contract ZKNOX_Delegate is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /// @notice Authorizes provided public key to transact on behalf of this account. Only callable by EOA itself.
-    function authorize(uint256 iAlgoID, address iVerifier_logic, address iPublicKey) public {
+    function authorize(address iPublicKey) public {
         require(msg.sender == address(this));
 
         authorizedPublicKey = iPublicKey;
@@ -87,13 +88,28 @@ contract ZKNOX_Delegate is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         uint256[] memory s2 // compacted signature s2 part)
     ) public {
         bytes32 digest = keccak256(abi.encode(nonce++, to, data, value));
-        Sign = ISigVerifier(verifier_logic);
+        ISigVerifier Core = ISigVerifier(CoreAddress);
 
-        uint256[] memory nttpk = Sign.GetPublicKey(authorizedPublicKey);
+        uint256[] memory nttpk = Core.GetPublicKey(authorizedPublicKey);
 
-        require(Sign.verify(abi.encodePacked(digest), salt, s2, nttpk), "Invalid signature");
+        require(Core.verify(abi.encodePacked(digest), salt, s2, nttpk), "Invalid signature");
 
         (bool success,) = to.call{value: value}(data);
         require(success);
     }
+
+    //debug function for now: todo, remove when transact successfully tested
+    function verify(
+        bytes memory data,
+        bytes memory salt, // compacted signature salt part
+        uint256[] memory s2
+    ) public view returns (bool) {
+        ISigVerifier Core = ISigVerifier(CoreAddress);
+        uint256[] memory nttpk = Core.GetPublicKey(authorizedPublicKey);
+        return Core.verify(data, salt, s2, nttpk);
+    }
+} //end contract
+
+contract ZKNOX_Verifier_Proxy is ERC1967Proxy {
+    constructor(address _logic, bytes memory _data) ERC1967Proxy(_logic, _data) {}
 }

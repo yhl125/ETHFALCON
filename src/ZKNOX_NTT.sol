@@ -259,42 +259,6 @@ contract ZKNOX_NTT {
         return a;
     }
 
-    //hardcoded compressed version when coefficient are less than 16 bits (WIP)
-    function ZKNOX_NTTFW_compact(uint256[] memory a, uint256 q) public view returns (uint256[] memory) {
-        uint256 n = a.length;
-        uint256 t = n;
-        uint256 m = 1;
-        /*
-        while (m < n) {
-            t = t >> 1;
-            for (uint256 i = 0; i < m; i++) {
-                uint256 j1 = (i * t) << 1;
-                uint256 j2 = j1 + t - 1;
-                uint256 S = psi_rev[m + i];
-                
-                for (uint256 j = j1; j < j2 + 1; j++) {
-                    uint cell=(j>>4);                           //j/16 because there are 16 chunks of 16 bits in a word
-                    uint offset=(j>>4)&mask16;                  //the offset position in target 256 bits cell
-                
-                    uint256 U = a[cell]>>offset;                //a[j];
-                    uint256 V = mulmod(a[(cell + (t>>4))+((j+t)&mask16)], S, q);         // V = mulmod(a[j + t], S, q);
-
-                    a[cell]=a[cell]|(~(mask16<<offset));         //zeroize target bits
-                    a[cell]=a[cell]^(addmod(U, V, q)<<offset);            //a[j] = addmod(U, V, q);
-                  
-
-                    cell=(cell + (t>>4))+((j+t)>>4);            //a[j+t]
-                    offset=(j+t)&mask16;
-
-                    a[cell]=a[cell]|(~(mask16<<offset));         //zeroize target bits
-                    a[cell]=a[cell]^(addmod(U, q - V, q)<<offset);            //a[j] = addmod(U, V, q);
-                }
-                }
-            m = m << 1;
-        }*/
-        return a;
-    }
-
     // NTT_INV as specified by EIP, stateless version
     function ZKNOX_NTTINV(uint256[] memory a, uint256 q) public view returns (uint256[] memory) {
         uint256 t = 1;
