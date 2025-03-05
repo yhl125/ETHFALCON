@@ -38,7 +38,7 @@
 pragma solidity ^0.8.25;
 
 import "./ZKNOX_common.sol";
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import "../lib/openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 //forge install OpenZeppelin/openzeppelin-contracts --no-commit
 import "../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
