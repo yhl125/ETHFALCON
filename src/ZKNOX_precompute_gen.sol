@@ -105,3 +105,15 @@ function Deploy(bytes32 salt) returns (address a_psirev, address a_psiInvrev) {
     }
     require(a_psiInvrev != address(0), "Deployment failed");
 }
+
+//deploy a polynomial onchain
+function DeployPolynomial(bytes32 salt, uint256[] memory polynomial) returns (address a_polynomial) {
+    uint256[] memory compacted_pol = _Compact(polynomial);
+    bytes memory bytecode_pol = abi.encodePacked(compacted_pol);
+
+    bytecode_pol = abi.encodePacked(hex"63", uint32(bytecode_pol.length), hex"80600E6000396000F3", bytecode_pol);
+    assembly {
+        a_polynomial := create2(0, add(bytecode_pol, 0x20), mload(bytecode_pol), salt)
+    }
+    require(a_polynomial != address(0), "Deployment failed");
+}

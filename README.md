@@ -48,10 +48,6 @@ Current deployment addresses:
 | 7702 VERIFIER      | 7702 Delegable contract      | N/A | N/A |
 
 
-FALCON: 
-
-7702 VERIFIER : 
-
 ## CONCLUSION
 
 This repo provides a highly optimized version of FALCON. Order of magnitudes were gained compared to other implementations. In our search, we also devise a way to implement falcon with recovery without requiring the inverse NTT transformation (only forward).

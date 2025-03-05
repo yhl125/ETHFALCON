@@ -18,3 +18,5 @@ python-ref/sig
 python-ref/public_key.pem
 python-ref/private_key.pem
 pyython-ref/myenv/
+/script/deploy_privateVerifier.sh
+/script/deploy_privateFalcon.sh
