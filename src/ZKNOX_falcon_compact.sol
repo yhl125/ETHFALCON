@@ -139,12 +139,14 @@ contract ZKNOX_falcon_compact is ISigVerifier {
     }
 
     function GetPublicKey(address _from) external view override returns (uint256[] memory Kpub) {
+        Kpub = new uint256[](32);
+
         assembly {
             let offset := Kpub
 
             for { let i := 0 } gt(1024, i) { i := add(i, 32) } {
                 //read the 32 words
-                offset := add(offset, Kpub)
+                offset := add(offset, 32)
 
                 extcodecopy(_from, offset, i, 32) //psi_rev[m+i])
             }

@@ -8,7 +8,7 @@ import "../src/ZKNOX_precompute_gen.sol";
 import {console} from "forge-std/Test.sol";
 //deploy the precomputed tables for psirev and psiInvrev
 
-contract Script_Deploy_psirev is BaseScript {
+contract Script_Deploy_Falcon is BaseScript {
     // SPDX-License-Identifier: MIT
 
     function run() external {
@@ -16,7 +16,7 @@ contract Script_Deploy_psirev is BaseScript {
 
         address a_psirev;
         address a_psiInvrev;
-        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.16"));
+        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.0.1"));
         (a_psirev, a_psiInvrev) = Deploy(salty);
 
         ZKNOX_falcon_compact ETHFALCON = new ZKNOX_falcon_compact{salt: salty}();
