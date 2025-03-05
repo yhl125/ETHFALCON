@@ -95,7 +95,7 @@ contract Script_Deploy_Verifier is BaseScript {
         console.log("AlgoID, @Corealgo, @PubKey", iAlgoID, iVerifier_algo, iPublicKey);
 
         bytes memory initData =
-            abi.encodeWithSignature("initialize(uint256,address, address)", iAlgoID, iVerifier_algo, iPublicKey); //uint256 iAlgoID, address iVerifier_logic, address iPublicKey
+            abi.encodeWithSignature("initialize(uint256,address,address)", iAlgoID, iVerifier_algo, iPublicKey); //uint256 iAlgoID, address iVerifier_logic, address iPublicKey
 
         ZKNOX_Verifier_Proxy proxy = new ZKNOX_Verifier_Proxy(address(Verifier_logic), initData); //failing here
 
