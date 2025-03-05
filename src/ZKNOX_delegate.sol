@@ -50,11 +50,11 @@ import "../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgrad
 /// @notice Contract designed for being delegated to by EOAs to authorize an aggregated Musig2 key to transact on their behalf.
 contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice Address of the contract storing the public key
-    address authorizedPublicKey;
+    address public authorizedPublicKey;
     /// @notice Address of the verification contract logic
 
     address public CoreAddress; //adress of the core verifier (FALCON, DILITHIUM, etc.), shall be the adress of a ISigVerifier
-    uint256 algoID;
+    uint256 public algoID;
 
     /// @notice Internal nonce used for replay protection, must be tracked and included into prehashed message.
     uint256 public nonce;
