@@ -45,12 +45,6 @@ import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 import "./ZKNOX_HashToPoint.sol";
 
 contract ZKNOX_falcon_epervier_shorter {
-    //FALCON CONSTANTS
-    uint256 constant n = 512;
-    uint256 constant sigBound = 34034726;
-    uint256 constant q = 12289;
-    uint256 constant qs1 = 6144; // q >> 1;
-
     ZKNOX_NTT ntt;
 
     uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;

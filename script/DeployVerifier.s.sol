@@ -99,13 +99,7 @@ contract Script_Deploy_Verifier is BaseScript {
 
         ZKNOX_Verifier_Proxy proxy = new ZKNOX_Verifier_Proxy(address(Verifier_logic), initData); //failing here
 
-        vm.stopBroadcast();
-        return ();
         ZKNOX_Verifier Verifier = ZKNOX_Verifier(address(proxy));
-
-        console.log("adress of core Algorithm: %x", uint256(uint160(Verifier.CoreAddress())));
-        console.log("adress of Verifier: %x", uint256(uint160(address(Verifier))));
-        console.log("adress of Public Key contract: %x", uint256(uint160(address(Verifier))));
 
         vm.stopBroadcast();
     }
