@@ -46,7 +46,7 @@ import "./ZKNOX_HashToPoint.sol";
 
 contract ZKNOX_falcon_epervier {
     //FALCON CONSTANTS
-  
+
     ZKNOX_NTT ntt;
 
     uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;

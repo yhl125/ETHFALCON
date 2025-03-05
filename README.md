@@ -33,6 +33,25 @@ Benchmarks for both solidity code and python are available [here](./doc/benchmar
 
 Current fastest implementation is 1.9M gas.
 
+
+## EXAMPLE
+
+An example showing generation of keys and signatures usingg python followed by onchain verification is [here](./doc/example.md).
+
+## DEPLOYMENTS
+
+Current deployment addresses:
+
+| Function                   | Description               |address | networks |
+|------------------------|---------------------|---------------------|---------------------|
+| FALCON     | Falcon implementation      | 0x98e9b2f930862945e1b26fe5c0c0b420ce75e0d6 | Holesky|
+| 7702 VERIFIER      | 7702 Delegable contract      | N/A | N/A |
+
+
+FALCON: 
+
+7702 VERIFIER : 
+
 ## CONCLUSION
 
 This repo provides a highly optimized version of FALCON. Order of magnitudes were gained compared to other implementations. In our search, we also devise a way to implement falcon with recovery without requiring the inverse NTT transformation (only forward).
