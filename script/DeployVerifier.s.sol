@@ -7,6 +7,7 @@ import {BaseScript} from "./BaseScript.sol";
 import "../src/ZKNOX_common.sol";
 import "../src/ZKNOX_delegate.sol";
 import "../src/ZKNOX_precompute_gen.sol";
+import "../src/ZKNOX_falcon_compact.sol";
 
 import {Test, console} from "forge-std/Test.sol";
 
@@ -85,9 +86,7 @@ contract Script_Deploy_Verifier is BaseScript {
 
     /* first deployment, including falcon, normally we would like to just pass a IVerifier address*/
     function run() external {
-        vm.startBroadcast();
-
-        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.0.0.9"));
+        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.0.0.11"));
 
         //those arguments must be passed to the script, like
         uint256 iAlgoID = vm.envUint("_ALGOID");
@@ -125,14 +124,17 @@ contract Script_Deploy_Verifier is BaseScript {
         //nttpk=Core.GetPublicKey(Verifier.authorizedPublicKey());
         nttpk = GetPublicKey(iPublicKey); //this is correctly extracted, same code duplicated from Core.GetPublicKey();
         uint256[] memory nttpk2 = new uint256[](32);
-        nttpk2 = Core.GetPublicKey(Verifier.authorizedPublicKey()); //panic when accessing to nttpk2[i] in the following loop
         console.log("length nttpk2:", nttpk2.length); //the returned length is 0, bug.
+        uint256 coderet = 1;
+
+        nttpk2 = Core.GetPublicKey(Verifier.authorizedPublicKey()); //panic when accessing to nttpk2[i] in the following loop
+
+        console.log("length nttpk2:", nttpk2.length); //the returned length is 0, bug.
+        console.log("coderet of getPublicKey", coderet);
 
         console.log("PublicKey extracted from:%x, %x", iPublicKey, Verifier.authorizedPublicKey());
         for (uint256 i = 0; i < 32; i++) {
-            console.log("%x ,%x, %x", PublicKey[i], nttpk[i]);
+            console.log("%x ,%x, %x", PublicKey[i], nttpk[i], nttpk2[i]);
         }
-
-        vm.stopBroadcast();
     }
 }

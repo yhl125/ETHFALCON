@@ -16,7 +16,7 @@ contract Script_Deploy_Falcon is BaseScript {
 
         address a_psirev;
         address a_psiInvrev;
-        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.0.1"));
+        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.0.0.12"));
         (a_psirev, a_psiInvrev) = Deploy(salty);
 
         ZKNOX_falcon_compact ETHFALCON = new ZKNOX_falcon_compact{salt: salty}();

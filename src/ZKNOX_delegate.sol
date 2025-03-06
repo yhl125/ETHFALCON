@@ -38,6 +38,7 @@
 pragma solidity ^0.8.25;
 
 import "./ZKNOX_common.sol";
+import "./ZKNOX_IVerifier.sol";
 import "../lib/openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 //forge install OpenZeppelin/openzeppelin-contracts --no-commit
@@ -92,7 +93,8 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         bytes32 digest = keccak256(abi.encode(nonce++, to, data, value));
         ISigVerifier Core = ISigVerifier(CoreAddress);
 
-        uint256[] memory nttpk = Core.GetPublicKey(authorizedPublicKey);
+        uint256[] memory nttpk;
+        //nttpk= Core.GetPublicKey(authorizedPublicKey);
 
         require(Core.verify(abi.encodePacked(digest), salt, s2, nttpk), "Invalid signature");
 
@@ -107,7 +109,8 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         uint256[] memory s2
     ) public view returns (bool) {
         ISigVerifier Core = ISigVerifier(CoreAddress);
-        uint256[] memory nttpk = Core.GetPublicKey(authorizedPublicKey);
+        uint256[] memory nttpk;
+        //nttpk Core.GetPublicKey(authorizedPublicKey);
         return Core.verify(data, salt, s2, nttpk);
     }
 } //end contract

@@ -44,7 +44,7 @@ Current deployment addresses:
 
 | Function                   | Description               |address | networks |
 |------------------------|---------------------|---------------------|---------------------|
-| FALCON     | Falcon implementation      | 0x98e9b2f930862945e1b26fe5c0c0b420ce75e0d6 | Holesky|
+| FALCON     | Falcon implementation      | 0x28c37C0b6Bb7eBfD1790E3923E1E89B562d9DdbF | Holesky|
 | 7702 VERIFIER      | 7702 Delegable contract      | N/A | N/A |
 
 

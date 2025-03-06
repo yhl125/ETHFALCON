@@ -38,17 +38,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-interface ISigVerifier {
-    function verify(
-        bytes memory h, //a 32 bytes hash
-        bytes memory salt, // compacted signature salt part
-        uint256[] memory s2, // compacted signature s2 part
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) external view returns (bool result);
-
-    function GetPublicKey(address _from) external view returns (uint256[] memory Kpub);
-}
-
 /*id-falcon-shake256 OBJECT IDENTIFIER ::= { joint-iso-ccitt(2)
    country(16) us(840) organization(1) gov(101) csor(3) algorithms(4)
    id-falcon-shake(3) 21 }.*/
