@@ -47,3 +47,13 @@ uint256 constant FALCONSHAKE_ID = 0x216840110134321;
    country(16) us(840) organization(1) gov(101) csor(3) algorithms(4)
    id-falcon-keccak(4) 21 }.*/
 uint256 constant FALCONKECCAK_ID = 0x216840110134421;
+
+//copy and allocate
+function ZKNOX_memcpy32(uint256[32] memory src) pure returns (uint256[] memory dest) {
+    dest = new uint256[](32);
+    for (uint256 i = 0; i < 32; i++) {
+        dest[i] = src[i];
+    }
+
+    return dest;
+}

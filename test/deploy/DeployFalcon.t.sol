@@ -3,7 +3,8 @@ pragma solidity ^0.8.25;
 
 import {Script} from "../../lib/forge-std/src/Script.sol";
 import "../../src/ZKNOX_falcon_compact.sol";
-import "../../src/ZKNOX_precompute_gen.sol";
+import "../../src/ZKNOX_falcon_deploy.sol";
+
 import {console, Test} from "forge-std/Test.sol";
 
 //deploy the precomputed tables for psirev and psiInvrev

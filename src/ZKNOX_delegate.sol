@@ -31,7 +31,7 @@
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
 ///* FILE: ZKNOX_common.sol
-///* Description: Common Interface for Signature Verifier
+///* Description: A contract designed to be delegated to a 7702 authorization
 /**
  *
  */
@@ -48,7 +48,7 @@ import "../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgrad
 
 // SPDX-License-Identifier: MIT
 
-/// @notice Contract designed for being delegated to by EOAs to authorize an aggregated Musig2 key to transact on their behalf.
+/// @notice Contract designed for being delegated to by EOAs to authorize a IVerifier key to transact on their behalf.
 contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice Address of the contract storing the public key
     address public authorizedPublicKey;
@@ -94,7 +94,7 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         ISigVerifier Core = ISigVerifier(CoreAddress);
 
         uint256[] memory nttpk;
-        //nttpk= Core.GetPublicKey(authorizedPublicKey);
+        nttpk = Core.GetPublicKey(authorizedPublicKey);
 
         require(Core.verify(abi.encodePacked(digest), salt, s2, nttpk), "Invalid signature");
 
@@ -110,7 +110,7 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     ) public view returns (bool) {
         ISigVerifier Core = ISigVerifier(CoreAddress);
         uint256[] memory nttpk;
-        //nttpk Core.GetPublicKey(authorizedPublicKey);
+        nttpk = Core.GetPublicKey(authorizedPublicKey);
         return Core.verify(data, salt, s2, nttpk);
     }
 } //end contract

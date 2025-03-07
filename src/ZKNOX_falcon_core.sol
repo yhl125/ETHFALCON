@@ -92,7 +92,7 @@ function falcon_normalize(
 
         result := gt(sigBound, norm) //norm < SigBound ?
     }
-    if (result != true) revert("false");
+
     return result;
 }
 
