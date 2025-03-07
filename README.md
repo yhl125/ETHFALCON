@@ -36,7 +36,7 @@ Current fastest implementation is 1.9M gas.
 
 ## EXAMPLE
 
-An example showing generation of keys and signatures usingg python followed by onchain verification is [here](./doc/example.md).
+An example showing generation of keys and signatures using python followed by onchain verification is [here](./doc/example.md).
 
 ## DEPLOYMENTS
 
