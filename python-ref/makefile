@@ -50,3 +50,6 @@ clean:
 	rm -rf __pycache__ */__pycache__
 	rm -rf scripts/*.sage.py
 	@echo "Clean done"
+
+generate_delegate:
+	$(PYTHON) -m generate_delegate -v
