@@ -100,11 +100,8 @@ for (i, message) in enumerate(list_of_messages):
     file.write("bytes memory data = \"{}\";\n".format(data.decode()))
     file.write("uint256 value = {};\n".format(value))
     file.write("// digest output\n")
-    file.write("bytes memory enc = hex\"{}\";\n".format(packed.hex()))
     file.write("bytes32 digest = 0x{}\n;".format(digest.hex()))
-    file.write(
-        "bytes32 digest2 = keccak256(abi.encode(nonce, to, data, value));\n")
-    file.write("assertEq(digest,digest2);\n")
+    file.write("assertEq(digest,keccak256(abi.encode(nonce, to, data, value)));\n")
 
     file.write("// public key\n")
     file.write("// forgefmt: disable-next-line\n")
