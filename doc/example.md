@@ -26,3 +26,28 @@ This should output:
 ```
 0x0000000000000000000000000000000000000000000000000000000000000001
 ```
+
+___
+___
+## Transaction output
+
+For computing a transaction, we need to provide:
+* A `nonce`, unique identifier as a `uint256` given in hex,
+* The destinary address `to`, a `uint160` given in hex,
+* The transaction `data` given as `bytes`,
+* The value ??? as a `uint256` given in hex,
+
+For the signature, we also need to provide:
+* The private key file,
+* The message,
+* The version of the scheme (it works only for `falcon` for now),
+* The public key (TODO it should be computed from the private key)
+```bash
+./sign_cli.py sign_tx --message='This is a transaction' --privkey=private_key.pem --version='falcon' --nonce=0123456789 --to=0xadd4e55 --data=deadbeef --value=ffff --pubkey=public_key.pem
+```
+This outputs the useful data for the transaction:
+* The hash for the transaction`TX_HASH`: `Keccak256(nonce|to|data|value)`,
+* The signature `S2` in compact form,
+* The `SALT` value,
+* The public key `PK` in NTT in compact form.
+* 

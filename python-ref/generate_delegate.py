@@ -4,7 +4,6 @@ from common import falcon_compact, q, deterministic_salt
 from polyntt.poly import Poly
 from keccak_prng import KeccakPRNG
 from generate_falcon_test_vectors import list_of_messages
-from eth_abi.packed import encode_packed
 from Crypto.Hash import keccak
 from eth_abi import encode
 

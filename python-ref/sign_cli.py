@@ -9,6 +9,9 @@ from falcon_epervier import EpervierPublicKey, EpervierSecretKey
 from falcon_recovery import RecoveryModePublicKey, RecoveryModeSecretKey
 from polyntt.poly import Poly
 from shake import SHAKE
+from Crypto.Hash import keccak
+from eth_abi import encode
+
 
 import random
 
@@ -131,12 +134,10 @@ def signature(sk, message, version):
         randombytes=deterministic_bytes.read
     )
     if version == 'falcon':
-        salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:]
         s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
         s2 = [elt % q for elt in s2]
     elif version == 'falconrec':
-        salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
         s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
         mid = len(s)//2
@@ -144,7 +145,6 @@ def signature(sk, message, version):
         s1, s2 = s[:mid], s[mid:]
         s2_inv_ntt = Poly(s2, q).inverse().ntt()
     elif version == 'epervier':
-        salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
         s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
         mid = len(s)//2
@@ -158,6 +158,32 @@ def signature(sk, message, version):
         print("This version is not implemented.")
         return
     return sig
+
+
+def print_signature_transaction(sig, pk, nonce, to, data, value):
+    keccak_ctx = keccak.new(digest_bytes=32)
+    packed = encode(
+        # seem that `to` is considered as uint256
+        ["uint256", "uint160", "bytes", "uint256"],
+        [nonce, to, data, value]
+    )
+    keccak_ctx.update(packed)
+    TX_HASH = keccak_ctx.digest()
+
+    salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
+    SALT = "0x"+salt.hex()
+
+    enc_s = sig[HEAD_LEN + SALT_LEN:]
+    s2 = decompress(enc_s, pk.sig_bytelen - HEAD_LEN - SALT_LEN, 512)
+    s2 = [elt % q for elt in s2]
+    s2_compact = falcon_compact(s2)
+    S2 = str(s2_compact)
+    pk_compact = falcon_compact(Poly(pk.pk, q).ntt())
+    PK = str(pk_compact)
+    print("TX_HASH={}".format(TX_HASH.hex()))
+    print("PK = {}".format(PK))
+    print("S2 = {}".format(S2))
+    print("SALT = {}".format(SALT))
 
 
 def verify_signature(pk, message, sig):
@@ -233,11 +259,19 @@ def verify_signature_on_chain_with_transaction(pk, message, sig, contract_addres
 def cli():
     parser = argparse.ArgumentParser(description="CLI for Falcon Signature")
     parser.add_argument("action", choices=[
-                        "genkeys", "sign", "verify", "verifyonchain", "verifyonchainsend"], help="Action to perform")
+                        "genkeys", "sign", "sign_tx", "verify", "verifyonchain", "verifyonchainsend"], help="Action to perform")
     parser.add_argument("--version", type=str,
                         help="Version to use (falcon or falconrec)")
     parser.add_argument("--message", type=str,
                         help="Message to sign or verify")
+    parser.add_argument("--nonce", type=str,
+                        help="nonce in hexadecimal to sign the transaction")
+    parser.add_argument("--to", type=str,
+                        help="Destination in hexadecimal address for the transaction")
+    parser.add_argument("--data", type=str,
+                        help="Data for the transaction")
+    parser.add_argument("--value", type=str,
+                        help="Value in hexadecimal for the transaction")
     parser.add_argument("--privkey", type=str,
                         help="Private key file for signing")
     parser.add_argument("--pubkey", type=str,
@@ -270,6 +304,17 @@ def cli():
         sk = load_sk(args.privkey)
         sig = signature(sk, args.message, args.version)
         save_signature(sig, 'sig')
+
+    elif args.action == "sign_tx":
+        if not args.message or not args.privkey or not args.version or not args.nonce or not args.to or not args.data or not args.value or not args.pubkey:
+            print(
+                "Error: Provide --message, --privkey, --version, --nonce, --to, --data, --value and --pubkey")
+            return
+        sk = load_sk(args.privkey)
+        pk = load_pk(args.pubkey)
+        sig = signature(sk, args.message, args.version)
+        print_signature_transaction(
+            sig, pk, int(args.nonce, 16), int(args.to, 16), args.data.encode(), int(args.value, 16))
 
     elif args.action == "verify":
         if not args.message or not args.pubkey or not args.signature:
