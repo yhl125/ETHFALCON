@@ -55,7 +55,7 @@ Despite those efforts, it does not seem plausible to reach operational (below 1M
 The architecture also demonstrates that providing NTT would allow an acceptable cost, and provide more genericity and agility in the PQ signature candidate of Ethereum. For this reason [NTT-EIP]() is submitted.
 
 ## REFERENCES
-- [[EXTCODE COPY TRICK]](https://eprint.iacr.org/2023/939) section 
+- [[EXTCODE COPY TRICK]](https://eprint.iacr.org/2023/939) section 3.3
 - [[FALCON]](https://falcon-sign.info/falcon.pdf) Falcon: Fast-Fourier Lattice-based
 Compact Signatures over NTRU
 - [[NTT-EIP]]() NTT-EIP as a building block for FALCON, DILITHIUM and Stark verifiers 
