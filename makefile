@@ -38,5 +38,5 @@ test_verifier_slow:
 test_onchain:
 	# Generate public and private keys, sign a message, and verify it on-chain.
 	$(PYTHON) python-ref/sign_cli.py genkeys --version='falcon'
-	$(PYTHON) python-ref/sign_cli.py sign --privkey='private_key.pem' --message='This is a demo' --version='falcon'
-	$(PYTHON) python-ref/sign_cli.py verifyonchain --pubkey='public_key.pem' --message='This is a demo' --signature='sig' --contractaddress='0xD2d8e3a5bCf8E177A627698176bC9a99E03D358D' --rpc='https://ethereum-holesky-rpc.publicnode.com'
+	$(PYTHON) python-ref/sign_cli.py sign --privkey='private_key.pem' --data='This is a demo' --version='falcon'
+	$(PYTHON) python-ref/sign_cli.py verifyonchain --pubkey='public_key.pem' --data='This is a demo' --signature='sig' --contractaddress='0xD2d8e3a5bCf8E177A627698176bC9a99E03D358D' --rpc='https://ethereum-holesky-rpc.publicnode.com'

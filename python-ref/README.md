@@ -26,7 +26,7 @@ It also prints the public key in Solidity format.
 
 ###### Signature
 ```
-./sign_cli.py sign --message="Example of message" --privkey=private_key.pem --version='falcon' # or 'falconrec' or 'epervier'
+./sign_cli.py sign --data="Example of message" --privkey=private_key.pem --version='falcon' # or 'falconrec' or 'epervier'
 ```
 It create a signature file `sig` for the given  message and the private key.
 The signature is stored in hexadecimal format.
@@ -34,7 +34,7 @@ It also prints the signature in Solidity format.
 
 ###### Verification
 ```
-./sign_cli.py verify --message="Example of message" --pubkey=public_key.pem --signature='sig'
+./sign_cli.py verify --data="Example of message" --pubkey=public_key.pem --signature='sig'
 ```
 It outputs the validity of the signature with respect to a message and a public key given as input.
 The signature needs to be provided as a (large) string.

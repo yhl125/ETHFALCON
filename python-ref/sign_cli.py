@@ -113,7 +113,7 @@ def load_signature(filename):
     return bytes.fromhex(signature)
 
 
-def signature(sk, message, version):
+def signature(sk, data, version):
     # De-randomization of urandom as RFC 6979 page 10-11.
     deterministic_bytes = SHAKE()
     # v = 0x00 32 times in the case of a hash function with output 256 bits.
@@ -125,12 +125,12 @@ def signature(sk, message, version):
     deterministic_bytes.update(bytes([0x00]))
     # secret key encoded
     deterministic_bytes.update(b''.join(x.to_bytes(2, 'big') for x in sk.h))
-    # message TODO consider h(M) instead here.
+    # data TODO consider h(M) instead here.
     # if H does not output 32 bytes, change V above.
-    deterministic_bytes.update(message.encode())
+    deterministic_bytes.update(data.encode())
 
     sig = sk.sign(
-        message.encode(),
+        data.encode(),
         randombytes=deterministic_bytes.read
     )
     if version == 'falcon':
@@ -168,7 +168,7 @@ def print_signature_transaction(sig, pk, nonce, to, data, value):
         [nonce, to, data, value]
     )
     keccak_ctx.update(packed)
-    TX_HASH = keccak_ctx.digest()
+    TX_HASH = "0x" + keccak_ctx.digest().hex()
 
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     SALT = "0x"+salt.hex()
@@ -180,19 +180,19 @@ def print_signature_transaction(sig, pk, nonce, to, data, value):
     S2 = str(s2_compact)
     pk_compact = falcon_compact(Poly(pk.pk, q).ntt())
     PK = str(pk_compact)
-    print("TX_HASH={}".format(TX_HASH.hex()))
+    print("TX_HASH = {}".format(TX_HASH))
     print("PK = {}".format(PK))
     print("S2 = {}".format(S2))
     print("SALT = {}".format(SALT))
 
 
-def verify_signature(pk, message, sig):
-    return pk.verify(message.encode(), sig)
+def verify_signature(pk, data, sig):
+    return pk.verify(data.encode(), sig)
 
 
-def verify_signature_on_chain(pk, message, sig, contract_address, rpc):
+def verify_signature_on_chain(pk, data, sig, contract_address, rpc):
 
-    MSG = "0x" + message.encode().hex()
+    MSG = "0x" + data.encode().hex()
 
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     SALT = "0x"+salt.hex()
@@ -222,9 +222,9 @@ def verify_signature_on_chain(pk, message, sig, contract_address, rpc):
     print(result.stdout)
 
 
-def verify_signature_on_chain_with_transaction(pk, message, sig, contract_address, rpc, private_key):
+def verify_signature_on_chain_with_transaction(pk, data, sig, contract_address, rpc, private_key):
 
-    MSG = "0x" + message.encode().hex()
+    MSG = "0x" + data.encode().hex()
 
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     SALT = "0x"+salt.hex()
@@ -262,14 +262,12 @@ def cli():
                         "genkeys", "sign", "sign_tx", "verify", "verifyonchain", "verifyonchainsend"], help="Action to perform")
     parser.add_argument("--version", type=str,
                         help="Version to use (falcon or falconrec)")
-    parser.add_argument("--message", type=str,
-                        help="Message to sign or verify")
     parser.add_argument("--nonce", type=str,
                         help="nonce in hexadecimal to sign the transaction")
     parser.add_argument("--to", type=str,
                         help="Destination in hexadecimal address for the transaction")
     parser.add_argument("--data", type=str,
-                        help="Data for the transaction")
+                        help="Data to be signed")
     parser.add_argument("--value", type=str,
                         help="Value in hexadecimal for the transaction")
     parser.add_argument("--privkey", type=str,
@@ -298,54 +296,54 @@ def cli():
         print("Keys generated and saved.")
 
     elif args.action == "sign":
-        if not args.message or not args.privkey or not args.version:
-            print("Error: Provide --message, --privkey and --version")
+        if not args.data or not args.privkey or not args.version:
+            print("Error: Provide --data, --privkey and --version")
             return
         sk = load_sk(args.privkey)
-        sig = signature(sk, args.message, args.version)
+        sig = signature(sk, args.data, args.version)
         save_signature(sig, 'sig')
 
     elif args.action == "sign_tx":
-        if not args.message or not args.privkey or not args.version or not args.nonce or not args.to or not args.data or not args.value or not args.pubkey:
+        if not args.data or not args.privkey or not args.version or not args.nonce or not args.to or not args.value or not args.pubkey:
             print(
-                "Error: Provide --message, --privkey, --version, --nonce, --to, --data, --value and --pubkey")
+                "Error: Provide --data, --privkey, --version, --nonce, --to, --value and --pubkey")
             return
         sk = load_sk(args.privkey)
         pk = load_pk(args.pubkey)
-        sig = signature(sk, args.message, args.version)
+        sig = signature(sk, args.data, args.version)
         print_signature_transaction(
             sig, pk, int(args.nonce, 16), int(args.to, 16), args.data.encode(), int(args.value, 16))
 
     elif args.action == "verify":
-        if not args.message or not args.pubkey or not args.signature:
-            print("Error: Provide --message, --pubkey and --signature")
+        if not args.data or not args.pubkey or not args.signature:
+            print("Error: Provide --data, --pubkey and --signature")
             return
         pk = load_pk(args.pubkey)
         sig = load_signature(args.signature)
-        if verify_signature(pk, args.message, sig):
+        if verify_signature(pk, args.data, sig):
             print("Signature is valid.")
         else:
             print("Invalid signature.")
 
     elif args.action == "verifyonchain":
-        if not args.message or not args.pubkey or not args.signature or not args.rpc or not args.contractaddress:
+        if not args.data or not args.pubkey or not args.signature or not args.rpc or not args.contractaddress:
             print(
-                "Error: Provide --message, --pubkey, --signature, --contractaddress and --rpc")
+                "Error: Provide --data, --pubkey, --signature, --contractaddress and --rpc")
             return
         pk = load_pk(args.pubkey)
         sig = load_signature(args.signature)
         verify_signature_on_chain(
-            pk, args.message, sig, args.contractaddress, args.rpc)
+            pk, args.data, sig, args.contractaddress, args.rpc)
 
     elif args.action == "verifyonchainsend":
-        if not args.message or not args.pubkey or not args.signature or not args.rpc or not args.contractaddress or not args.privatekey:
+        if not args.data or not args.pubkey or not args.signature or not args.rpc or not args.contractaddress or not args.privatekey:
             print(
-                "Error: Provide --message, --pubkey, --signature, --contractaddress, --rpc and --privatekey")
+                "Error: Provide --data, --pubkey, --signature, --contractaddress, --rpc and --privatekey")
             return
         pk = load_pk(args.pubkey)
         sig = load_signature(args.signature)
         verify_signature_on_chain_with_transaction(
-            pk, args.message, sig, args.contractaddress, args.rpc, args.privatekey)
+            pk, args.data, sig, args.contractaddress, args.rpc, args.privatekey)
 
 
 if __name__ == "__main__":
