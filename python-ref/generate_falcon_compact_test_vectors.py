@@ -31,7 +31,7 @@ import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_NTT.sol";
 import "../src/ZKNOX_falcon_utils.sol";
 import "../src/ZKNOX_falcon_compact.sol";
-import "../src/ZKNOX_precompute_gen.sol";
+import "../src/ZKNOX_falcon_deploy.sol";
 
 contract ZKNOX_FalconTest is Test {
     ZKNOX_falcon_compact falcon;
