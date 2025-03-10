@@ -146,7 +146,7 @@ contract SignDelegationTest is Test {
 
         vm.broadcast(BOB_PK);
         vm.attachDelegation(signedDelegation);
-        bytes memory code = address(ALICE_ADDRESS).code;
+        bytes memory code = address(ALICE_ADDRESS).code; //this shall be ef0100, followed by adress
 
         console.log("Verifier address:%x", uint256(uint160(address(Verifier))));
 
@@ -155,8 +155,10 @@ contract SignDelegationTest is Test {
 
         require(code.length > 0, "no code written to Alice");
 
+        // As Bob, execute the transaction via Alice's temporarily assigned contract.
         //ZKNOX_Verifier(ALICE_ADDRESS).transact(address(token), data, 0, SALT, S2 );//this is the delegation we want, failing now
-        Verifier.transact(address(token), data, 0, SALT, S2); //this will fail at msgsender=minter
+
+        ZKNOX_Verifier(Verifier).transact(address(token), data, 0, SALT, S2); //this will fail at msgsender=minter
 
         // Verify Bob successfully received 100 tokens.
         vm.assertEq(token.balanceOf(BOB_ADDRESS), 100);
