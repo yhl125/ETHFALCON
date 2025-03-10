@@ -11,6 +11,7 @@ from polyntt.poly import Poly
 from shake import SHAKE
 from Crypto.Hash import keccak
 from eth_abi import encode
+from eth_abi.packed import encode_packed
 
 
 import random
@@ -160,7 +161,7 @@ def signature(sk, data, version):
     return sig
 
 
-def print_signature_transaction(sig, pk, nonce, to, data, value):
+def transaction_hash(nonce, to, data, value):
     keccak_ctx = keccak.new(digest_bytes=32)
     packed = encode(
         # seem that `to` is considered as uint256
@@ -168,7 +169,11 @@ def print_signature_transaction(sig, pk, nonce, to, data, value):
         [nonce, to, data, value]
     )
     keccak_ctx.update(packed)
-    TX_HASH = "0x" + keccak_ctx.digest().hex()
+    return keccak_ctx.digest()
+
+
+def print_signature_transaction(sig, pk, tx_hash):
+    TX_HASH = "0x" + tx_hash.hex()
 
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     SALT = "0x"+salt.hex()
@@ -308,11 +313,18 @@ def cli():
             print(
                 "Error: Provide --data, --privkey, --version, --nonce, --to and --value")
             return
+        tx_hash = transaction_hash(
+            int(args.nonce, 16),
+            int(args.to, 16),
+            bytes.fromhex(args.data),
+            int(args.value, 16)
+        )
+        print(tx_hash)
         sk = load_sk(args.privkey)
         pk = PublicKey(512, sk.h)
-        sig = signature(sk, bytes.fromhex(args.data), args.version)
-        print_signature_transaction(
-            sig, pk, int(args.nonce, 16), int(args.to, 16), bytes.fromhex(args.data), int(args.value, 16))
+        sig = signature(sk, tx_hash, args.version)
+        assert (verify_signature(pk, tx_hash, sig))
+        print_signature_transaction(sig, pk, tx_hash)
 
     elif args.action == "verify":
         if not args.data or not args.pubkey or not args.signature:
