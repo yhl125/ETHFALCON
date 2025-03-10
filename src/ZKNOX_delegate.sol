@@ -99,7 +99,7 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         require(Core.verify(abi.encodePacked(digest), salt, s2, nttpk), "Invalid signature");
 
         (bool success,) = to.call{value: val}(data);
-       
+
         require(success, "failing executing the cal");
     }
 
@@ -115,9 +115,9 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         return Core.verify(data, salt, s2, nttpk);
     }
 
-    function GetPublicKey() public view returns (uint256[] memory res){
-         ISigVerifier Core = ISigVerifier(CoreAddress);
-        res=Core.GetPublicKey(authorizedPublicKey);
+    function GetPublicKey() public view returns (uint256[] memory res) {
+        ISigVerifier Core = ISigVerifier(CoreAddress);
+        res = Core.GetPublicKey(authorizedPublicKey);
     }
 
     //receive() external payable {}
