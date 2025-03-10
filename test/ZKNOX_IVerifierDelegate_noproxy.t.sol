@@ -130,8 +130,9 @@ contract SignDelegationTest is Test {
         require(code.length > 0, "no code written to Alice");
 
         // As Bob, execute the transaction via Alice's temporarily assigned contract.
-        ZKNOX_Verifier(ALICE_ADDRESS).transact(address(token), data, 0, SALT, S2); //this is the delegation we want, failing now
-        //Verifier.transact(address(token), data, 0, SALT, S2); //this will fail at msgsender=minter
+        //ZKNOX_Verifier(ALICE_ADDRESS).transact(address(token), data, 0, SALT, S2); //this is the delegation we want, failing now
+
+        Verifier.transact(address(token), data, 0, SALT, S2); //this will fail at msgsender=minter
 
         // Verify Bob successfully received 100 tokens.
         vm.assertEq(token.balanceOf(BOB_ADDRESS), 100);

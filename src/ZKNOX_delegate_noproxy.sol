@@ -74,7 +74,7 @@ contract ZKNOX_Verifier {
         uint256[] memory nttpk;
         nttpk = Core.GetPublicKey(authorizedPublicKey);
 
-        //require(Core.verify(abi.encodePacked(digest), salt, s2, nttpk), "Invalid signature");
+        require(Core.verify(abi.encodePacked(digest), salt, s2, nttpk), "Invalid signature");
 
         (bool success,) = to.call{value: val}(data);
 
