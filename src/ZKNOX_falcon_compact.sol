@@ -131,12 +131,16 @@ contract ZKNOX_falcon_compact is ISigVerifier {
         uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
     ) external view returns (bool result) {
         // if (h.length != 32) return false;
-        if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-        if (s2.length != falcon_S256) return false; //"Invalid salt length"
-        if (ntth.length != falcon_S256) return false; //"Invalid public key length"
+        if (salt.length != 40) {revert("invalid salt length"); return false;} //CVETH-2025-080201: control salt length to avoid potential forge
+        if (s2.length != falcon_S256) {revert("invalid s2 length");return false;} //"Invalid salt length"
+        if (ntth.length != falcon_S256) {revert("invalid ntth length");return false;} //"Invalid public key length"
 
         uint256[] memory hashed = hashToPointRIP(salt, h);
-        return falcon_core_spec(psirev, psiInvrev, s2, ntth, hashed);
+       
+        result= falcon_core_spec(psirev, psiInvrev, s2, ntth, hashed);
+        if(result==false) revert("wrong sig");
+        
+        return result;
     }
 
     function GetPublicKey(address _from) external view override returns (uint256[] memory Kpub) {

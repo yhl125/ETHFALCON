@@ -86,11 +86,11 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     function transact(
         address to,
         bytes memory data,
-        uint256 value,
+        uint256 val,
         bytes memory salt, // compacted signature salt part
         uint256[] memory s2 // compacted signature s2 part)
     ) public {
-        bytes32 digest = keccak256(abi.encode(nonce++, to, data, value));
+        bytes32 digest = keccak256(abi.encode(nonce++, to, data, val));
         ISigVerifier Core = ISigVerifier(CoreAddress);
 
         uint256[] memory nttpk;
@@ -98,8 +98,9 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
 
         require(Core.verify(abi.encodePacked(digest), salt, s2, nttpk), "Invalid signature");
 
-        (bool success,) = to.call{value: value}(data);
-        require(success);
+        (bool success,) = to.call{value: val}(data);
+       
+        require(success, "failing executing the cal");
     }
 
     //debug function for now: todo, remove when transact successfully tested
@@ -113,6 +114,13 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         nttpk = Core.GetPublicKey(authorizedPublicKey);
         return Core.verify(data, salt, s2, nttpk);
     }
+
+    function GetPublicKey() public view returns (uint256[] memory res){
+         ISigVerifier Core = ISigVerifier(CoreAddress);
+        res=Core.GetPublicKey(authorizedPublicKey);
+    }
+
+    //receive() external payable {}
 } //end contract
 
 contract ZKNOX_Verifier_Proxy is ERC1967Proxy {
