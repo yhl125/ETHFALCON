@@ -29,7 +29,7 @@ contract ERC20 {
     }
 
     function _mint(address account, uint256 amount) internal {
-        require(msg.sender == minter, "ERC20: msg.sender is not minter");//comment until delegation works
+        require(msg.sender == minter, "ERC20: msg.sender is not minter"); //comment until delegation works
         console.log("message sender:", msg.sender);
         require(account != address(0), "ERC20: mint to the zero address");
         unchecked {
