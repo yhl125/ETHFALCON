@@ -89,7 +89,7 @@ contract ZKNOX_Verifier is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         uint256 val,
         bytes memory salt, // compacted signature salt part
         uint256[] memory s2 // compacted signature s2 part)
-    ) public {
+    ) external payable {
         bytes32 digest = keccak256(abi.encode(nonce++, to, data, val));
         ISigVerifier Core = ISigVerifier(CoreAddress);
 
