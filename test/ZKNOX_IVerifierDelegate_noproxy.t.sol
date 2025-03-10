@@ -29,7 +29,7 @@ contract ERC20 {
     }
 
     function _mint(address account, uint256 amount) internal {
-        //require(msg.sender == minter, "ERC20: msg.sender is not minter");
+        require(msg.sender == minter, "ERC20: msg.sender is not minter");//comment until delegation works
         console.log("message sender:", msg.sender);
         require(account != address(0), "ERC20: mint to the zero address");
         unchecked {
@@ -39,6 +39,30 @@ contract ERC20 {
 
     function _acknowledge(bytes memory data) public pure returns (string memory res) {
         return string(abi.encodePacked(data, "\n was successfully signed!"));
+    }
+}
+
+contract CallExecutor {
+    function executeCall(
+        address verifier,
+        address token,
+        bytes memory data,
+        uint256 value,
+        bytes memory salt,
+        uint256[] memory s2
+    ) external {
+        console.log("Verifier:", verifier);
+        console.log("Token:", token);
+        console.logBytes(data);
+        console.log("Value:", value);
+        console.logBytes(salt);
+        console.log("S2 Length:", s2.length);
+
+        // Direct `call`, ensuring Verifier's storage is accessed instead of Alice's
+        (bool success, bytes memory returnData) = verifier.call(
+            abi.encodeWithSignature("transact(address,bytes,uint256,bytes,uint256[])", token, data, value, salt, s2)
+        );
+        require(success, "Call to Verifier failed");
     }
 }
 
@@ -112,10 +136,29 @@ contract SignDelegationTest is Test {
 
         //calls[0] = SimpleDelegateContract.Call({to: address(token), data: data, value: 0});
 
+        vm.startBroadcast(ALICE_PK);
         // Alice signs a delegation allowing `implementation` to execute transactions on her behalf.
         Vm.SignedDelegation memory signedDelegation = vm.signDelegation(address(Verifier), ALICE_PK);
 
+        // Set Alice's storage before calling Verifier
+        vm.store(ALICE_ADDRESS, bytes32(uint256(0)), bytes32(uint256(uint160(Verifier.authorizedPublicKey()))));
+        vm.store(ALICE_ADDRESS, bytes32(uint256(1)), bytes32(uint256(uint160(Verifier.CoreAddress()))));
+        vm.store(ALICE_ADDRESS, bytes32(uint256(2)), bytes32(Verifier.algoID()));
+        vm.store(ALICE_ADDRESS, bytes32(uint256(3)), bytes32(Verifier.nonce()));
+
+        // Debug: Print stored values to verify correct setup
+        console.log(
+            "Stored authorizedPublicKey at Alice:",
+            address(uint160(uint256(vm.load(ALICE_ADDRESS, bytes32(uint256(0))))))
+        );
+        console.log(
+            "Stored CoreAddress at Alice:", address(uint160(uint256(vm.load(ALICE_ADDRESS, bytes32(uint256(1))))))
+        );
+        console.log("Stored algoID at Alice:", uint256(vm.load(ALICE_ADDRESS, bytes32(uint256(2)))));
+        console.log("Stored nonce at Alice:", uint256(vm.load(ALICE_ADDRESS, bytes32(uint256(3)))));
+
         // As Bob, execute the transaction via Alice's temporarily assigned contract.
+        vm.stopBroadcast();
 
         vm.broadcast(BOB_PK);
         vm.attachDelegation(signedDelegation);
@@ -130,9 +173,7 @@ contract SignDelegationTest is Test {
         require(code.length > 0, "no code written to Alice");
 
         // As Bob, execute the transaction via Alice's temporarily assigned contract.
-        //ZKNOX_Verifier(ALICE_ADDRESS).transact(address(token), data, 0, SALT, S2); //this is the delegation we want, failing now
-
-        Verifier.transact(address(token), data, 0, SALT, S2); //this will fail at msgsender=minter
+        ZKNOX_Verifier(ALICE_ADDRESS).transact(address(token), data, 0, SALT, S2); //this is the delegation we want, failing now
 
         // Verify Bob successfully received 100 tokens.
         vm.assertEq(token.balanceOf(BOB_ADDRESS), 100);
