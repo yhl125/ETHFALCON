@@ -127,10 +127,10 @@ def signature(sk, data, version):
     deterministic_bytes.update(b''.join(x.to_bytes(2, 'big') for x in sk.h))
     # data TODO consider h(M) instead here.
     # if H does not output 32 bytes, change V above.
-    deterministic_bytes.update(data.encode())
+    deterministic_bytes.update(data)
 
     sig = sk.sign(
-        data.encode(),
+        data,
         randombytes=deterministic_bytes.read
     )
     if version == 'falcon':
@@ -187,12 +187,12 @@ def print_signature_transaction(sig, pk, nonce, to, data, value):
 
 
 def verify_signature(pk, data, sig):
-    return pk.verify(data.encode(), sig)
+    return pk.verify(data, sig)
 
 
 def verify_signature_on_chain(pk, data, sig, contract_address, rpc):
 
-    MSG = "0x" + data.encode().hex()
+    MSG = "0x" + data.hex()
 
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     SALT = "0x"+salt.hex()
@@ -300,7 +300,7 @@ def cli():
             print("Error: Provide --data, --privkey and --version")
             return
         sk = load_sk(args.privkey)
-        sig = signature(sk, args.data, args.version)
+        sig = signature(sk, bytes.fromhex(args.data), args.version)
         save_signature(sig, 'sig')
 
     elif args.action == "sign_tx":
@@ -310,7 +310,7 @@ def cli():
             return
         sk = load_sk(args.privkey)
         pk = PublicKey(512, sk.h)
-        sig = signature(sk, args.data, args.version)
+        sig = signature(sk, bytes.fromhex(args.data), args.version)
         print_signature_transaction(
             sig, pk, int(args.nonce, 16), int(args.to, 16), bytes.fromhex(args.data), int(args.value, 16))
 
@@ -320,7 +320,7 @@ def cli():
             return
         pk = load_pk(args.pubkey)
         sig = load_signature(args.signature)
-        if verify_signature(pk, args.data, sig):
+        if verify_signature(pk, bytes.fromhex(args.data), sig):
             print("Signature is valid.")
         else:
             print("Invalid signature.")
@@ -333,7 +333,7 @@ def cli():
         pk = load_pk(args.pubkey)
         sig = load_signature(args.signature)
         verify_signature_on_chain(
-            pk, args.data, sig, args.contractaddress, args.rpc)
+            pk, bytes.fromhex(args.data), sig, args.contractaddress, args.rpc)
 
     elif args.action == "verifyonchainsend":
         if not args.data or not args.pubkey or not args.signature or not args.rpc or not args.contractaddress or not args.privatekey:
@@ -343,7 +343,7 @@ def cli():
         pk = load_pk(args.pubkey)
         sig = load_signature(args.signature)
         verify_signature_on_chain_with_transaction(
-            pk, args.data, sig, args.contractaddress, args.rpc, args.privatekey)
+            pk, bytes.fromhex(args.data), sig, args.contractaddress, args.rpc, args.privatekey)
 
 
 if __name__ == "__main__":

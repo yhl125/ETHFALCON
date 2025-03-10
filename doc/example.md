@@ -16,11 +16,11 @@ The public and private keys are generated using Python:
 The signature is computed from the private key (stored in `private_key.pem`):
 ```bash
 # generate a signature for the message "This is a demo"
-./sign_cli.py sign --privkey='private_key.pem' --message="This is a demo" --version='falcon'
+./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e --version='falcon'
 ```
 The signature can be verified on chain:
 ```bash
-./sign_cli.py verifyonchain --pubkey='public_key.pem' --message="This is a demo" --signature='sig' --contractaddress='0xD2d8e3a5bCf8E177A627698176bC9a99E03D358D' --rpc='https://ethereum-holesky-rpc.publicnode.com'
+./sign_cli.py verifyonchain --pubkey='public_key.pem' --data=546869732069732061207472616e73616374696f6e --signature='sig' --contractaddress='0xD2d8e3a5bCf8E177A627698176bC9a99E03D358D' --rpc='https://ethereum-holesky-rpc.publicnode.com'
 ```
 This should output:
 ```
