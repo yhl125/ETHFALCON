@@ -267,7 +267,7 @@ def cli():
     parser.add_argument("--to", type=str,
                         help="Destination in hexadecimal address for the transaction")
     parser.add_argument("--data", type=str,
-                        help="Data to be signed")
+                        help="Data to be signed in hexadecimal")
     parser.add_argument("--value", type=str,
                         help="Value in hexadecimal for the transaction")
     parser.add_argument("--privkey", type=str,
@@ -304,15 +304,15 @@ def cli():
         save_signature(sig, 'sig')
 
     elif args.action == "sign_tx":
-        if not args.data or not args.privkey or not args.version or not args.nonce or not args.to or not args.value or not args.pubkey:
+        if not args.data or not args.privkey or not args.version or not args.nonce or not args.to or not args.value:
             print(
-                "Error: Provide --data, --privkey, --version, --nonce, --to, --value and --pubkey")
+                "Error: Provide --data, --privkey, --version, --nonce, --to and --value")
             return
         sk = load_sk(args.privkey)
-        pk = load_pk(args.pubkey)
+        pk = PublicKey(512, sk.h)
         sig = signature(sk, args.data, args.version)
         print_signature_transaction(
-            sig, pk, int(args.nonce, 16), int(args.to, 16), args.data.encode(), int(args.value, 16))
+            sig, pk, int(args.nonce, 16), int(args.to, 16), bytes.fromhex(args.data), int(args.value, 16))
 
     elif args.action == "verify":
         if not args.data or not args.pubkey or not args.signature:

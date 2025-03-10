@@ -33,16 +33,15 @@ ___
 
 For computing a transaction, we need to provide:
 * A `nonce`, unique identifier as a `uint256` given in hex,
-* The destinary address `to`, a `uint160` given in hex,
-* The transaction `data` to be signed, given as `bytes`,
-* The value ??? as a `uint256` given in hex,
+* The destination address `to`, a `uint160` given in hex,
+* The transaction `data` to be signed, given in hex,
+* The value as an integer given in decimal.
 
 For the signature, we also need to provide:
 * The private key file,
 * The version of the scheme (it works only for `falcon` for now),
-* The public key (TODO it should be computed from the private key)
 ```bash
-./sign_cli.py sign_tx --data='This is a transaction' --privkey=private_key.pem --version='falcon' --nonce=0123456789 --to=0xadd4e55 --value=ffff --pubkey=public_key.pem
+./sign_cli.py sign_tx --data=546869732069732061207472616e73616374696f6e --privkey=private_key.pem --version='falcon' --nonce=0123456789 --to=add4e55 --value=123
 ```
 This outputs the useful data for the transaction:
 * The hash for the transaction`TX_HASH`: `Keccak256(nonce|to|data|value)`,
