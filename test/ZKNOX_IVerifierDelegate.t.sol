@@ -160,6 +160,6 @@ contract SignDelegationTest is Test {
         // (i1,i2)= ZKNOX_Verifier(ALICE_ADDRESS).GetStorage();
 
         // Verify Bob successfully received 100 tokens.
-        //vm.assertEq(token.balanceOf(BOB_ADDRESS), 100);
+        vm.assertEq(token.balanceOf(BOB_ADDRESS), 100);
     }
 }

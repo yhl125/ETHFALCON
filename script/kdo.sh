@@ -5,7 +5,7 @@
 # private key of the sender
 PRIV_KEY=$1
 
-# private key of the receiver
+# public key of the receiver
 PUB_KEY=$2
 # Renaud    "0x77bcB19f4B4F3c6077399ADE22C366Bf66F3Ac36"
 # Simon     "0x59c75335aAd51b7B705eae13A57f5407139A3A90"
