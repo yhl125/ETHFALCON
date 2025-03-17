@@ -40,22 +40,19 @@
 pragma solidity ^0.8.25;
 
 contract ZKNOX_shake {
-  
-    uint constant _RATE=136;
- 
-   // """Rotate uint64 x left by s.""
+    uint256 constant _RATE = 136;
+
+    // """Rotate uint64 x left by s.""
     function rol64(uint256 x, uint256 s) public pure returns (uint64) {
         return (uint64)(x << s ^ (x >> (64 - s)));
     }
 
-   
     function F1600(uint64[25] memory state) public pure returns (uint64[25] memory) {
-
-    // forgefmt: disable-next-line
-    uint256[24] memory _KECCAK_PI = [uint256(10), 7, 11, 17, 18, 3, 5, 16, 8, 21, 24, 4, 15, 23, 19, 13, 12, 2, 20, 14, 22, 9, 6, 1];
-    // forgefmt: disable-next-line
-    uint64[24] memory _KECCAK_RC = [uint64(0x0000000000000001), 0x0000000000008082,0x800000000000808a,0x8000000080008000,0x000000000000808b, 0x0000000080000001,0x8000000080008081, 0x8000000000008009,0x000000000000008a, 0x0000000000000088,0x0000000080008009, 0x000000008000000a,0x000000008000808b, 0x800000000000008b,0x8000000000008089, 0x8000000000008003,0x8000000000008002, 0x8000000000000080,0x000000000000800a, 0x800000008000000a,0x8000000080008081, 0x8000000000008080, 0x0000000080000001, 0x8000000080008008];
-     // forgefmt: disable-next-line
+        // forgefmt: disable-next-line
+        uint256[24] memory _KECCAK_PI = [uint256(10), 7, 11, 17, 18, 3, 5, 16, 8, 21, 24, 4, 15, 23, 19, 13, 12, 2, 20, 14, 22, 9, 6, 1];
+        // forgefmt: disable-next-line
+        uint64[24] memory _KECCAK_RC = [uint64(0x0000000000000001), 0x0000000000008082,0x800000000000808a,0x8000000080008000,0x000000000000808b, 0x0000000080000001,0x8000000080008081, 0x8000000000008009,0x000000000000008a, 0x0000000000000088,0x0000000080008009, 0x000000008000000a,0x000000008000808b, 0x800000000000008b,0x8000000000008089, 0x8000000000008003,0x8000000000008002, 0x8000000000000080,0x000000000000800a, 0x800000008000000a,0x8000000080008081, 0x8000000000008080, 0x0000000080000001, 0x8000000080008008];
+        // forgefmt: disable-next-line
      uint256[24] memory _KECCAK_RHO =[uint256(1), 3, 6, 10, 15, 21, 28, 36, 45, 55, 2, 14, 27, 41, 56, 8, 25, 43, 62, 18, 39, 61, 20, 44];
 
         uint64[5] memory bc = [uint64(0), 0, 0, 0, 0];
@@ -75,7 +72,7 @@ contract ZKNOX_shake {
             //# Theta
             for (uint256 x = 0; x < 5; x++) {
                 //range(5):
-                t = bc[addmod(x,4,5)] ^ rol64(bc[addmod(x,1,5)], 1);
+                t = bc[addmod(x, 4, 5)] ^ rol64(bc[addmod(x, 1, 5)], 1);
                 for (uint64 y = 0; y < 25; y += 5) {
                     // in range(0, 25, 5):
                     state[y + x] ^= t;
@@ -98,7 +95,7 @@ contract ZKNOX_shake {
                 }
                 for (uint256 x = 0; x < 5; x++) {
                     //range(5):
-                    state[y + x] = bc[x] ^ ((bc[addmod(x,1,5)] ^ 0xffffffffffffffff) & bc[addmod(x,2,5)]);
+                    state[y + x] = bc[x] ^ ((bc[addmod(x, 1, 5)] ^ 0xffffffffffffffff) & bc[addmod(x, 2, 5)]);
                 }
                 state[0] ^= _KECCAK_RC[i];
             }
@@ -106,7 +103,11 @@ contract ZKNOX_shake {
         return state;
     } //end F1600
 
-    function absorb(uint256 i, uint8[200] memory buf, uint64[25] memory state, bytes memory input) public pure returns(uint8[200] memory bufout,uint64[25] memory stateout) {
+    function absorb(uint256 i, uint8[200] memory buf, uint64[25] memory state, bytes memory input)
+        public
+        pure
+        returns (uint8[200] memory bufout, uint64[25] memory stateout)
+    {
         uint256 todo = input.length;
         uint256 index = 0;
         while (todo > 0) {
@@ -117,14 +118,14 @@ contract ZKNOX_shake {
             }
             i += willabsorb;
 
-            for(i=0;i<200;i++){
-                state[i/8]^=buf[i]<<uint8(i&0x7); 
+            for (i = 0; i < 200; i++) {
+                state[i / 8] ^= buf[i] << uint8(i & 0x7);
             }
 
             if (i == _RATE) {
-                state=permute(buf, state);
-                for(uint256 j=0; j<200; j++){
-                    buf[j]=0;
+                state = permute(buf, state);
+                for (uint256 j = 0; j < 200; j++) {
+                    buf[j] = 0;
                 }
             }
             todo -= willabsorb;
@@ -134,15 +135,24 @@ contract ZKNOX_shake {
         return (buf, state);
     }
 
-    function update(bool _SPONGE_ABSORBING,uint256 i, uint8[200] memory buf, uint64[25] memory state, bytes memory input ) public pure returns(uint64[25] memory stateout) {
-        if(_SPONGE_ABSORBING==false){
-            state=permute(buf, state);
+    function update(
+        bool _SPONGE_ABSORBING,
+        uint256 i,
+        uint8[200] memory buf,
+        uint64[25] memory state,
+        bytes memory input
+    ) public pure returns (uint64[25] memory stateout) {
+        if (_SPONGE_ABSORBING == false) {
+            state = permute(buf, state);
         }
         absorb(i, buf, state, input);
-
     }
 
- function squeeze(uint256 i, uint8[200] memory buf, uint64[25] memory state, uint256 n) public pure returns (bytes memory) {
+    function squeeze(uint256 i, uint8[200] memory buf, uint64[25] memory state, uint256 n)
+        public
+        pure
+        returns (bytes memory)
+    {
         bytes memory output = new bytes(n);
         uint256 tosqueeze = n;
         uint256 index = 0;
@@ -162,29 +172,28 @@ contract ZKNOX_shake {
         return output;
     }
 
- function permute(uint8[200] memory buf, uint64[25] memory state) internal pure returns (uint64[25] memory stateout){
+    function permute(uint8[200] memory buf, uint64[25] memory state)
+        internal
+        pure
+        returns (uint64[25] memory stateout)
+    {
         for (uint256 j = 0; j < 25; j++) {
             state[j] ^= uint64(uint8(buf[j]));
         }
         // Call F1600 Keccak permutation function here
         // KeccakF1600();
-       
+
         for (uint256 j = 0; j < 200; j++) {
             buf[j] = 0;
         }
 
-
-
-        return state;//zeroization of buf external to this function
+        return state; //zeroization of buf external to this function
     }
-
 
     //to be yuled
-  function pad(uint256 i, uint8[200] memory buf) internal view returns(uint8[200] memory bufout) {
+    function pad(uint256 i, uint8[200] memory buf) internal view returns (uint8[200] memory bufout) {
         buf[i] ^= 0x1f;
         buf[_RATE - 1] ^= 0x80;
-   //     F1600(buf);
+        //     F1600(buf);
     }
-
-
 }
