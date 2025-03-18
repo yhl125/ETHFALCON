@@ -43,11 +43,12 @@ import "../src/ZKNOX_shake.sol";
 import {Test, console} from "forge-std/Test.sol";
 
 contract ZKNOX_ShakeTest is Test {
-    ZKNOX_shake oneal = new ZKNOX_shake();
+    ZKNOX_shake shake = new ZKNOX_shake();
 
     function test_F1600Zero() public view {
         uint64[25] memory zeroes = [uint64(0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
+        // forgefmt: disable-next-line
         uint64[25] memory TEST_F1600_ZERO = [
             0xF1258F7940E1DDE7,
             0x84D5CCF933C0478A,
@@ -76,15 +77,28 @@ contract ZKNOX_ShakeTest is Test {
             0xEAF1FF7B5CECA249
         ];
 
-        uint64[25] memory res = oneal.F1600(zeroes);
+        uint64[25] memory res = shake.F1600(zeroes);
 
         for (uint256 i = 0; i < 25; i++) {
             assertEq(res[i], TEST_F1600_ZERO[i]);
         }
     }
 
-    function test_update() public view {
+    function test_absorb() public view {
+        uint64[25] memory state;
+        uint8[200] memory buff;
+
+        //vector of size 136 from official kats
         bytes memory message =
             hex"B32D95B0B9AAD2A8816DE6D06D1F86008505BD8C14124F6E9A163B5A2ADE55F835D0EC3880EF50700D3B25E42CC0AF050CCD1BE5E555B23087E04D7BF9813622780C7313A1954F8740B6EE2D3F71F768DD417F520482BD3A08D4F222B4EE9DBD015447B33507DD50F3AB4247C5DE9A8ABD62A8DECEA01E3B87C8B927F5B08BEB37674C6F8E380C04";
+
+        // forgefmt: disable-next-line
+        uint64[25] memory expected=[0xf2a3a3057654e665,0xce044847fc85f48e,  0xec3bd70f31a2866a,  0x7bada64d3aa28d05,  0xdf2d6ae3aa215523,  0x18b3f802c1c29a3f,  0x6044c64141c18ca1,  0x867be8cca2f1a54,  0x73773b337ce4e5eb,  0x7b8b093e6cc376c6,  0x3ed5eb2ef9295a2a,  0xd6ab08c040f891d2,  0x329ec3f446ae8bc6,  0x21ce09a9142a7a7d,  0xc5d90ada910c2965,  0xefa939add08954f4,  0xdfd33eee70e98a5a,  0x69c21fbc22c1f12a,  0x99e8f946ed7c1708,  0xc47ef08b0c9f3f9f,  0x5a102b80ec0fb414,  0x52d66d1377cf6219,  0x3a79068ab1f1288,  0x17a59fb049fd9130,  0x9fccb95c262e9e76];
+
+        (buff, state) = shake.absorb(0, buff, state, message);
+
+        for (uint256 i = 0; i < 25; i++) {
+            assertEq(state[i], expected[i]);
+        }
     }
 }

@@ -39,6 +39,8 @@
 //this is a direct translation from https://github.com/coruus/py-keccak/blob/master/fips202/keccak.py
 pragma solidity ^0.8.25;
 
+import {Test, console} from "forge-std/Test.sol";
+
 contract ZKNOX_shake {
     uint256 constant _RATE = 136;
 
@@ -56,6 +58,10 @@ contract ZKNOX_shake {
      uint256[24] memory _KECCAK_RHO =[uint256(1), 3, 6, 10, 15, 21, 28, 36, 45, 55, 2, 14, 27, 41, 56, 8, 25, 43, 62, 18, 39, 61, 20, 44];
 
         uint64[5] memory bc = [uint64(0), 0, 0, 0, 0];
+
+        for (uint256 i = 0; i < 24; i++) {
+            console.log("%x", state[i]);
+        }
 
         for (uint256 i = 0; i < 24; i++) {
             //range(24):
@@ -109,24 +115,28 @@ contract ZKNOX_shake {
         returns (uint8[200] memory bufout, uint64[25] memory stateout)
     {
         uint256 todo = input.length;
+
+        console.log("todo=", todo);
         uint256 index = 0;
         while (todo > 0) {
             uint256 cando = _RATE - i;
             uint256 willabsorb = (cando < todo) ? cando : todo;
+            console.log("cndo=", cando);
+            console.log("willabsorb=", willabsorb);
+
             for (uint256 j = 0; j < willabsorb; j++) {
                 buf[i + j] ^= uint8(input[index + j]);
             }
             i += willabsorb;
 
-            for (i = 0; i < 200; i++) {
-                state[i / 8] ^= buf[i] << uint8(i & 0x7);
-            }
-
+            console.log("i=", i);
             if (i == _RATE) {
+                console.log("call to permute");
                 state = permute(buf, state);
                 for (uint256 j = 0; j < 200; j++) {
                     buf[j] = 0;
                 }
+                i = 0;
             }
             todo -= willabsorb;
             index += willabsorb;
@@ -177,11 +187,17 @@ contract ZKNOX_shake {
         pure
         returns (uint64[25] memory stateout)
     {
-        for (uint256 j = 0; j < 25; j++) {
-            state[j] ^= uint64(uint8(buf[j]));
+        console.log("buffer:");
+        for (uint256 i = 0; i < 200; i++) {
+            console.log("%x", buf[i]);
+        }
+
+        //require a 64 bits swap
+        for (uint256 j = 0; j < 200; j++) {
+            state[j / 8] ^= uint64(buf[j]) << (((uint8(j & 0x7) << 3)));
         }
         // Call F1600 Keccak permutation function here
-        // KeccakF1600();
+        state = F1600(state);
 
         for (uint256 j = 0; j < 200; j++) {
             buf[j] = 0;
