@@ -2,10 +2,10 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ETHFalcon} from "../external/ETHFalcon_Recursive.sol";
-import {NTT} from "../external/NTT_Recursive.sol";
+import {ETHFalcon} from "../../external/ETHFalcon_Recursive.sol";
+import {NTT} from "../../external/NTT_Recursive.sol";
 
-import "../src/ZKNOX_HashToPoint.sol";
+import "../../src/ZKNOX_HashToPoint.sol";
 
 contract FalconTest is Test {
     int256 constant _q = 12289;
