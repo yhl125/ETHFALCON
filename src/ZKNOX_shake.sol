@@ -59,43 +59,41 @@ contract ZKNOX_shake {
 
         uint64[5] memory bc = [uint64(0), 0, 0, 0, 0];
 
-       
         for (uint256 i = 0; i < 24; i++) {
             //range(24):
             uint64 t;
-            
-            
-            assembly{
+
+            assembly {
                 let offset_X
-                for { offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } { //for (uint256 x = 0; x < 5; x++)
-                    mstore(add(bc,offset_X),0)                                                    //bc[x] = 0;
-                   
-                    let bcx:=add(bc,offset_X)
-                    let temp:=mload(bcx)
-                    for {let offset_Y := 0 } gt(800, offset_Y) { offset_Y := add(offset_Y, 160) } {
-                       temp:= xor(temp, mload(add(state,add(offset_X, offset_Y) ) )) // bc[x] ^= state[x + y];
+                for { offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
+                    //for (uint256 x = 0; x < 5; x++)
+                    mstore(add(bc, offset_X), 0) //bc[x] = 0;
+
+                    let bcx := add(bc, offset_X)
+                    let temp := mload(bcx)
+                    for { let offset_Y := 0 } gt(800, offset_Y) { offset_Y := add(offset_Y, 160) } {
+                        temp := xor(temp, mload(add(state, add(offset_X, offset_Y)))) // bc[x] ^= state[x + y];
                     }
                     mstore(bcx, temp)
                 }
             }
 
-
             //# Theta
             for (uint256 x = 0; x < 5; x++) {
                 t = bc[addmod(x, 4, 5)] ^ rol64(bc[addmod(x, 1, 5)], 1);
-                
+
                 /*
                 for (uint64 y = 0; y < 25; y += 5) {
                     // in range(0, 25, 5):
                     state[y + x] ^= t;
                 }*/
-                
-                assembly{
-                 let offset_X:=add(state, mul(32,x))
-                 for { let offset_Y := 0 } gt(800, offset_Y) { offset_Y := add(offset_Y, 160) } {
-                    let offset:=add(offset_X, offset_Y)
-                    mstore(offset, xor(mload(offset), t))
-                 }
+
+                assembly {
+                    let offset_X := add(state, mul(32, x))
+                    for { let offset_Y := 0 } gt(800, offset_Y) { offset_Y := add(offset_Y, 160) } {
+                        let offset := add(offset_X, offset_Y)
+                        mstore(offset, xor(mload(offset), t))
+                    }
                 }
             }
 
@@ -109,23 +107,29 @@ contract ZKNOX_shake {
 
             for (uint256 y = 0; y < 25; y += 5) {
                 for (uint256 x = 0; x < 5; x++) {
-                   
                     bc[x] = state[y + x];
                 }
-                
 
-                assembly{
-                     let offset_Y:=add(state,mul(y,32))
-                     for { let offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
-                        let offset:=add( offset_X,offset_Y) //address of state[x+y]
-                        
-                        mstore(offset, xor(mload(add( offset_X,bc)), and( xor(mload(add(bc, addmod(offset_X, 32, 160)) ), 0xffffffffffffffff), mload(add(bc, addmod(offset_X, 64, 160))) ) ) )
-                     }
+                assembly {
+                    let offset_Y := add(state, mul(y, 32))
+                    for { let offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
+                        let offset := add(offset_X, offset_Y) //address of state[x+y]
+
+                        mstore(
+                            offset,
+                            xor(
+                                mload(add(offset_X, bc)),
+                                and(
+                                    xor(mload(add(bc, addmod(offset_X, 32, 160))), 0xffffffffffffffff),
+                                    mload(add(bc, addmod(offset_X, 64, 160)))
+                                )
+                            )
+                        )
+                    }
                 }
 
                 state[0] ^= _KECCAK_RC[i];
             }
-
         } //end loop i
         return state;
     } //end F1600
@@ -234,10 +238,7 @@ contract ZKNOX_shake {
         //     F1600(buf);
     }
 
-
-    function digest(bytes memory input, uint size8) public view returns ( bytes memory output){
+    function digest(bytes memory input, uint256 size8) public view returns (bytes memory output) {
         output = new bytes(size8);
-
-
     }
 }
