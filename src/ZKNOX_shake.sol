@@ -70,11 +70,10 @@ contract ZKNOX_shake {
                 for { offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } { //for (uint256 x = 0; x < 5; x++)
                     mstore(add(bc,offset_X),0)                                                    //bc[x] = 0;
                    
-                    let offset_Y
                     let bcx:=add(bc,offset_X)
                     let temp:=mload(bcx)
-                    for { offset_Y := offset_X } gt(800, offset_Y) { offset_Y := add(offset_Y, 160) } {
-                       temp:= xor(temp, mload(add(state,offset_Y ) )) // bc[x] ^= state[x + y];
+                    for {let offset_Y := 0 } gt(800, offset_Y) { offset_Y := add(offset_Y, 160) } {
+                       temp:= xor(temp, mload(add(state,add(offset_X, offset_Y) ) )) // bc[x] ^= state[x + y];
                     }
                     mstore(bcx, temp)
                 }
@@ -84,11 +83,22 @@ contract ZKNOX_shake {
             //# Theta
             for (uint256 x = 0; x < 5; x++) {
                 t = bc[addmod(x, 4, 5)] ^ rol64(bc[addmod(x, 1, 5)], 1);
+                
+                /*
                 for (uint64 y = 0; y < 25; y += 5) {
                     // in range(0, 25, 5):
                     state[y + x] ^= t;
+                }*/
+                
+                assembly{
+                 let offset_X:=add(state, mul(32,x))
+                 for { let offset_Y := 0 } gt(800, offset_Y) { offset_Y := add(offset_Y, 160) } {
+                    let offset:=add(offset_X, offset_Y)
+                    mstore(offset, xor(mload(offset), t))
+                 }
                 }
             }
+
             //# Rho and pi
             t = state[1];
             for (uint256 x = 0; x < 24; x++) {
@@ -98,15 +108,21 @@ contract ZKNOX_shake {
             }
 
             for (uint256 y = 0; y < 25; y += 5) {
-                // in range(0, 25, 5):
                 for (uint256 x = 0; x < 5; x++) {
-                    //range(5):
+                   
                     bc[x] = state[y + x];
                 }
-                for (uint256 x = 0; x < 5; x++) {
-                    //range(5):
-                    state[y + x] = bc[x] ^ ((bc[addmod(x, 1, 5)] ^ 0xffffffffffffffff) & bc[addmod(x, 2, 5)]);
+                
+
+                assembly{
+                     let offset_Y:=add(state,mul(y,32))
+                     for { let offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
+                        let offset:=add( offset_X,offset_Y) //address of state[x+y]
+                        
+                        mstore(offset, xor(mload(add( offset_X,bc)), and( xor(mload(add(bc, addmod(offset_X, 32, 160)) ), 0xffffffffffffffff), mload(add(bc, addmod(offset_X, 64, 160))) ) ) )
+                     }
                 }
+
                 state[0] ^= _KECCAK_RC[i];
             }
 
