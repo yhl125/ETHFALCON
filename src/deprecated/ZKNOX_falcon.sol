@@ -38,133 +38,132 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import "./ZKNOX_common.sol";
-import "./ZKNOX_IVerifier.sol";
-
-import "./ZKNOX_falcon_utils.sol";
-import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
-import "./ZKNOX_falcon_core.sol";
+import {ZKNOX_NTT} from "../ZKNOX_NTT.sol";
 
 //choose the XOF to use here
-import "./ZKNOX_HashToPoint.sol";
+import "../ZKNOX_HashToPoint.sol";
+import "../ZKNOX_falcon_utils.sol";
+import "../ZKNOX_falcon_core.sol";
 
-//import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-//import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
-/* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
-contract ZKNOX_falcon_compact is ISigVerifier {
+contract ZKNOX_falcon {
     ZKNOX_NTT ntt;
-    address public psirev;
-    address public psiInvrev;
-    bool EIP7885;
-    bool immutableMe;
-    uint256 err_flag; //a debug flag
 
-    function update(address i_psirev, address i_psiInvrev) public {
-        if (immutableMe == true) revert();
-        psirev = i_psirev;
-        psiInvrev = i_psiInvrev;
-        EIP7885 = false;
-        immutableMe = true;
-    }
-
-    function updateNTT(ZKNOX_NTT i_ntt) public {
-        if (immutableMe == true) revert();
+    //Outer NTT contract, initialized with falcon field parameters
+    constructor(ZKNOX_NTT i_ntt) {
         ntt = i_ntt;
-        EIP7885 = true;
-        immutableMe = true;
     }
 
-    function setflag(uint256 value) public {
-        err_flag = value;
-    }
-
-    struct CompactSignature {
+    struct Signature {
         bytes salt;
-        uint256[] s2; // compacted signature
+        uint256[] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
     }
 
-    function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool) {
-        if (ntth.length != falcon_S256) return false; //"Invalid public key length"
-        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s2.length != falcon_S256) return false; //"Invalid salt length"
-
-        return true;
+    struct FalconPubKey {
+        uint256[] value; //polynomial representing the public key, either in canonical or ntt form;
+        bool nttform;
+        bool is_compact;
+        uint256 hashID; //identifier for the internal XOF
     }
 
-    function verify(
-        bytes memory msgs,
-        CompactSignature memory signature,
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view returns (bool result) {
-        if (CheckParameters(signature, ntth) == false) return false;
-
-        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
-        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
+    struct FalconSignature {
+        bytes salt;
+        uint256[] s2; // CVETH-2025-080202: remove potential malleability by forcing positive coefficients with uint
     }
 
-    function verifyTetration(
-        bytes memory msgs,
-        CompactSignature memory signature,
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view returns (bool result) {
-        if (CheckParameters(signature, ntth) == false) return false;
-        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs);
-        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
-    }
+    function CheckKey(FalconPubKey memory Pubkey) public pure returns (bool) {
+        bool isKnownID = false;
 
-    function verify_spec(
-        bytes memory msgs,
-        CompactSignature memory signature,
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view returns (bool result) {
-        if (CheckParameters(signature, ntth) == false) return false;
-
-        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
-        return falcon_core_spec(psirev, psiInvrev, signature.s2, ntth, hashed);
-    }
-
-    function verify(
-        bytes memory h, //a 32 bytes hash
-        bytes memory salt, // compacted signature salt part
-        uint256[] memory s2, // compacted signature s2 part
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) external view returns (bool result) {
-        // if (h.length != 32) return false;
-        if (salt.length != 40) {
-            revert("invalid salt length");
-            //return false;
-        } //CVETH-2025-080201: control salt length to avoid potential forge
-        if (s2.length != falcon_S256) {
-            revert("invalid s2 length");
-            //return false;
-        } //"Invalid salt length"
-        if (ntth.length != falcon_S256) {
-            revert("invalid ntth length");
-            //return false;
-        } //"Invalid public key length"
-
-        uint256[] memory hashed = hashToPointRIP(salt, h);
-
-        result = falcon_core_spec(psirev, psiInvrev, s2, ntth, hashed);
-        //if (result == false) revert("wrong sig");
-
-        return result;
-    }
-
-    function GetPublicKey(address _from) external view override returns (uint256[] memory Kpub) {
-        Kpub = new uint256[](32);
-
-        assembly {
-            let offset := Kpub
-
-            for { let i := 0 } gt(1024, i) { i := add(i, 32) } {
-                //read the 32 words
-                offset := add(offset, 32)
-
-                extcodecopy(_from, offset, i, 32) //psi_rev[m+i])
-            }
+        if (Pubkey.is_compact) {
+            if (Pubkey.value.length != _FALCON_WORD256_S) return false;
+        } else {
+            if (Pubkey.value.length != _FALCON_WORD32_S) return false;
         }
-        return Kpub;
+
+        if (falcon_checkPolynomialRange(Pubkey.value, Pubkey.is_compact) != true) return false;
+
+        if (Pubkey.hashID == ID_keccak) isKnownID = true;
+        if (Pubkey.hashID == ID_tetration) isKnownID = true;
+
+        return isKnownID;
     }
-} //end of contract ZKNOX_falcon_compact
+
+    function verify(
+        bytes memory msgs,
+        Signature memory signature,
+        uint256[] memory h, // public key
+        bool h_zknox // choose Tetration's or ZKNox hash function
+    ) public view returns (bool result) {
+        if (h.length != 512) return false; //"Invalid public key length"
+        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+        if (signature.s2.length != 512) return false; //"Invalid salt length"
+
+        h = ntt.ZKNOX_NTTFW(h, ntt.o_psirev());
+
+        result = false;
+
+        uint256[] memory hashed;
+        if (h_zknox) {
+            hashed = hashToPointRIP(signature.salt, msgs);
+        } else {
+            hashed = hashToPointTETRATION(signature.salt, msgs);
+        }
+
+        return falcon_core_expanded(ntt, signature.salt, signature.s2, h, hashed);
+    }
+
+    function verify_opt(
+        bytes memory msgs,
+        Signature memory signature,
+        uint256[] memory ntth, // public key
+        bool h_zknox
+    ) public view returns (bool result) {
+        if (ntth.length != 512) return false; //"Invalid public key length"
+        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+        if (signature.s2.length != 512) return false; //"Invalid salt length"
+
+        result = false;
+
+        uint256[] memory hashed;
+        if (h_zknox) {
+            hashed = hashToPointRIP(signature.salt, msgs);
+        } else {
+            hashed = hashToPointTETRATION(signature.salt, msgs);
+        }
+
+        return falcon_core_expanded(ntt, signature.salt, signature.s2, ntth, hashed);
+    }
+
+    function verify(FalconPubKey memory pk, bytes memory msgs, FalconSignature memory signature)
+        public
+        view
+        returns (bool result)
+    {
+        result = false;
+
+        uint256[] memory hashed;
+        if (CheckKey(pk) == false) return false;
+
+        if (pk.hashID == ID_keccak) {
+            hashed = hashToPointRIP(signature.salt, msgs);
+        } else {
+            if (pk.hashID == ID_tetration) {
+                hashed = hashToPointTETRATION(signature.salt, msgs);
+            } else {
+                return false;
+            } //unknwon ID
+        }
+
+        if (pk.is_compact == false) {
+            if (pk.nttform == false) {
+                //convert public key to ntt form
+                pk.value = ntt.ZKNOX_NTTFW(pk.value, ntt.o_psirev());
+            }
+            signature.s2 = _ZKNOX_NTT_Compact(signature.s2);
+        }
+
+        return falcon_core(ntt, signature.salt, signature.s2, pk.value, hashed); //not implemented yet
+    }
+}
+
+//end of contract
+/* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/

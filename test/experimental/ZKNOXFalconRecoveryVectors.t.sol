@@ -2,8 +2,8 @@
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
-import "../src/ZKNOX_NTT.sol";
-import "../src/ZKNOX_falconrec.sol";
+import "../../src/ZKNOX_NTT.sol";
+import "../../src/experimental/ZKNOX_falconrec.sol";
 
 contract ZKNOX_FalconRecTest is Test {
     ZKNOX_falconrec falconrec;

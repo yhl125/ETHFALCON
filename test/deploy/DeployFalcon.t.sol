@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import {Script} from "../../lib/forge-std/src/Script.sol";
-import "../../src/ZKNOX_falcon_compact.sol";
+import "../../src/ZKNOX_ethfalcon.sol";
 import "../../src/ZKNOX_falcon_deploy.sol";
 
 import {console, Test} from "forge-std/Test.sol";

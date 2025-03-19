@@ -55,5 +55,7 @@ echo "balance:"
 cast balance $PUB_KEY --rpc-url $RPC
 
 
+cast balance 0x77bcB19f4B4F3c6077399ADE22C366Bf66F3Ac36 --rpc-url 	https://rpc.eof-devnet-0.ethpandaops.io
+
 
 forge script $CONTRACT_NAME --rpc-url $RPC --private-key $PRIVATE_KEY --broadcast --tc Script_Deploy_Falcon --etherscan-api-key $API_KEY --verify --priority-gas-price 1

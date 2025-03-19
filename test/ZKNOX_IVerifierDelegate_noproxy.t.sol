@@ -4,7 +4,7 @@ pragma solidity ^0.8.25;
 import "../src/ZKNOX_IVerifier.sol";
 import "../src/ZKNOX_delegate_noproxy.sol";
 
-import "../src/ZKNOX_falcon_compact.sol";
+import "../src/ZKNOX_ethfalcon.sol";
 import "../src/ZKNOX_falcon_deploy.sol";
 
 import {console, Test} from "forge-std/Test.sol";

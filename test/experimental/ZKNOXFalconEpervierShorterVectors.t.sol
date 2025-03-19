@@ -2,8 +2,8 @@
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
-import "../src/ZKNOX_NTT.sol";
-import "../src/ZKNOX_falcon_epervier_shorter.sol";
+import "../../src/ZKNOX_NTT.sol";
+import "../../src/experimental/ZKNOX_falcon_epervier_shorter.sol";
 
 contract ZKNOX_falcon_epervier_shorterTest is Test {
     ZKNOX_falcon_epervier_shorter epervier;
