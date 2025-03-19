@@ -45,7 +45,7 @@ contract ZKNOX_shake {
     uint256 constant _RATE = 136;
 
     // """Rotate uint64 x left by s.""
-    function rol64(uint256 x, uint256 s) public pure returns (uint64) {
+    function rol64(uint256 x, uint256 s) internal pure returns (uint64) {
         return (uint64)(x << s ^ (x >> (64 - s)));
     }
 
@@ -59,32 +59,36 @@ contract ZKNOX_shake {
 
         uint64[5] memory bc = [uint64(0), 0, 0, 0, 0];
 
-        for (uint256 i = 0; i < 24; i++) {
-            console.log("%x", state[i]);
-        }
-
+       
         for (uint256 i = 0; i < 24; i++) {
             //range(24):
             uint64 t;
-            //# Parity
-            for (uint256 x = 0; x < 5; x++) {
-                //range(5):
-                bc[x] = 0;
-                for (uint256 y = 0; y < 25; y += 5) {
-                    // range(0, 25, 5):
-                    bc[x] ^= state[x + y];
+            
+            
+            assembly{
+                let offset_X
+                for { offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } { //for (uint256 x = 0; x < 5; x++)
+                    mstore(add(bc,offset_X),0)                                                    //bc[x] = 0;
+                   
+                    let offset_Y
+                    let bcx:=add(bc,offset_X)
+                    let temp:=mload(bcx)
+                    for { offset_Y := offset_X } gt(800, offset_Y) { offset_Y := add(offset_Y, 160) } {
+                       temp:= xor(temp, mload(add(state,offset_Y ) )) // bc[x] ^= state[x + y];
+                    }
+                    mstore(bcx, temp)
                 }
             }
+
+
             //# Theta
             for (uint256 x = 0; x < 5; x++) {
-                //range(5):
                 t = bc[addmod(x, 4, 5)] ^ rol64(bc[addmod(x, 1, 5)], 1);
                 for (uint64 y = 0; y < 25; y += 5) {
                     // in range(0, 25, 5):
                     state[y + x] ^= t;
                 }
             }
-
             //# Rho and pi
             t = state[1];
             for (uint256 x = 0; x < 24; x++) {
@@ -105,6 +109,7 @@ contract ZKNOX_shake {
                 }
                 state[0] ^= _KECCAK_RC[i];
             }
+
         } //end loop i
         return state;
     } //end F1600
@@ -211,5 +216,12 @@ contract ZKNOX_shake {
         buf[i] ^= 0x1f;
         buf[_RATE - 1] ^= 0x80;
         //     F1600(buf);
+    }
+
+
+    function digest(bytes memory input, uint size8) public view returns ( bytes memory output){
+        output = new bytes(size8);
+
+
     }
 }
