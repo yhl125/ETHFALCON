@@ -1,6 +1,12 @@
 """Keccak and the FIPS202 functions."""
 import numpy as np
 
+"""
+This file is taken from
+https://github.com/coruus/py-keccak/blob/master/fips202/keccak.py
+so that it does not have any dependency on pycryptodome.
+WIP
+"""
 
 _KECCAK_RHO = [
     1,  3,  6, 10, 15, 21,

@@ -25,3 +25,29 @@ class TestKeccakPRNG(unittest.TestCase):
 
             # Assert that it matches
             self.assertEqual(output_1, output_2)
+
+    def test_absorb_twice(self):
+        message1 = b"We are "
+        message2 = b" ZKNOX."
+        message = message1 + message2
+
+        K = KeccakHash(rate=200-(512 // 8), dsbyte=0x01)
+        K.absorb(message)
+        K.pad()
+        output_1 = K.squeeze(32)
+
+        L = KeccakHash(rate=200-(512 // 8), dsbyte=0x01)
+        L.absorb(message1)
+        L.absorb(message2)
+        L.pad()
+        output_2 = L.squeeze(32)
+        self.assertEqual(output_1, output_2)
+
+    def test_pad_necessary(self):
+        message = b"This is a test of padding"
+        K = KeccakHash(rate=200-(512 // 8), dsbyte=0x01)
+        K.absorb(message)
+        # K.pad()
+        output = K.squeeze(32)
+        self.assertEqual(
+            output, bytes.fromhex("0000000000000000000000000000000000000000000000000000000000000000"))
