@@ -20,6 +20,9 @@ bench:
 test_keccak_prng:
 	$(PYTHON) -m unittest test_keccak_prng -v
 
+test_keccak:
+	$(PYTHON) -m unittest test_keccak -v
+
 test_falcon:
 	$(PYTHON) -m unittest test_falcon -v
 
