@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {NTT} from "../external/NTT_Recursive.sol";
+import {NTT} from "../../external/NTT_Recursive.sol";
 
 contract NTTTest is Test {
     // ans generated from python code
