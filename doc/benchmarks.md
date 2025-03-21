@@ -19,8 +19,8 @@ As there are still experiments, concurrent versions are benched here.
 
 | Function                   | Description               | gas cost | Tests Status |
 |------------------------|---------------------|---------------------|---------------------|
-| ZKNOX_falcon_compact.verify       | ZKNOX_NTT      | 1.9 M | OK|
-| ZKNOX_falcon_compact.verifyTETRATION       | ZKNOX_NTT      | 2.23M | OK|
+| ZKNOX_falcon_compact.verify       | ZKNOX_NTT      | 1.9 M | :white_check_mark:|
+| ZKNOX_falcon_compact.verifyTETRATION       | ZKNOX_NTT      | 2.23M | :white_check_mark:|
 
 **Note on the encoding**: polynomials are encoded as $(a_0 || a_1|| \ldots|| a_k)$, where $P=\sum {a_i}X^i$, the operator || being concatenation, each $a_i$ being encoded on 16 bits. This leads to a representation of $P$ over 32 uint256.
 
