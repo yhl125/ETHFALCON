@@ -11,10 +11,6 @@ from polyntt.poly import Poly
 from shake import SHAKE
 from Crypto.Hash import keccak
 from eth_abi import encode
-from eth_abi.packed import encode_packed
-
-
-import random
 
 
 def generate_keys(n, version):

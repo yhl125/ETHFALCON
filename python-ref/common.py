@@ -1,5 +1,3 @@
-from hashlib import sha256
-
 """This file contains methods and objects which are reused through multiple files."""
 
 
@@ -45,14 +43,6 @@ def sqnorm(v):
         for coef in elt:
             res += coef ** 2
     return res
-
-
-def deterministic_salt(x, seed="deterministic_salt"):
-    # This function is used for generating deterministic salt for the tests.
-    # Don't use this for a PRNG!
-    first_bytes = sha256(f"{seed}{x}".encode()).digest()
-    last_bytes = sha256(f"{seed}".encode()+first_bytes).digest()
-    return first_bytes + last_bytes[0:8]
 
 
 def falcon_compact(a):
