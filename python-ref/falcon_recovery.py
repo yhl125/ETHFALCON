@@ -5,7 +5,7 @@ from falcon import HEAD_LEN, SALT_LEN, SEED_LEN, Params, PublicKey, SecretKey, h
 from keccak_prng import KeccakPRNG
 from polyntt.poly import Poly
 from polyntt.ntt_iterative import NTTIterative
-from Crypto.Hash import keccak
+from keccak import KeccakHash
 from eth_abi.packed import encode_packed
 
 # Randomness
@@ -20,12 +20,6 @@ class RecoveryModePublicKey:
         self.signature_bound = Params[n]["sig_bound"]
         self.sig_bytelen = Params[n]["sig_bytelen"]
         self.pk = pk
-        # # compute pk from h
-        # keccak_ctx = keccak.new(digest_bytes=32)
-        # keccak_ctx.update(encode_packed(
-        #     ["uint256"] * len(h), h))
-        # # get the uint160 part of the keccak256 output
-        # self.pk = int.from_bytes(keccak_ctx.digest()[-20:], byteorder='big')
 
     def recover(self, message, signature, ntt=NTTIterative, xof=KeccakPRNG):
         """
@@ -72,9 +66,10 @@ class RecoveryModePublicKey:
         h_ntt = hashed.NTT.vec_mul(hashed_minus_s0_in_ntt, s_1_inv_ntt)
         h = hashed.NTT.intt(h_ntt)
 
-        keccak_ctx = keccak.new(digest_bytes=32)
-        keccak_ctx.update(encode_packed(["uint256"] * len(h), h))
-        return int.from_bytes(keccak_ctx.digest()[-20:], byteorder='big')
+        K = KeccakHash(rate=200-(512 // 8), dsbyte=0x01)
+        K.absorb(encode_packed(["uint256"] * len(h), h))
+        K.pad()
+        return int.from_bytes(K.squeeze(32)[-20:], byteorder='big')
 
     def verify(self, message, signature, ntt=NTTIterative, xof=KeccakPRNG):
         pk_rec = self.recover(message, signature,
@@ -85,11 +80,11 @@ class RecoveryModePublicKey:
 class RecoveryModeSecretKey(SecretKey):
     def __init__(self, n, polys=None, ntt=NTTIterative):
         super().__init__(n, polys, ntt)
-        keccak_ctx = keccak.new(digest_bytes=32)
-        keccak_ctx.update(encode_packed(
+        K = KeccakHash(rate=200-(512 // 8), dsbyte=0x01)
+        K.absorb(encode_packed(
             ["uint256"] * len(self.h), self.h))
-        # get the uint160 part of the keccak256 output
-        self.pk = int.from_bytes(keccak_ctx.digest()[-20:], byteorder='big')
+        K.pad()
+        self.pk = int.from_bytes(K.squeeze(32)[-20:], byteorder='big')
 
     def sign(self, message, randombytes=urandom, xof=KeccakPRNG):
         """

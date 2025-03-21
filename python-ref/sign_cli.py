@@ -9,7 +9,7 @@ from falcon_epervier import EpervierPublicKey, EpervierSecretKey
 from falcon_recovery import RecoveryModePublicKey, RecoveryModeSecretKey
 from polyntt.poly import Poly
 from shake import SHAKE
-from Crypto.Hash import keccak
+from keccak import KeccakHash
 from eth_abi import encode
 
 
@@ -158,14 +158,15 @@ def signature(sk, data, version):
 
 
 def transaction_hash(nonce, to, data, value):
-    keccak_ctx = keccak.new(digest_bytes=32)
+    K = KeccakHash(rate=200-(512 // 8), dsbyte=0x01)
     packed = encode(
         # seem that `to` is considered as uint256
         ["uint256", "uint160", "bytes", "uint256"],
         [nonce, to, data, value]
     )
-    keccak_ctx.update(packed)
-    return keccak_ctx.digest()
+    K.absorb(packed)
+    K.pad()
+    return K.squeeze(32)
 
 
 def print_signature_transaction(sig, pk, tx_hash):
