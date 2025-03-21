@@ -163,7 +163,6 @@ function absorb(uint256 i, uint8[200] memory buf, uint64[25] memory state, bytes
 
         //console.log("i=", i);
         if (i == _RATE) {
-           
             state = permute(buf, state);
             for (uint256 j = 0; j < 200; j++) {
                 buf[j] = 0;
@@ -203,36 +202,33 @@ function update(ctx_shake memory ctx, bytes memory input) pure returns (ctx_shak
 function squeeze(ctx_shake memory ctx, uint256 n) pure returns (ctx_shake memory ctxout, bytes memory) {
     bytes memory output = new bytes(n);
     uint256 tosqueeze = n;
-    uint256 offset=0;
+    uint256 offset = 0;
 
     while (tosqueeze > 0) {
         uint256 cansqueeze = _RATE - ctx.i;
         uint256 willsqueeze = (cansqueeze < tosqueeze) ? cansqueeze : tosqueeze;
-        
+
         for (uint256 j = 0; j < willsqueeze; j++) {
-            uint read=ctx.i + j;
-            output[offset + j] = bytes1(uint8( (ctx.state[ (read>>3) ]>>((read&7)<<3)  )&0xff ) ) ;
+            uint256 read = ctx.i + j;
+            output[offset + j] = bytes1(uint8((ctx.state[(read >> 3)] >> ((read & 7) << 3)) & 0xff));
         }
         //console.logBytes(output);
-        offset+=willsqueeze;
+        offset += willsqueeze;
         ctx.i += willsqueeze;
         if (ctx.i == _RATE) {
             ctx.state = permute(ctx.buff, ctx.state);
             for (uint256 j = 0; j < 200; j++) {
                 ctx.buff[j] = 0;
             }
-            ctx.i=0;
+            ctx.i = 0;
         }
         tosqueeze -= willsqueeze;
-       
     }
 
     return (ctx, output);
 }
 
 function permute(uint8[200] memory buf, uint64[25] memory state) pure returns (uint64[25] memory stateout) {
-    
-
     //require a 64 bits swap
     for (uint256 j = 0; j < 200; j++) {
         state[j / 8] ^= uint64(buf[j]) << (((uint8(j & 0x7) << 3)));
@@ -243,25 +239,23 @@ function permute(uint8[200] memory buf, uint64[25] memory state) pure returns (u
     return state; //zeroization of buf external to this function
 }
 
-
-function display_state(uint64[25] memory state) pure{
-     for (uint256 i = 0; i < 25; i++) {
-       // console.log("%x", state[i]);
+function display_state(uint64[25] memory state) pure {
+    for (uint256 i = 0; i < 25; i++) {
+        // console.log("%x", state[i]);
     }
 }
 
 function digest(ctx_shake memory ctx, uint256 size8) pure returns (bytes memory output) {
     output = new bytes(size8);
-    if(ctx.direction==_SPONGE_ABSORBING){
+    if (ctx.direction == _SPONGE_ABSORBING) {
         ctx.buff[ctx.i] ^= 0x1f;
-        ctx.buff[_RATE - 1] ^=0x80;
-         ctx.state = permute(ctx.buff, ctx.state);
-            for (uint256 j = 0; j < 200; j++) {
-                ctx.buff[j] = 0;
-            }
-         ctx.i=0;
+        ctx.buff[_RATE - 1] ^= 0x80;
+        ctx.state = permute(ctx.buff, ctx.state);
+        for (uint256 j = 0; j < 200; j++) {
+            ctx.buff[j] = 0;
+        }
+        ctx.i = 0;
     }
-   display_state(ctx.state);
-   (,output)= squeeze(ctx, size8);
-
+    display_state(ctx.state);
+    (, output) = squeeze(ctx, size8);
 }
