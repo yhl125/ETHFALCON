@@ -43,7 +43,7 @@ import "../src/ZKNOX_shake.sol";
 import {Test, console} from "forge-std/Test.sol";
 
 contract ZKNOX_ShakeTest is Test {
-    function test_F1600Zero() public view {
+    function test_shake_F1600Zero() public view {
         uint64[25] memory zeroes = [uint64(0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
         // forgefmt: disable-next-line
@@ -117,7 +117,7 @@ contract ZKNOX_ShakeTest is Test {
         }
     }
 
-    function test_digest() public pure {
+    function test_shake_digest() public pure {
         ctx_shake memory ctx;
         //vector of size 136 from official kats
         bytes memory message =
