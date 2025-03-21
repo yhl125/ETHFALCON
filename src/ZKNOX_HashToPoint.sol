@@ -48,7 +48,7 @@ function hashToPointRIP(bytes memory salt, bytes memory msgHash) pure returns (u
     bytes32 state;
 
     // Initial state
-    // When implementing NIST version, switch `msgHash` and `salt`
+    // TODO: When implementing NIST version, switch `msgHash` and `salt`
     state = keccak256(abi.encodePacked(msgHash, salt));
     bytes memory extendedState = abi.encodePacked(state, uint64(0x00));
 
