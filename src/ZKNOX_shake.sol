@@ -39,7 +39,7 @@
 //this is a direct translation from https://github.com/coruus/py-keccak/blob/master/fips202/keccak.py
 pragma solidity ^0.8.25;
 
-import {Test, console} from "forge-std/Test.sol";
+//import {Test, console} from "forge-std/Test.sol";
 
 uint256 constant _RATE = 136;
 bool constant _SPONGE_ABSORBING = false;
@@ -148,22 +148,22 @@ function absorb(uint256 i, uint8[200] memory buf, uint64[25] memory state, bytes
 {
     uint256 todo = input.length;
 
-    console.log("todo=", todo);
+    //console.log("todo=", todo);
     uint256 index = 0;
     while (todo > 0) {
         uint256 cando = _RATE - i;
         uint256 willabsorb = (cando < todo) ? cando : todo;
-        console.log("cndo=", cando);
-        console.log("willabsorb=", willabsorb);
+        //console.log("cndo=", cando);
+        //console.log("willabsorb=", willabsorb);
 
         for (uint256 j = 0; j < willabsorb; j++) {
             buf[i + j] ^= uint8(input[index + j]);
         }
         i += willabsorb;
 
-        console.log("i=", i);
+        //console.log("i=", i);
         if (i == _RATE) {
-            console.log("call to permute");
+           
             state = permute(buf, state);
             for (uint256 j = 0; j < 200; j++) {
                 buf[j] = 0;
@@ -203,32 +203,35 @@ function update(ctx_shake memory ctx, bytes memory input) pure returns (ctx_shak
 function squeeze(ctx_shake memory ctx, uint256 n) pure returns (ctx_shake memory ctxout, bytes memory) {
     bytes memory output = new bytes(n);
     uint256 tosqueeze = n;
-    uint256 index = 0;
+    uint256 offset=0;
+
     while (tosqueeze > 0) {
         uint256 cansqueeze = _RATE - ctx.i;
         uint256 willsqueeze = (cansqueeze < tosqueeze) ? cansqueeze : tosqueeze;
+        
         for (uint256 j = 0; j < willsqueeze; j++) {
-            output[index + j] = bytes1(uint8(ctx.state[ctx.i + j]));
+            uint read=ctx.i + j;
+            output[offset + j] = bytes1(uint8( (ctx.state[ (read>>3) ]>>((read&7)<<3)  )&0xff ) ) ;
         }
+        //console.logBytes(output);
+        offset+=willsqueeze;
         ctx.i += willsqueeze;
         if (ctx.i == _RATE) {
             ctx.state = permute(ctx.buff, ctx.state);
             for (uint256 j = 0; j < 200; j++) {
                 ctx.buff[j] = 0;
             }
+            ctx.i=0;
         }
         tosqueeze -= willsqueeze;
-        index += willsqueeze;
+       
     }
 
     return (ctx, output);
 }
 
 function permute(uint8[200] memory buf, uint64[25] memory state) pure returns (uint64[25] memory stateout) {
-    console.log("buffer:");
-    for (uint256 i = 0; i < 200; i++) {
-        console.log("%x", buf[i]);
-    }
+    
 
     //require a 64 bits swap
     for (uint256 j = 0; j < 200; j++) {
@@ -240,13 +243,25 @@ function permute(uint8[200] memory buf, uint64[25] memory state) pure returns (u
     return state; //zeroization of buf external to this function
 }
 
-//to be yuled
-function pad(uint256 i, uint8[200] memory buf) view returns (uint8[200] memory bufout) {
-    buf[i] ^= 0x1f;
-    buf[_RATE - 1] ^= 0x80;
-    //     F1600(buf);
+
+function display_state(uint64[25] memory state) pure{
+     for (uint256 i = 0; i < 25; i++) {
+       // console.log("%x", state[i]);
+    }
 }
 
-function digest(ctx_shake memory ctx, uint256 size8) view returns (bytes memory output) {
+function digest(ctx_shake memory ctx, uint256 size8) pure returns (bytes memory output) {
     output = new bytes(size8);
+    if(ctx.direction==_SPONGE_ABSORBING){
+        ctx.buff[ctx.i] ^= 0x1f;
+        ctx.buff[_RATE - 1] ^=0x80;
+         ctx.state = permute(ctx.buff, ctx.state);
+            for (uint256 j = 0; j < 200; j++) {
+                ctx.buff[j] = 0;
+            }
+         ctx.i=0;
+    }
+   display_state(ctx.state);
+   (,output)= squeeze(ctx, size8);
+
 }
