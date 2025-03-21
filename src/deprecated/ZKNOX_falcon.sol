@@ -132,37 +132,6 @@ contract ZKNOX_falcon {
 
         return falcon_core_expanded(ntt, signature.salt, signature.s2, ntth, hashed);
     }
-
-    function verify(FalconPubKey memory pk, bytes memory msgs, FalconSignature memory signature)
-        public
-        view
-        returns (bool result)
-    {
-        result = false;
-
-        uint256[] memory hashed;
-        if (CheckKey(pk) == false) return false;
-
-        if (pk.hashID == ID_keccak) {
-            hashed = hashToPointRIP(signature.salt, msgs);
-        } else {
-            if (pk.hashID == ID_tetration) {
-                hashed = hashToPointTETRATION(signature.salt, msgs);
-            } else {
-                return false;
-            } //unknwon ID
-        }
-
-        if (pk.is_compact == false) {
-            if (pk.nttform == false) {
-                //convert public key to ntt form
-                pk.value = ntt.ZKNOX_NTTFW(pk.value, ntt.o_psirev());
-            }
-            signature.s2 = _ZKNOX_NTT_Compact(signature.s2);
-        }
-
-        return falcon_core(ntt, signature.salt, signature.s2, pk.value, hashed); //not implemented yet
-    }
 }
 
 //end of contract

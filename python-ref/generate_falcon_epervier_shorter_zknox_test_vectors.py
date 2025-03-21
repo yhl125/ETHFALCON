@@ -1,10 +1,11 @@
 from falcon_epervier import EpervierPublicKey, EpervierSecretKey, HEAD_LEN, SALT_LEN, decompress
 from polyntt.poly import Poly
 from polyntt.utils import inv_mod
-from common import q, deterministic_salt
+from common import q
 from generate_falcon_test_vectors import list_of_messages
+from shake import SHAKE
 
-file = open("../test/ZKNOXFalconEpervierShorterVectors.t.sol", 'w')
+file = open("../test/experimental/ZKNOXFalconEpervierShorterVectors.t.sol", 'w')
 n = 512
 # An example of secret key
 f = [0, -7, -2, -1, 0, 0, 1, -2, 0, -2, -3, 0, 1, 8, 3, 2, -3, -3, 2, -6, 0, -7, 0, -6, 0, 5, 0, 2, 7, 3, 3, -1, -4, -2, -4, -1, -1, 3, 1, 1, -1, -1, 6, -1, -3, 4, 4, -7, 6, -2, 6, 4, 1, 5, 5, -2, -6, -1, -1, 6, 2, 4, -2, -3, 0, 5, 8, 1, 6, -1, -5, -1, 3, 2, -2, -2, -1, 0, -2, 8, 4, 9, 1, 1, -4, 1, 0, 3, -1, 0, -4, 0, 0, -2, 0, -5, 3, 4, 1, 2, 6, 3, 0, -3, 3, -5, -2, 2, 4, 0, -2, 0, -3, 4, 1, -3, -1, -5, 1, -5, 0, -4, -4, 5, -6, 10, -1, -8, -2, 8, -7, 2, 0, 3, 2, -1, -3, -5, -2, -3, 6, -5, 1, 1, 2, -6, 2, -1, -6, -2, -8, -1, -1, -5, 0, -6, -6, 1, -7, 9, 0, 1, 9, 5, 2, 3, 2, 1, 2, 3, -1, -2, 2, 6, -3, 6, -1, 3, 0, 3, 1, 3, 2, -5, -4, -1, 0, -2, 1, 8, -5, 1, 1, -4, -2, 9, -4, 3, -2, -6, -1, -3, 2, 9, -3, 0, -6, -1, -1, -6, 4, -2, -1, -2, 3, 2, -2, 5, 8, -6, 3, -5, -1, -1, -2, -2, -3, 1, 5, -1, 4, -2, -3, 6, -2, 3, -9, 10, -3, -3, -7, -5, 3, -7, -5, 1, 0, -2, -3, -6, -10,
@@ -19,13 +20,17 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
 sk = EpervierSecretKey(n, [f, g, F, G])
 pk = EpervierPublicKey(n, sk.pk)
 
+# for a deterministic signature
+shake = SHAKE.new(b'')
+shake.flip()
+
 header = """
 // code generated using pythonref/generate_falcon_epervier_shorter_zknox_test_vectors.py.
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
-import "../src/ZKNOX_NTT.sol";
-import "../src/ZKNOX_falcon_epervier_shorter.sol";
+import "../../src/ZKNOX_NTT.sol";
+import "../../src/experimental/ZKNOX_falcon_epervier_shorter.sol";
 
 contract ZKNOX_falcon_epervier_shorterTest is Test {
     ZKNOX_falcon_epervier_shorter epervier;
@@ -58,9 +63,7 @@ contract ZKNOX_falcon_epervier_shorterTest is Test {
 file.write(header)
 
 for (i, message) in enumerate(list_of_messages):
-    # this will probably not work with a deterministic salt
-    sig = sk.sign(message.encode(),
-                  randombytes=lambda x: deterministic_salt(x, seed=str(i)))
+    sig = sk.sign(message.encode(), randombytes=shake.read)
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
     s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)

@@ -119,7 +119,6 @@ class TestFalcon(unittest.TestCase):
                 diff = end - start
                 msec = round(diff * 1000 / iterations, 3)
                 msg += " ({msec} msec / execution)".format(msec=msec).rjust(30)
-            print(msg)
 
     def test_verif_different_xof(self):
         """Test Falcon signature verification."""

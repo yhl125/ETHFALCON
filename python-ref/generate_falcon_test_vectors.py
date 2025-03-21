@@ -1,8 +1,9 @@
 import hashlib
 from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey, PublicKey
-from common import q, deterministic_salt
+from common import q
 from keccak_prng import KeccakPRNG
 from keccaxof import KeccaXOF
+from shake import SHAKE
 
 list_of_messages = [
     "My name is Renaud",
@@ -26,16 +27,21 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
 sk = SecretKey(n, [f, g, F, G])
 pk = PublicKey(n, sk.h)
 
+# for a deterministic signature
+shake = SHAKE.new(b'')
+shake.flip()
+
 for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
-    file = open("../test/ZKNOXFalcon" + impl_str + "Vectors.t.sol", 'w')
+    file = open("../test/deprecated/ZKNOXFalcon" +
+                impl_str + "Vectors.t.sol", 'w')
 
     header = """
     // code generated using pythonref/generate_falcon_test_vectors.py.
     pragma solidity ^0.8.25;
 
     import {Test, console} from "forge-std/Test.sol";
-    import "../src/ZKNOX_NTT.sol";
-    import "../src/ZKNOX_falcon.sol";
+    import "../../src/ZKNOX_NTT.sol";
+    import "../../src/deprecated/ZKNOX_falcon.sol";
 
     contract ZKNOX_FalconTest is Test {
         ZKNOX_falcon falcon;
@@ -69,7 +75,7 @@ for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
 
     for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
         sig = sk.sign(message.encode(),
-                      randombytes=lambda x: deterministic_salt(x, seed=str(i)), xof=XOF)
+                      randombytes=shake.read, xof=XOF)
         salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:]
         s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)

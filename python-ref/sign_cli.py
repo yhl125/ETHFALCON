@@ -2,7 +2,7 @@
 import argparse
 import ast
 import subprocess
-from common import deterministic_salt, falcon_compact, q
+from common import falcon_compact, q
 from encoding import decompress
 from falcon import HEAD_LEN, SALT_LEN, PublicKey, SecretKey
 from falcon_epervier import EpervierPublicKey, EpervierSecretKey
