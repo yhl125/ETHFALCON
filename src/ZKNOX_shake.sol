@@ -54,7 +54,7 @@ struct ctx_shake {
 
 // """Rotate uint64 x left by s.""
 function rol64(uint256 x, uint256 s) pure returns (uint64) {
-    return (uint64)(x << s ^ (x >> (64 - s)));
+    return (uint64)((x << s) ^ (x >> (64 - s)));
 }
 
 function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
@@ -91,8 +91,8 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
             for { let x := 0 } gt(160, x) { x := add(32, x) } {
                 //t = bc[addmod(x, 4, 5)] ^ rol64(bc[addmod(x, 1, 5)], 1);
                 let temp := mload(add(bc, addmod(x, 32, 160)))
-                t := xor(shl(1, temp), shr(63, temp)) //rol64(bc[addmod(x, 1, 5)], 1);
-                t := xor(t, mload(add(bc, addmod(x, 128, 160))))
+                t := and(0xffffffffffffffff, xor(shl(1, temp), shr(63, temp))) //rol64(bc[addmod(x, 1, 5)], 1);
+                t := xor(t, mload(add(bc, addmod(x, 128, 160)))) //beware of and
 
                 /*
                 for (uint64 y = 0; y < 25; y += 5) {
@@ -106,26 +106,29 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
                     mstore(offset, xor(mload(offset), t))
                 }
             }
+            t := mload(add(state, 32)) //t=state[1]
+
+            for { let x := 0 } gt(24, x) { x := add(1, x) } {
+                //  for (uint256 x = 0; x < 24; x++) {
+                let keccakpix := mload(add(_KECCAK_PI, mul(32, x))) //_KECCAK_PI[x]
+                let kpix := add(state, mul(32, keccakpix)) //@_KECCAK_PI[x];
+                mstore(bc, mload(kpix)) //bc[0] = state[keccakpix];
+                let res := mload(add(mul(32, x), _KECCAK_RHO)) // _KECCAK_RHO[x]
+                res := and(0xffffffffffffffff, xor(shl(res, t), shr(sub(64, res), t))) //rol64(t, _KECCAK_RHO[x]);
+
+                mstore(kpix, res) //state[keccakpix] = uint64(res);//rol64(t,res);//rol64(t, _KECCAK_RHO[x]);
+                t := mload(bc) // t = bc[0];
+            }
         }
 
-        //# Rho and pi
-        t = state[1];
-        for (uint256 x = 0; x < 24; x++) {
-            bc[0] = state[_KECCAK_PI[x]];
-            state[_KECCAK_PI[x]] = rol64(t, _KECCAK_RHO[x]);
-            t = bc[0];
-        }
-
-        for (uint256 y = 0; y < 25; y += 5) {
-            assembly {
-                /* for (uint256 x = 0; x < 5; x++) {
-                     bc[x] = state[y + x];
-                    }*/
+        assembly {
+            for { let y := 0 } gt(800, y) { y := add(y, 160) } {   // for (uint256 y = 0; y < 25; y += 5) {
                 for { let offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
-                    mstore(add(bc, offset_X), mload(add(state, add(offset_X, mul(y, 32)))))
+                    //for (uint256 x = 0; x < 5; x++) {
+                    mstore(add(bc, offset_X), mload(add(state, add(offset_X, y)))) //  bc[x] = state[y + x];
                 }
 
-                let offset_Y := add(state, mul(y, 32))
+                let offset_Y := add(state, y)
                 for { let offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
                     let offset := add(offset_X, offset_Y) //address of state[x+y]
 
@@ -140,10 +143,9 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
                         )
                     )
                 }
-                //mstore(state, xor(mload(state), mload(add(_KECCAK_RC, mul(32,i))))) //state[0] ^= _KECCAK_RC[i];
-            }
 
-            state[0] ^= _KECCAK_RC[i];
+                mstore(state, and(xor(mload(state), mload(add(_KECCAK_RC, mul(32, i)))), 0xffffffffffffffff)) //state[0] ^= _KECCAK_RC[i];
+            } //end assembly
         } //end loop y
     } //end loop i
     return state;
