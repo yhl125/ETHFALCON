@@ -46,9 +46,9 @@ bool constant _SPONGE_ABSORBING = false;
 bool constant _SPONGE_SQUEEZING = true;
 
 struct ctx_shake {
+    uint8[200] buff;
     uint256 i;
     uint64[25] state;
-    uint8[200] buff;
     bool direction;
 }
 
@@ -68,11 +68,11 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
     uint64[5] memory bc = [uint64(0), 0, 0, 0, 0];
 
     //console.log("F1600");
-    for (uint256 i = 0; i < 24; i++) {
-        //range(24):
-        uint64 t;
 
-        assembly {
+    assembly {
+        for { let i := 0 } gt(24, i) { i := add(i, 1) } {
+            //
+            let t
             let offset_X
             for { offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
                 //for (uint256 x = 0; x < 5; x++)
@@ -119,18 +119,16 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
                 mstore(kpix, res) //state[keccakpix] = uint64(res);//rol64(t,res);//rol64(t, _KECCAK_RHO[x]);
                 t := mload(bc) // t = bc[0];
             }
-        }
 
-        assembly {
             for { let y := 0 } gt(800, y) { y := add(y, 160) } {
                 // for (uint256 y = 0; y < 25; y += 5) {
-                for { let offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
+                for { offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
                     //for (uint256 x = 0; x < 5; x++) {
                     mstore(add(bc, offset_X), mload(add(state, add(offset_X, y)))) //  bc[x] = state[y + x];
                 }
 
                 let offset_Y := add(state, y)
-                for { let offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
+                for { offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
                     let offset := add(offset_X, offset_Y) //address of state[x+y]
 
                     mstore(
@@ -146,9 +144,9 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
                 }
 
                 mstore(state, and(xor(mload(state), mload(add(_KECCAK_RC, mul(32, i)))), 0xffffffffffffffff)) //state[0] ^= _KECCAK_RC[i];
-            } //end assembly
-        } //end loop y
-    } //end loop i
+            } //end loop y
+        } //end loop i
+    }
     return state;
 } //end F1600
 
@@ -227,6 +225,11 @@ function squeeze(ctx_shake memory ctx, uint256 n) pure returns (ctx_shake memory
         ctx.i += willsqueeze;
         if (ctx.i == _RATE) {
             ctx.state = permute(ctx.buff, ctx.state);
+            /* assembly{
+                 for { let j := 0 } gt(6400, j) { j := add(j, 32) } {
+            }
+            }*/
+
             for (uint256 j = 0; j < 200; j++) {
                 ctx.buff[j] = 0;
             }
@@ -240,9 +243,19 @@ function squeeze(ctx_shake memory ctx, uint256 n) pure returns (ctx_shake memory
 
 function permute(uint8[200] memory buf, uint64[25] memory state) pure returns (uint64[25] memory stateout) {
     //require a 64 bits swap
-    for (uint256 j = 0; j < 200; j++) {
+    /*for (uint256 j = 0; j < 200; j++) {
         state[j / 8] ^= uint64(buf[j]) << (((uint8(j & 0x7) << 3)));
+    }*/
+
+    assembly {
+        for { let j := 0 } gt(200, j) { j := add(j, 1) } {
+            let addr := add(state, shl(5, shr(3, j))) //state[j / 8]
+            let val := shl(shl(3, and(j, 7)), and(0xffffffffffffffff, mload(add(buf, mul(32, j))))) // uint64(buf[j]) << (((uint8(j & 0x7) << 3)));
+
+            mstore(addr, xor(mload(addr), val))
+        }
     }
+
     // Call F1600 Keccak permutation function here
     state = F1600(state);
 
