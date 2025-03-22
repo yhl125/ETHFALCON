@@ -1,10 +1,11 @@
 import hashlib
 from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey, PublicKey
-from common import falcon_compact, q, deterministic_salt
+from common import falcon_compact, q
 from keccak_prng import KeccakPRNG
 from keccaxof import KeccaXOF
 from polyntt.poly import Poly
 from generate_falcon_test_vectors import list_of_messages
+from shake import SHAKE
 
 n = 512
 # An example of secret key
@@ -20,8 +21,12 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
 sk = SecretKey(n, [f, g, F, G])
 pk = PublicKey(n, sk.h)
 
+# for a deterministic signature
+shake = SHAKE.new(b'')
+shake.flip()
+
 XOF = KeccakPRNG
-file = open("../test/ZKNOXFalconCompactVectors.t.sol", 'w')
+file = open("../test/ZKNOX_ethfalcon.t.sol", 'w')
 
 header = """
 // code generated using pythonref/generate_falcon_compact_test_vectors.py.
@@ -30,7 +35,7 @@ pragma solidity ^0.8.25;
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_NTT.sol";
 import "../src/ZKNOX_falcon_utils.sol";
-import "../src/ZKNOX_falcon_compact.sol";
+import "../src/ZKNOX_ethfalcon.sol";
 import "../src/ZKNOX_falcon_deploy.sol";
 
 contract ZKNOX_FalconTest is Test {
@@ -55,15 +60,13 @@ contract ZKNOX_FalconTest is Test {
         (a_psirev, a_psiInvrev) = Deploy(salt);
 
         falcon.update(a_psirev, a_psiInvrev);
-
-        console.log("deployment ok");
     }
 """
 file.write(header)
 
 for (i, message) in enumerate(list_of_messages):
     sig = sk.sign(message.encode(),
-                  randombytes=lambda x: deterministic_salt(x, seed=str(i)), xof=XOF)
+                  randombytes=shake.read, xof=XOF)
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     enc_s = sig[HEAD_LEN + SALT_LEN:]
     s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)

@@ -85,30 +85,28 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
                 }
                 mstore(bcx, temp)
             }
-        
+
             //# Theta
-             // for (uint256 x = 0; x < 5; x++) {
+            // for (uint256 x = 0; x < 5; x++) {
             for { let x := 0 } gt(160, x) { x := add(32, x) } {
                 //t = bc[addmod(x, 4, 5)] ^ rol64(bc[addmod(x, 1, 5)], 1);
-                let temp:=mload(add(bc, addmod(x,32,160)))
-                t:=xor(shl(1,temp), shr(63,temp)) //rol64(bc[addmod(x, 1, 5)], 1);
-                t:=xor(t,mload(add(bc, addmod(x,128,160))))
+                let temp := mload(add(bc, addmod(x, 32, 160)))
+                t := xor(shl(1, temp), shr(63, temp)) //rol64(bc[addmod(x, 1, 5)], 1);
+                t := xor(t, mload(add(bc, addmod(x, 128, 160))))
 
-            /*
+                /*
                 for (uint64 y = 0; y < 25; y += 5) {
                     // in range(0, 25, 5):
                     state[y + x] ^= t;
                 }*/
 
-                
                 offset_X := add(state, x)
                 for { let offset_Y := 0 } gt(800, offset_Y) { offset_Y := add(offset_Y, 160) } {
                     let offset := add(offset_X, offset_Y)
                     mstore(offset, xor(mload(offset), t))
                 }
             }
-            }
-        
+        }
 
         //# Rho and pi
         t = state[1];
@@ -119,15 +117,12 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
         }
 
         for (uint256 y = 0; y < 25; y += 5) {
-            
-          
-
             assembly {
-                 /* for (uint256 x = 0; x < 5; x++) {
+                /* for (uint256 x = 0; x < 5; x++) {
                      bc[x] = state[y + x];
                     }*/
                 for { let offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
-                    mstore(add(bc,offset_X), mload(add(state,add(offset_X, mul(y,32))) ))
+                    mstore(add(bc, offset_X), mload(add(state, add(offset_X, mul(y, 32)))))
                 }
 
                 let offset_Y := add(state, mul(y, 32))
@@ -149,7 +144,7 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
             }
 
             state[0] ^= _KECCAK_RC[i];
-        }//end loop y
+        } //end loop y
     } //end loop i
     return state;
 } //end F1600

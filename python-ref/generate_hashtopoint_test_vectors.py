@@ -1,8 +1,9 @@
 import hashlib
 from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey, PublicKey
-from common import q, deterministic_salt
+from common import q
 from keccak_prng import KeccakPRNG
 from keccaxof import KeccaXOF
+from shake import SHAKE
 
 n = 512
 # An example of secret key
@@ -17,22 +18,26 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
 
 sk = SecretKey(n, [f, g, F, G])
 
-file = open("../test/ZKNOXKeccakPRNGVectors.t.sol", 'w')
+# for a deterministic signature
+shake = SHAKE.new(b'')
+shake.flip()
+
+file = open("../test/ZKNOXHashToPointRIPVectors.t.sol", 'w')
 
 header = """
-// code generated using pythonref/generate_keccak_prng_test_vectors.py.
+// code generated using pythonref/generate_hashtopoint_test_vectors.py.
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
-import "../src/HashToPoint.sol";
+import "../src/ZKNOX_HashToPoint.sol";
 
 contract HashToPointTest is Test {\n
 """
 file.write(header)
 
 for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
-    salt = deterministic_salt(message, seed=str(i))
-    hash = sk.hash_to_point(message.encode(), salt)
+    salt = shake.read(40)
+    hash = sk.hash_to_point(sk.n, message.encode(), salt)
 
     file.write("\tfunction testVector{}() public pure {{\n".format(i))
     file.write("\t\tbytes memory salt = \"{}\"; \n".format(
@@ -45,7 +50,7 @@ for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name
     file.write("\t\tuint256 q = 12289;\n")
     file.write("\t\tuint256 n = 512;\n")
     file.write(
-        "\t\tuint256[] memory hash = hashToPointZKNOX(salt, message, q, n);\n")
+        "\t\tuint256[] memory hash = hashToPointRIP(salt, message);\n")
     file.write(
         "\t\tfor (uint256 i = 0 ; i < n ; i ++ ) { assertEq(hash[i], expected_hash[i]); }\n")
     file.write("\t}\n\n")

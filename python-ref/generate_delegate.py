@@ -1,11 +1,12 @@
 import hashlib
 from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey, PublicKey
-from common import falcon_compact, q, deterministic_salt
+from common import falcon_compact, q
 from polyntt.poly import Poly
 from keccak_prng import KeccakPRNG
 from generate_falcon_test_vectors import list_of_messages
 from Crypto.Hash import keccak
 from eth_abi import encode
+from shake import SHAKE
 
 n = 512
 # An example of secret key
@@ -21,6 +22,10 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
 sk = SecretKey(n, [f, g, F, G])
 pk = PublicKey(n, sk.h)
 
+# for a deterministic signature
+shake = SHAKE.new(b'')
+shake.flip()
+
 file = open("../test/ZKNOXDelegateVectors.t.sol", 'w')
 
 header = """
@@ -30,7 +35,7 @@ pragma solidity ^0.8.25;
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_NTT.sol";
 import "../src/ZKNOX_falcon_utils.sol";
-import "../src/ZKNOX_falcon_compact.sol";
+import "../src/ZKNOX_ethfalcon.sol";
 import "../src/ZKNOX_falcon_deploy.sol";
 
 contract ZKNOX_DelegateTest is Test {
@@ -63,7 +68,7 @@ file.write(header)
 XOF = KeccakPRNG
 for (i, message) in enumerate(list_of_messages):
     sig = sk.sign(message.encode(),
-                  randombytes=lambda x: deterministic_salt(x, seed=str(i)), xof=XOF)
+                  randombytes=shake.read, xof=XOF)
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     enc_s = sig[HEAD_LEN + SALT_LEN:]
     s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)

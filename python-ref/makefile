@@ -20,8 +20,17 @@ bench:
 test_keccak_prng:
 	$(PYTHON) -m unittest test_keccak_prng -v
 
+test_keccak:
+	$(PYTHON) -m unittest test_keccak -v
+
+test_shake:
+	$(PYTHON) -m unittest test_shake -v
+
 test_falcon:
 	$(PYTHON) -m unittest test_falcon -v
+
+test_falcon_kat:
+	$(PYTHON) -m unittest test_falcon_KAT -v
 
 test_recovery_mode:
 	$(PYTHON) -m unittest test_falcon_recovery -v
@@ -31,11 +40,13 @@ test_epervier:
 
 generate_test_vectors:
 	$(PYTHON) -m generate_falcon_test_vectors -v
-	$(PYTHON) -m generate_falcon_compact_test_vectors -v
+	$(PYTHON) -m generate_ethfalcon_test_vectors -v
 	$(PYTHON) -m generate_falcon_recovery_test_vectors -v
 	$(PYTHON) -m generate_falcon_recovery_shorter_zknox_test_vectors -v
 	$(PYTHON) -m generate_falcon_epervier_test_vectors -v
 	$(PYTHON) -m generate_falcon_epervier_shorter_zknox_test_vectors -v
+	$(PYTHON) -m generate_ethfalcon_test_vectors -v
+	$(PYTHON) -m generate_hashtopoint_test_vectors -v
 	forge fmt
 
 profile:

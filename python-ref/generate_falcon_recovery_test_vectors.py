@@ -1,9 +1,10 @@
 from falcon_recovery import RecoveryModePublicKey, RecoveryModeSecretKey, HEAD_LEN, SALT_LEN, decompress
 from polyntt.poly import Poly
-from common import q, deterministic_salt
+from common import q
 from keccak_prng import KeccakPRNG
 from keccaxof import KeccaXOF
 from generate_falcon_test_vectors import list_of_messages
+from shake import SHAKE
 
 n = 512
 # An example of secret key
@@ -19,8 +20,12 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
 sk = RecoveryModeSecretKey(n, [f, g, F, G])
 pk = RecoveryModePublicKey(n, sk.pk)
 
+# for a deterministic signature
+shake = SHAKE.new(b'')
+shake.flip()
+
 for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
-    file = open("../test/ZKNOXFalconRecovery" +
+    file = open("../test/deprecated/ZKNOXFalconRecovery" +
                 impl_str + "Vectors.t.sol", 'w')
 
     header = """
@@ -28,8 +33,8 @@ for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
     pragma solidity ^0.8.25;
 
     import {Test, console} from "forge-std/Test.sol";
-    import "../src/ZKNOX_NTT.sol";
-    import "../src/ZKNOX_falconrec.sol";
+    import "../../src/ZKNOX_NTT.sol";
+    import "../../src/experimental/ZKNOX_falconrec.sol";
 
     contract ZKNOX_FalconRecTest is Test {
         ZKNOX_falconrec falconrec;
@@ -62,9 +67,8 @@ for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
     file.write(header)
 
     for (i, message) in enumerate(list_of_messages):
-        # this will probably not work with a deterministic salt
         sig = sk.sign(message.encode(),
-                      randombytes=lambda x: deterministic_salt(x, seed=str(i)), xof=XOF)
+                      randombytes=shake.read, xof=XOF)
         salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
         enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
         s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)

@@ -10,6 +10,8 @@ from ffsampling import gram, ffldl_fft, ffsampling_fft
 from ntrugen import ntru_gen
 from encoding import compress, decompress
 from keccak_prng import KeccakPRNG
+from keccaxof import KeccaXOF
+from shake import SHAKE
 from polyntt.poly import Poly
 from polyntt.ntt_iterative import NTTIterative
 # Randomness
@@ -189,10 +191,13 @@ def hash_to_point(n, message, salt, xof=KeccakPRNG):
         raise ValueError("The modulus is too large")
 
     k = (1 << 16) // q
+    if xof != SHAKE:
+        # /!\ Reversed compared to NIST
+        salt, message = message, salt
     # Create a XOF object and hash the salt and message.
     xof = xof.new()
-    xof.update(message)
     xof.update(salt)
+    xof.update(message)
     xof.flip()
     # Output pseudorandom bytes and map them to coefficients.
     hashed = [0 for i in range(n)]
@@ -241,6 +246,8 @@ class PublicKey:
             return False
 
         # Compute s0 and normalize its coefficients in (-q/2, q/2]
+        if xof == KeccakPRNG:
+            xof = xof.new()
         hashed = Poly(
             self.hash_to_point(self.n, message, salt, xof=xof),
             q, ntt=ntt
@@ -378,7 +385,6 @@ class SecretKey:
 
         salt = randombytes(SALT_LEN)
         hashed = self.hash_to_point(self.n, message, salt, xof=xof)
-
         # We repeat the signing procedure until we find a signature that is
         # short enough (both the Euclidean norm and the bytelength)
         while (1):
