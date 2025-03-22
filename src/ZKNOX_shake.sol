@@ -122,7 +122,8 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
         }
 
         assembly {
-            for { let y := 0 } gt(800, y) { y := add(y, 160) } {   // for (uint256 y = 0; y < 25; y += 5) {
+            for { let y := 0 } gt(800, y) { y := add(y, 160) } {
+                // for (uint256 y = 0; y < 25; y += 5) {
                 for { let offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
                     //for (uint256 x = 0; x < 5; x++) {
                     mstore(add(bc, offset_X), mload(add(state, add(offset_X, y)))) //  bc[x] = state[y + x];
