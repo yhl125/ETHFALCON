@@ -76,7 +76,7 @@ function _ZKNOX_NTTFW(uint256[] memory a, address apsirev) view returns (uint256
     return a;
 }
 
-function _ZKNOX_NTTFW_vectorized(uint256[] memory a, address apsirev) pure returns (uint256[] memory) {
+function _ZKNOX_NTTFW_vectorized(uint256[] memory a) pure returns (uint256[] memory) {
     uint256[32] memory psirev = [
         uint256(0x21dc2610222b0db02386191d04bc066e02d20519102616681be70fcb05c70001),
         0xbbe0ab82462023312d525b225c02c4c2301197013722aba193d139f19a111ef,

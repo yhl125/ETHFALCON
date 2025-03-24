@@ -40,6 +40,8 @@ pragma solidity ^0.8.25;
 
 import {console} from "forge-std/Test.sol";
 import {ZKNOX_NTT} from "../ZKNOX_NTT.sol";
+import "../ZKNOX_falcon_utils.sol";
+import "../ZKNOX_NTT_falcon.sol";
 
 //choose the XOF to use here
 import "../ZKNOX_HashToPoint.sol";
@@ -136,7 +138,7 @@ contract ZKNOX_falcon_epervier_shorter {
     //version using compact representation
     function recover(bytes memory msgs, bytes memory salt, uint256[] memory cs1, uint256[] memory cs2, uint256 hint)
         public
-        view
+        pure
         returns (address result)
     {
         if (salt.length != 40) revert("wrong salt length"); //CVETH-2025-080201: control salt length to avoid potential forge
@@ -151,16 +153,20 @@ contract ZKNOX_falcon_epervier_shorter {
         // (s1,s2) must be short
         uint256 norm = 0;
         // As (σ1,σ2) are given with positive values, small negative values are actually large (close to q).
-        for (i = 0; i < n; i++) {
-            if (s1[i] > qs1) {
-                norm += (q - s1[i]) * (q - s1[i]);
-            } else {
-                norm += s1[i] * s1[i];
-            }
-            if (s2[i] > qs1) {
-                norm += (q - s2[i]) * (q - s2[i]);
-            } else {
-                norm += s2[i] * s2[i];
+
+        assembly {
+            //normalization
+            for { let offset := 32 } gt(16384, offset) { offset := add(offset, 32) } {
+                let s1i := mload(add(s1, offset))
+
+                let cond := gt(s1i, qs1) //s1[i] > qs1 ?
+                s1i := add(mul(cond, sub(q, s1i)), mul(sub(1, cond), s1i))
+                norm := add(norm, mul(s1i, s1i))
+
+                let s2i := mload(add(s2, offset))
+                let cond2 := gt(s2i, qs1) //s1[i] > qs1 ?
+                s2i := add(mul(cond2, sub(q, s2i)), mul(sub(1, cond2), s2i))
+                norm := add(norm, mul(s2i, s2i))
             }
         }
 
@@ -168,7 +174,7 @@ contract ZKNOX_falcon_epervier_shorter {
             revert("norm too large");
         }
 
-        s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev()); //ntt(s2)
+        s2 = _ZKNOX_NTTFW_vectorized(s2); //ntt(s2)
 
         // recover s2.ntt().inverse() from the hint
         uint256[512] memory prefix;
@@ -186,9 +192,15 @@ contract ZKNOX_falcon_epervier_shorter {
         }
 
         //ntt(s2)*ntt(s2^-1)==ntt(1)?
+        norm = 0; //accumulate the booleand of testing condition
         for (i = 0; i < 512; i++) {
-            if (mulmod(s2[i], s2_inverse_ntt[i], q) != 1) revert("wrong hint");
+            //if (mulmod(s2[i], s2_inverse_ntt[i], q) != 1) revert("wrong hint");
+            unchecked {
+                norm += 1 - (mulmod(s2[i], s2_inverse_ntt[i], q));
+            }
         }
+
+        if (norm != 0) revert("wrong hint");
 
         uint256[] memory hashed = hashToPointRIP(salt, msgs);
         for (i = 0; i < 512; i++) {
@@ -199,7 +211,7 @@ contract ZKNOX_falcon_epervier_shorter {
         for (i = 0; i < 512; i++) {
             s2[i] = uint256(s2_inverse_ntt[i]);
         }
-        uint256[] memory hashed_mul_s2_ntt = ntt.ZKNOX_VECMULMOD(ntt.ZKNOX_NTTFW(hashed, ntt.o_psirev()), s2, q);
+        uint256[] memory hashed_mul_s2_ntt = _ZKNOX_VECMULMOD(_ZKNOX_NTTFW_vectorized(hashed), s2);
         return HashToAddress(abi.encodePacked(hashed_mul_s2_ntt));
     }
 } //end of contract
