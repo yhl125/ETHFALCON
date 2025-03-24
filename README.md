@@ -44,10 +44,10 @@ Current deployment addresses:
 
 | Function                   | Description               |address | networks |
 |------------------------|---------------------|---------------------|---------------------|
-| FALCON     | Falcon implementation      | 0x28c37C0b6Bb7eBfD1790E3923E1E89B562d9DdbF | Holesky|
-| Delegate Account      | Transactions gating through ZKNOX_Verifier      | N/A | N/A |
+| EPERVIER     | Epervier      | TBD | Holesky|
+| ETHFALCON     | ETHFalcon implementation      | 0x28c37C0b6Bb7eBfD1790E3923E1E89B562d9DdbF | Holesky|
+| FALCON     | Falcon NIST Legacy implementation      | TBD | Holesky|
 
-Note: The Delegate Account is used as an example for 7702 right now. Please note that while eoA 
 
 ## CONCLUSION
 
