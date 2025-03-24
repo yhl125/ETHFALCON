@@ -132,6 +132,76 @@ contract ZKNOX_falcon_epervier_shorter {
         uint256[] memory hashed_mul_s2_ntt = ntt.ZKNOX_VECMULMOD(ntt.ZKNOX_NTTFW(hashed, ntt.o_psirev()), s2, q);
         return HashToAddress(abi.encodePacked(hashed_mul_s2_ntt));
     }
+
+    //version using compact representation
+    function recover(bytes memory msgs, bytes memory salt, uint256[] memory cs1, uint256[] memory cs2, uint256 hint)
+        public
+        view
+        returns (address result)
+    {
+        if (salt.length != 40) revert("wrong salt length"); //CVETH-2025-080201: control salt length to avoid potential forge
+        if (cs1.length != 32) revert("Invalid s1 length"); //"Invalid s1 length"
+        if (cs2.length != 32) revert("Invalid s2 length"); //"Invalid s2 length"
+
+        uint256[] memory s1 = _ZKNOX_NTT_Expand(cs1); //avoiding another memory declaration
+        uint256[] memory s2 = _ZKNOX_NTT_Expand(cs2); //avoiding another memory declaration
+
+        uint256 i;
+
+        // (s1,s2) must be short
+        uint256 norm = 0;
+        // As (σ1,σ2) are given with positive values, small negative values are actually large (close to q).
+        for (i = 0; i < n; i++) {
+            if (s1[i] > qs1) {
+                norm += (q - s1[i]) * (q - s1[i]);
+            } else {
+                norm += s1[i] * s1[i];
+            }
+            if (s2[i] > qs1) {
+                norm += (q - s2[i]) * (q - s2[i]);
+            } else {
+                norm += s2[i] * s2[i];
+            }
+        }
+
+        if (norm > sigBound) {
+            revert("norm too large");
+        }
+
+        s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev()); //ntt(s2)
+
+        // recover s2.ntt().inverse() from the hint
+        uint256[512] memory prefix;
+        prefix[0] = s2[0];
+        for (i = 1; i < 512; i++) {
+            prefix[i] = mulmod(prefix[i - 1], s2[i], q);
+        }
+        uint256[512] memory s2_inverse_ntt;
+        s2_inverse_ntt[511] = hint;
+        for (i = 0; i < 511; i++) {
+            s2_inverse_ntt[510 - i] = mulmod(s2_inverse_ntt[511 - i], s2[511 - i], q);
+        }
+        for (i = 1; i < 512; i++) {
+            s2_inverse_ntt[i] = mulmod(s2_inverse_ntt[i], prefix[i - 1], q);
+        }
+
+        //ntt(s2)*ntt(s2^-1)==ntt(1)?
+        for (i = 0; i < 512; i++) {
+            if (mulmod(s2[i], s2_inverse_ntt[i], q) != 1) revert("wrong hint");
+        }
+
+        uint256[] memory hashed = hashToPointRIP(salt, msgs);
+        for (i = 0; i < 512; i++) {
+            //hashToPoint-s1
+            hashed[i] = addmod(hashed[i], q - s1[i], q);
+        }
+
+        for (i = 0; i < 512; i++) {
+            s2[i] = uint256(s2_inverse_ntt[i]);
+        }
+        uint256[] memory hashed_mul_s2_ntt = ntt.ZKNOX_VECMULMOD(ntt.ZKNOX_NTTFW(hashed, ntt.o_psirev()), s2, q);
+        return HashToAddress(abi.encodePacked(hashed_mul_s2_ntt));
+    }
 } //end of contract
 
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/

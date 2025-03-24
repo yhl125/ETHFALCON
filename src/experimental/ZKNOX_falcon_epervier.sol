@@ -56,10 +56,10 @@ contract ZKNOX_falcon_epervier {
     }
 
     struct Signature {
-        bytes salt;
         uint256[512] s1;
         uint256[512] s2;
         uint256[512] hint; //the ntt of the inverse of s1, provided as a hint
+        bytes salt;
     }
 
     function HashToAddress(bytes memory m) public pure returns (address) {
