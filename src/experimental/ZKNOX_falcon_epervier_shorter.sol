@@ -177,41 +177,59 @@ contract ZKNOX_falcon_epervier_shorter {
         s2 = _ZKNOX_NTTFW_vectorized(s2); //ntt(s2)
 
         // recover s2.ntt().inverse() from the hint
-        uint256[512] memory prefix;
+        uint256[] memory prefix = new uint256[](512);
         prefix[0] = s2[0];
-        for (i = 1; i < 512; i++) {
-            prefix[i] = mulmod(prefix[i - 1], s2[i], q);
-        }
-        uint256[512] memory s2_inverse_ntt;
+        uint256[] memory s2_inverse_ntt = new uint256[](512);
         s2_inverse_ntt[511] = hint;
-        for (i = 0; i < 511; i++) {
-            s2_inverse_ntt[510 - i] = mulmod(s2_inverse_ntt[511 - i], s2[511 - i], q);
+
+        assembly {
+            let temp := mload(add(prefix, 32)) //prefix[i-1]
+
+            for { let offset := 64 } gt(16384, offset) { offset := add(offset, 32) } {
+                // for (i = 1; i < 512; i++)
+                temp := mulmod(temp, mload(add(s2, offset)), q)
+                mstore(add(offset, prefix), temp) //prefix[i] = mulmod(prefix[i - 1], s2[i], q);
+            }
         }
+
+        for (i = 1; i < 512; i++) {
+            s2_inverse_ntt[511 - i] = mulmod(s2_inverse_ntt[512 - i], s2[512 - i], q);
+        }
+
         for (i = 1; i < 512; i++) {
             s2_inverse_ntt[i] = mulmod(s2_inverse_ntt[i], prefix[i - 1], q);
         }
+        /*
+          assembly{
+            
+            for { let offset := 64 } gt(16384, offset) { offset := add(offset, 32) } {
+                let a_temp:=add(s2_inverse_ntt, offset)//address of s2_inverse_ntt[i]
+                let temp:=mulmod(mload(add(prefix,sub(offset, 32) ) ), mload(a_temp),q)
+                mstore(a_temp, temp)           //s2_inverse_ntt[i] = mulmod(s2_inverse_ntt[i], prefix[i - 1], q);
+               
+            }}*/
 
         //ntt(s2)*ntt(s2^-1)==ntt(1)?
         norm = 0; //accumulate the booleand of testing condition
-        for (i = 0; i < 512; i++) {
-            //if (mulmod(s2[i], s2_inverse_ntt[i], q) != 1) revert("wrong hint");
-            unchecked {
-                norm += 1 - (mulmod(s2[i], s2_inverse_ntt[i], q));
+        uint256[] memory hashed = hashToPointRIP(salt, msgs);
+
+        assembly {
+            for { let offset := 32 } gt(16384, offset) { offset := add(offset, 32) } {
+                norm := add(norm, sub(1, mulmod(mload(add(offset, s2)), mload(add(offset, s2_inverse_ntt)), q)))
+                // let a_hashedi:=add(hashed, offset)
+                // mstore(a_hashedi, addmod(mload(a_hashedi), sub(q,mload(add(s1, offset))), q))
             }
         }
 
         if (norm != 0) revert("wrong hint");
 
-        uint256[] memory hashed = hashToPointRIP(salt, msgs);
         for (i = 0; i < 512; i++) {
             //hashToPoint-s1
             hashed[i] = addmod(hashed[i], q - s1[i], q);
         }
 
-        for (i = 0; i < 512; i++) {
-            s2[i] = uint256(s2_inverse_ntt[i]);
-        }
-        uint256[] memory hashed_mul_s2_ntt = _ZKNOX_VECMULMOD(_ZKNOX_NTTFW_vectorized(hashed), s2);
+        uint256[] memory hashed_mul_s2_ntt = _ZKNOX_VECMULMOD(_ZKNOX_NTTFW_vectorized(hashed), s2_inverse_ntt);
+
         return HashToAddress(abi.encodePacked(hashed_mul_s2_ntt));
     }
 } //end of contract
