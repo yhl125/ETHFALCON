@@ -91,29 +91,25 @@ function hashToPointNIST(bytes memory salt, bytes memory msgHash) pure returns (
     uint256 j = 0;
     ctx_shake memory ctx;
     ctx = shake_update(ctx, abi.encodePacked(msgHash, salt));
-    bytes memory tmp=new bytes(_RATE);
+    bytes memory tmp = new bytes(_RATE);
     bytes memory sample;
-    (ctx, sample) =shake_squeeze(ctx, _RATE);
+    (ctx, sample) = shake_squeeze(ctx, _RATE);
 
     while (i < n) {
-        if (j == _RATE/2) {
-            (ctx,tmp) = shake_squeeze(ctx,_RATE);
-            j=0;
+        if (j == _RATE / 2) {
+            (ctx, tmp) = shake_squeeze(ctx, _RATE);
+            j = 0;
         }
-        uint256 dibytes=uint256(uint8(tmp[j]))+(uint256(uint8(tmp[j+1]))<<8);//flip a coin, for sure we get rekt by endianness
+        uint256 dibytes = uint256(uint8(tmp[j])) + (uint256(uint8(tmp[j + 1])) << 8); //flip a coin, for sure we get rekt by endianness
         if (dibytes < kq) {
             hashed[i] = dibytes % q;
             i++;
-         }
-         j++;
         }
-    
+        j++;
+    }
+
     return hashed;
 }
-
-
-
-
 
 //Use for Poc only, as this XOF doesn't respect separation domain for input and output of internal state
 //CVETH-2025-080203

@@ -49,6 +49,10 @@ generate_test_vectors:
 	$(PYTHON) -m generate_hashtopoint_test_vectors -v
 	forge fmt
 
+generate_hash_test_vectors:
+	$(PYTHON) -m generate_hashtopoint_test_vectors -v
+	forge fmt
+
 profile:
 	rm -f $(AUX)
 	rm -rf __pycache__

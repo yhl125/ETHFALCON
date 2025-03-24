@@ -133,20 +133,19 @@ contract ZKNOX_ShakeTest is Test {
         }
     }
 
-
     function test_shake_digest72() public pure {
         ctx_shake memory ctx;
         //vector of size 136 from official kats
         bytes memory message =
             hex"1EED9CBA179A009EC2EC5508773DD305477CA117E6D569E66B5F64C6BC64801CE25A8424CE4A26D575B8A6FB10EAD3FD1992EDDDEEC2EBE7150DC98F63ADC3237EF57B91397AA8A7";
-        
-        bytes memory expected = hex"2fce215362a523d7b76fb836eb458667099c58bc51d7ee6f6deb9894b6a337576b0daf9a806488c3d238762b7a2e7b12aacd1d696517eed142aa5dc5a0747f08e5e39a2486d75f497cbd6c4899d6f5bf2aaac9189a6abc6e787b0d9c5283c840e518c6ab0393cf60337369251df935a02de0463dbfa4dcdc1de9034fc9c21ffb9dbd7c48384dff31012bd5f5a9cdfdb7139c3c35f560913d643ddb728910413f1267bf1bf1586c5ee69dad26b53154934762d4c80c34d511bdd8a391f83d224f9f8f83b61daa046c542bc78f153a3aed27e1268058f6952258d274f11c8d9634a5bdd4e69c60dcf1f89df2238eadfe783cba652a554186d9e8307c7773722d1049c3815526f583612bbd8f6c587d058b80fbd38113957e60212777a9f67b612312583fefb67533c065286cf371001440b1a7a43de2405e5e92d633f12a63ee2ebc408164545df22803ff239dee66eaa20780d103d940880e8bf68b9d815efcf16f59e0d858af33fe4d287a2b8e61c6ebf26e16e354b3ef63774ee01a14691b149d81f010a655f308e966c990e1befcb6e4253ff43bf473afa78aa88c36ebbe735b6b2f92ba9d07a738e000c9b42bf8a3a4d8fb6c38aa36b3329f909676183fbb520196d0dedc80dc6ba0db4d72ac6544551cc38b23afe000a91f10a89956d2120494543e3ff5d7d1b2791207860a0b921debbae769e55713a1d611f6b1175bd0";
 
+        bytes memory expected =
+            hex"2fce215362a523d7b76fb836eb458667099c58bc51d7ee6f6deb9894b6a337576b0daf9a806488c3d238762b7a2e7b12aacd1d696517eed142aa5dc5a0747f08e5e39a2486d75f497cbd6c4899d6f5bf2aaac9189a6abc6e787b0d9c5283c840e518c6ab0393cf60337369251df935a02de0463dbfa4dcdc1de9034fc9c21ffb9dbd7c48384dff31012bd5f5a9cdfdb7139c3c35f560913d643ddb728910413f1267bf1bf1586c5ee69dad26b53154934762d4c80c34d511bdd8a391f83d224f9f8f83b61daa046c542bc78f153a3aed27e1268058f6952258d274f11c8d9634a5bdd4e69c60dcf1f89df2238eadfe783cba652a554186d9e8307c7773722d1049c3815526f583612bbd8f6c587d058b80fbd38113957e60212777a9f67b612312583fefb67533c065286cf371001440b1a7a43de2405e5e92d633f12a63ee2ebc408164545df22803ff239dee66eaa20780d103d940880e8bf68b9d815efcf16f59e0d858af33fe4d287a2b8e61c6ebf26e16e354b3ef63774ee01a14691b149d81f010a655f308e966c990e1befcb6e4253ff43bf473afa78aa88c36ebbe735b6b2f92ba9d07a738e000c9b42bf8a3a4d8fb6c38aa36b3329f909676183fbb520196d0dedc80dc6ba0db4d72ac6544551cc38b23afe000a91f10a89956d2120494543e3ff5d7d1b2791207860a0b921debbae769e55713a1d611f6b1175bd0";
 
         ctx = shake_update(ctx, message);
 
         bytes memory output = shake_digest(ctx, 1200);
-        
+
         for (uint256 i = 0; i < 512; i++) {
             assertEq(expected[i], output[i]);
         }
@@ -154,37 +153,34 @@ contract ZKNOX_ShakeTest is Test {
 
     //test that digest is equivalent to pad, followed by squeezes
     function test_shake_digestVSpadsqueeze() public pure {
-           ctx_shake memory ctx;
+        ctx_shake memory ctx;
         //vector of size 136 from official kats
         bytes memory message =
             hex"1EED9CBA179A009EC2EC5508773DD305477CA117E6D569E66B5F64C6BC64801CE25A8424CE4A26D575B8A6FB10EAD3FD1992EDDDEEC2EBE7150DC98F63ADC3237EF57B91397AA8A7";
-        
-        bytes memory expected = hex"2fce215362a523d7b76fb836eb458667099c58bc51d7ee6f6deb9894b6a337576b0daf9a806488c3d238762b7a2e7b12aacd1d696517eed142aa5dc5a0747f08e5e39a2486d75f497cbd6c4899d6f5bf2aaac9189a6abc6e787b0d9c5283c840e518c6ab0393cf60337369251df935a02de0463dbfa4dcdc1de9034fc9c21ffb9dbd7c48384dff31012bd5f5a9cdfdb7139c3c35f560913d643ddb728910413f1267bf1bf1586c5ee69dad26b53154934762d4c80c34d511bdd8a391f83d224f9f8f83b61daa046c542bc78f153a3aed27e1268058f6952258d274f11c8d9634a5bdd4e69c60dcf1f89df2238eadfe783cba652a554186d9e8307c7773722d1049c3815526f583612bbd8f6c587d058b80fbd38113957e60212777a9f67b612312583fefb67533c065286cf371001440b1a7a43de2405e5e92d633f12a63ee2ebc408164545df22803ff239dee66eaa20780d103d940880e8bf68b9d815efcf16f59e0d858af33fe4d287a2b8e61c6ebf26e16e354b3ef63774ee01a14691b149d81f010a655f308e966c990e1befcb6e4253ff43bf473afa78aa88c36ebbe735b6b2f92ba9d07a738e000c9b42bf8a3a4d8fb6c38aa36b3329f909676183fbb520196d0dedc80dc6ba0db4d72ac6544551cc38b23afe000a91f10a89956d2120494543e3ff5d7d1b2791207860a0b921debbae769e55713a1d611f6b1175bd0";
 
+        bytes memory expected =
+            hex"2fce215362a523d7b76fb836eb458667099c58bc51d7ee6f6deb9894b6a337576b0daf9a806488c3d238762b7a2e7b12aacd1d696517eed142aa5dc5a0747f08e5e39a2486d75f497cbd6c4899d6f5bf2aaac9189a6abc6e787b0d9c5283c840e518c6ab0393cf60337369251df935a02de0463dbfa4dcdc1de9034fc9c21ffb9dbd7c48384dff31012bd5f5a9cdfdb7139c3c35f560913d643ddb728910413f1267bf1bf1586c5ee69dad26b53154934762d4c80c34d511bdd8a391f83d224f9f8f83b61daa046c542bc78f153a3aed27e1268058f6952258d274f11c8d9634a5bdd4e69c60dcf1f89df2238eadfe783cba652a554186d9e8307c7773722d1049c3815526f583612bbd8f6c587d058b80fbd38113957e60212777a9f67b612312583fefb67533c065286cf371001440b1a7a43de2405e5e92d633f12a63ee2ebc408164545df22803ff239dee66eaa20780d103d940880e8bf68b9d815efcf16f59e0d858af33fe4d287a2b8e61c6ebf26e16e354b3ef63774ee01a14691b149d81f010a655f308e966c990e1befcb6e4253ff43bf473afa78aa88c36ebbe735b6b2f92ba9d07a738e000c9b42bf8a3a4d8fb6c38aa36b3329f909676183fbb520196d0dedc80dc6ba0db4d72ac6544551cc38b23afe000a91f10a89956d2120494543e3ff5d7d1b2791207860a0b921debbae769e55713a1d611f6b1175bd0";
 
         ctx = shake_update(ctx, message);
 
         bytes memory output = shake_digest(ctx, 1024);
 
-
-          for (uint256 i = 0; i < 512; i++) {
+        for (uint256 i = 0; i < 512; i++) {
             assertEq(expected[i], output[i]);
         }
 
         ctx_shake memory ctx2;
 
-         ctx2 = shake_update(ctx2, message);
-         ctx2 = shake_pad(ctx2);
-         bytes memory output2;
-         (ctx2, output2)=shake_squeeze(ctx2, 512);
-         bytes memory output3;
-        (ctx2, output3)=shake_squeeze(ctx2, 512);
-        
+        ctx2 = shake_update(ctx2, message);
+        ctx2 = shake_pad(ctx2);
+        bytes memory output2;
+        (ctx2, output2) = shake_squeeze(ctx2, 512);
+        bytes memory output3;
+        (ctx2, output3) = shake_squeeze(ctx2, 512);
+
         for (uint256 i = 0; i < 512; i++) {
             assertEq(output[i], output2[i]);
-            assertEq(output[512+i], output3[i]);
-
+            assertEq(output[512 + i], output3[i]);
         }
     }
-
 }

@@ -47,10 +47,8 @@ bool constant _SPONGE_SQUEEZING = true;
 
 struct ctx_shake {
     uint64[25] state;
-  
     uint8[200] buff;
     uint256 i;
-   
     bool direction;
 }
 
@@ -102,16 +100,15 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
                     state[y + x] ^= t;
                 }*/
 
-               
-                let endloop:= add(add(state, x),800)
-                for { let offset :=  add(state, x) } gt(endloop, offset) { offset := add(offset, 160) } {
-                    
+                let endloop := add(add(state, x), 800)
+                for { let offset := add(state, x) } gt(endloop, offset) { offset := add(offset, 160) } {
                     mstore(offset, xor(mload(offset), t))
                 }
             }
             t := mload(add(state, 32)) //t=state[1]
 
-            for { let x := 0 } gt(768, x) { x := add(x, 32) } {//x in [0..23]
+            for { let x := 0 } gt(768, x) { x := add(x, 32) } {
+                //x in [0..23]
                 //  for (uint256 x = 0; x < 24; x++) {
                 let keccakpix := mload(add(_KECCAK_PI, x)) //_KECCAK_PI[x]
                 let kpix := add(state, shl(5, keccakpix)) //@_KECCAK_PI[x];
@@ -131,7 +128,7 @@ function F1600(uint64[25] memory state) pure returns (uint64[25] memory) {
                 }
 
                 let offset_Y := add(state, y)
-             
+
                 for { offset_X := 0 } gt(160, offset_X) { offset_X := add(offset_X, 32) } {
                     let offset := add(offset_X, offset_Y) //address of state[x+y]
 
@@ -176,7 +173,7 @@ function shake_absorb(uint256 i, uint8[200] memory buf, uint64[25] memory state,
         //console.log("i=", i);
         if (i == _RATE) {
             (buf, state) = shake_permute(buf, state);
-            
+
             i = 0;
         }
         todo -= willabsorb;
@@ -200,7 +197,6 @@ function shake_init() pure returns (ctx_shake memory ctx) {
 function shake_update(ctx_shake memory ctx, bytes memory input) pure returns (ctx_shake memory ctxout) {
     if (ctx.direction == _SPONGE_SQUEEZING) {
         (ctx.buff, ctx.state) = shake_permute(ctx.buff, ctx.state);
-      
     }
     ctxout.direction = _SPONGE_ABSORBING;
 
@@ -219,7 +215,6 @@ function shake_squeeze(ctx_shake memory ctx, uint256 n) pure returns (ctx_shake 
 
         for (uint256 j = 0; j < willsqueeze; j++) {
             uint256 read = ctx.i + j;
-            
 
             output[offset + j] = bytes1(uint8((ctx.state[(read >> 3)] >> ((read & 7) << 3)) & 0xff));
         }
@@ -228,7 +223,7 @@ function shake_squeeze(ctx_shake memory ctx, uint256 n) pure returns (ctx_shake 
         ctx.i += willsqueeze;
         if (ctx.i == _RATE) {
             (ctx.buff, ctx.state) = shake_permute(ctx.buff, ctx.state);
-            ctx.i=0;
+            ctx.i = 0;
         }
         tosqueeze -= willsqueeze;
     }
@@ -236,7 +231,10 @@ function shake_squeeze(ctx_shake memory ctx, uint256 n) pure returns (ctx_shake 
     return (ctx, output);
 }
 
-function shake_permute(uint8[200] memory buf, uint64[25] memory state) pure returns (uint8[200] memory buffer, uint64[25] memory stateout) {
+function shake_permute(uint8[200] memory buf, uint64[25] memory state)
+    pure
+    returns (uint8[200] memory buffer, uint64[25] memory stateout)
+{
     //require a 64 bits swap
     /*for (uint256 j = 0; j < 200; j++) {
         state[j / 8] ^= uint64(buf[j]) << (((uint8(j & 0x7) << 3)));
@@ -263,16 +261,15 @@ function display_state(uint64[25] memory state) pure {
     }
 }
 
-function shake_pad(ctx_shake memory ctx) pure returns (ctx_shake memory ctxout){
-        ctx.buff[ctx.i] ^= 0x1f;
-        ctx.buff[_RATE - 1] ^= 0x80;
-        (ctx.buff, ctx.state) = shake_permute(ctx.buff, ctx.state);
-       
-        ctx.i = 0;
+function shake_pad(ctx_shake memory ctx) pure returns (ctx_shake memory ctxout) {
+    ctx.buff[ctx.i] ^= 0x1f;
+    ctx.buff[_RATE - 1] ^= 0x80;
+    (ctx.buff, ctx.state) = shake_permute(ctx.buff, ctx.state);
 
-        return ctx;
+    ctx.i = 0;
+
+    return ctx;
 }
-
 
 function shake_digest(ctx_shake memory ctx, uint256 size8) pure returns (bytes memory output) {
     output = new bytes(size8);
@@ -280,7 +277,7 @@ function shake_digest(ctx_shake memory ctx, uint256 size8) pure returns (bytes m
         ctx.buff[ctx.i] ^= 0x1f;
         ctx.buff[_RATE - 1] ^= 0x80;
         (ctx.buff, ctx.state) = shake_permute(ctx.buff, ctx.state);
-       
+
         ctx.i = 0;
     }
     //display_state(ctx.state);

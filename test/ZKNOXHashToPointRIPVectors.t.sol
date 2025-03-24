@@ -4,7 +4,7 @@ pragma solidity ^0.8.25;
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_HashToPoint.sol";
 
-contract HashToPointTest is Test {
+contract HashToPointRIPTest is Test {
     function testVector0() public pure {
         bytes memory salt =
             "\x46\xb9\xdd\x2b\x0b\xa8\x8d\x13\x23\x3b\x3f\xeb\x74\x3e\xeb\x24\x3f\xcd\x52\xea\x62\xb8\x1b\x82\xb5\x0c\x27\x64\x6e\xd5\x76\x2f\xd7\x5d\xc4\xdd\xd8\xc0\xf2\x00";

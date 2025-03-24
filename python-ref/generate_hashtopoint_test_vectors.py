@@ -1,9 +1,7 @@
-import hashlib
-from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey, PublicKey
+from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey
 from common import q
-from keccak_prng import KeccakPRNG
-from keccaxof import KeccaXOF
 from shake import SHAKE
+from keccak_prng import KeccakPRNG
 
 n = 512
 # An example of secret key
@@ -22,36 +20,41 @@ sk = SecretKey(n, [f, g, F, G])
 shake = SHAKE.new(b'')
 shake.flip()
 
-file = open("../test/ZKNOXHashToPointRIPVectors.t.sol", 'w')
+for XOF in [KeccakPRNG, SHAKE]:
+    if XOF == KeccakPRNG:
+        hash_type = "RIP"
+    elif XOF == SHAKE:
+        hash_type = "NIST"
 
-header = """
-// code generated using pythonref/generate_hashtopoint_test_vectors.py.
-pragma solidity ^0.8.25;
+    file = open("../test/ZKNOXHashToPoint" + hash_type + "Vectors.t.sol", 'w')
 
-import {Test, console} from "forge-std/Test.sol";
-import "../src/ZKNOX_HashToPoint.sol";
+    header = """
+    // code generated using pythonref/generate_hashtopoint_test_vectors.py.
+    pragma solidity ^0.8.25;
 
-contract HashToPointTest is Test {\n
-"""
-file.write(header)
+    import {Test, console} from "forge-std/Test.sol";
+    """
+    header += "import \"../src/ZKNOX_HashToPoint.sol\";\n"
+    header += "contract HashToPoint{}Test is Test {{\n".format(hash_type)
+    file.write(header)
 
-for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
-    salt = shake.read(40)
-    hash = sk.hash_to_point(sk.n, message.encode(), salt)
+    for (i, message) in enumerate(["My name is Renaud", "My name is Simon", "My name is Nicolas", "We are ZKNox"]):
+        salt = shake.read(40)
+        hash = sk.hash_to_point(sk.n, message.encode(), salt, xof=XOF)
 
-    file.write("\tfunction testVector{}() public pure {{\n".format(i))
-    file.write("\t\tbytes memory salt = \"{}\"; \n".format(
-        "".join(f"\\x{b:02x}" for b in salt)))
-    file.write("\t\tbytes memory message = \"{}\";\n".format(message))
-    file.write("\t\t// forgefmt: disable-next-line\n")
+        file.write("\tfunction testVector{}() public pure {{\n".format(i))
+        file.write("\t\tbytes memory salt = \"{}\"; \n".format(
+            "".join(f"\\x{b:02x}" for b in salt)))
+        file.write("\t\tbytes memory message = \"{}\";\n".format(message))
+        file.write("\t\t// forgefmt: disable-next-line\n")
 
-    file.write("\t\tuint256[512] memory expected_hash = [uint256({}), {}];\n".format(
-        hash[0], ','.join(map(str, hash[1:]))))
-    file.write("\t\tuint256 q = 12289;\n")
-    file.write("\t\tuint256 n = 512;\n")
-    file.write(
-        "\t\tuint256[] memory hash = hashToPointRIP(salt, message);\n")
-    file.write(
-        "\t\tfor (uint256 i = 0 ; i < n ; i ++ ) { assertEq(hash[i], expected_hash[i]); }\n")
-    file.write("\t}\n\n")
-file.write("}")
+        file.write("\t\tuint256[512] memory expected_hash = [uint256({}), {}];\n".format(
+            hash[0], ','.join(map(str, hash[1:]))))
+        file.write("\t\tuint256 q = 12289;\n")
+        file.write("\t\tuint256 n = 512;\n")
+        file.write(
+            "\t\tuint256[] memory hash = hashToPoint{}(salt, message);\n".format(hash_type))
+        file.write(
+            "\t\tfor (uint256 i = 0 ; i < n ; i ++ ) { assertEq(hash[i], expected_hash[i]); }\n")
+        file.write("\t}\n\n")
+    file.write("}")
