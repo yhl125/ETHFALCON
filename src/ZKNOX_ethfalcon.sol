@@ -152,7 +152,6 @@ contract ZKNOX_ethfalcon is ISigVerifier {
         return result;
     }
 
-
     function GetPublicKey(address _from) external view override returns (uint256[] memory Kpub) {
         Kpub = new uint256[](32);
 
