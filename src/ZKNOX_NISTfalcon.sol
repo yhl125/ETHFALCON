@@ -30,111 +30,109 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: HashToPoint.sol
-///* Description: Compute Negative Wrap Convolution NTT as specified in EIP-NTT
+///* FILE: ZKNOX_ethfalcon.sol
+///* Description: Compute ethereum friendly version of falcon verification
 /**
  *
  */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import "./ZKNOX_common.sol";
+import "./ZKNOX_IVerifier.sol";
+
 import "./ZKNOX_falcon_utils.sol";
-import "./ZKNOX_shake.sol";
+import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
+import "./ZKNOX_falcon_core.sol";
 
-uint256 constant MASK_2BYTES = uint256(0xFFFF);
+//choose the XOF to use here
+import "./ZKNOX_HashToPoint.sol";
 
-function hashToPointRIP(bytes memory salt, bytes memory msgHash) pure returns (uint256[] memory output) {
-    output = new uint256[](n);
+//import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+//import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-    bytes32 state;
+/* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
+contract ZKNOX_falcon is ISigVerifier {
+    ZKNOX_NTT ntt;
+    address public psirev;
+    address public psiInvrev;
+    bool EIP7885;
+    bool immutableMe;
+    uint256 err_flag; //a debug flag
 
-    // Initial state
-    // TODO: When implementing NIST version, switch `msgHash` and `salt`
-    state = keccak256(abi.encodePacked(msgHash, salt));
-    bytes memory extendedState = abi.encodePacked(state, uint64(0x00));
+    function update(address i_psirev, address i_psiInvrev) public {
+        if (immutableMe == true) revert();
+        psirev = i_psirev;
+        psiInvrev = i_psiInvrev;
+        EIP7885 = false;
+        immutableMe = true;
+    }
 
-    assembly {
-        let counter := 0
-        let i := 0
-        let offset := add(output, 32)
-        let extendedAdress := add(extendedState, 64)
-        for {} lt(i, n) {} {
-            let buffer := keccak256(add(extendedState, 32), 40)
-            for { let j := 240 } gt(666, j) { j := sub(j, 16) } {
-                let chunk := and(shr(j, buffer), 0xffff)
-                if lt(chunk, kq) {
-                    mstore(offset, mod(chunk, q))
-                    offset := add(offset, 32)
-                    i := add(i, 1)
-                    if eq(i, 512) { break }
-                }
+    function updateNTT(ZKNOX_NTT i_ntt) public {
+        if (immutableMe == true) revert();
+        ntt = i_ntt;
+        EIP7885 = true;
+        immutableMe = true;
+    }
+
+    function setflag(uint256 value) public {
+        err_flag = value;
+    }
+
+    struct CompactSignature {
+        bytes salt;
+        uint256[] s2; // compacted signature
+    }
+
+    function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool) {
+        if (ntth.length != falcon_S256) return false; //"Invalid public key length"
+        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+        if (signature.s2.length != falcon_S256) return false; //"Invalid salt length"
+
+        return true;
+    }
+
+    function verify(
+        bytes memory h, //a 32 bytes hash
+        bytes memory salt, // compacted signature salt part
+        uint256[] memory s2, // compacted signature s2 part
+        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) external view returns (bool result) {
+        // if (h.length != 32) return false;
+        if (salt.length != 40) {
+            revert("invalid salt length");
+            //return false;
+        } //CVETH-2025-080201: control salt length to avoid potential forge
+        if (s2.length != falcon_S256) {
+            revert("invalid s2 length");
+            //return false;
+        } //"Invalid salt length"
+        if (ntth.length != falcon_S256) {
+            revert("invalid ntth length");
+            //return false;
+        } //"Invalid public key length"
+
+        uint256[] memory hashed = hashToPointNIST(salt, h);
+
+        result = falcon_core_spec(psirev, psiInvrev, s2, ntth, hashed);
+        //if (result == false) revert("wrong sig");
+
+        return result;
+    }
+
+    function GetPublicKey(address _from) external view override returns (uint256[] memory Kpub) {
+        Kpub = new uint256[](32);
+
+        assembly {
+            let offset := Kpub
+
+            for { let i := 0 } gt(1024, i) { i := add(i, 32) } {
+                //read the 32 words
+                offset := add(offset, 32)
+
+                extcodecopy(_from, offset, i, 32) //psi_rev[m+i])
             }
-
-            counter := add(counter, 6277101735386680763835789423207666416102355444464034512896) //counter+=1, shift by 192 to increment directly memory buffer by a 64 bits counter.
-            mstore(extendedAdress, counter)
         }
+        return Kpub;
     }
-}
-
-function splitToHex(bytes32 x) pure returns (uint16[16] memory) {
-    // splits a byte32 into hex
-    uint16[16] memory res;
-    for (uint256 i = 0; i < 16; i++) {
-        res[i] = uint16(uint256(x) >> ((15 - i) * 16));
-    }
-    return res;
-}
-
-function hashToPointNIST(bytes memory salt, bytes memory msgHash) pure returns (uint256[] memory) {
-    uint256[] memory hashed = new uint256[](512);
-    uint256 i = 0;
-    uint256 j = 0;
-    ctx_shake memory ctx;
-    ctx = shake_update(ctx, abi.encodePacked(msgHash, salt));
-    bytes memory tmp=new bytes(_RATE);
-    bytes memory sample;
-    (ctx, sample) =shake_squeeze(ctx, _RATE);
-
-    while (i < n) {
-        if (j == _RATE/2) {
-            (ctx,tmp) = shake_squeeze(ctx,_RATE);
-            j=0;
-        }
-        uint256 dibytes=uint256(uint8(tmp[j]))+(uint256(uint8(tmp[j+1]))<<8);//flip a coin, for sure we get rekt by endianness
-        if (dibytes < kq) {
-            hashed[i] = dibytes % q;
-            i++;
-         }
-         j++;
-        }
-    
-    return hashed;
-}
-
-
-
-
-
-//Use for Poc only, as this XOF doesn't respect separation domain for input and output of internal state
-//CVETH-2025-080203
-function hashToPointTETRATION(bytes memory salt, bytes memory msgHash) pure returns (uint256[] memory) {
-    uint256[] memory hashed = new uint256[](512);
-    uint256 i = 0;
-    uint256 j = 0;
-    bytes32 tmp = keccak256(abi.encodePacked(msgHash, salt));
-    uint16[16] memory sample = splitToHex(tmp);
-
-    while (i < n) {
-        if (j == 16) {
-            tmp = keccak256(abi.encodePacked(tmp));
-            sample = splitToHex(tmp);
-            j = 0;
-        }
-        if (sample[j] < kq) {
-            hashed[i] = sample[j] % q;
-            i++;
-        }
-        j++;
-    }
-    return hashed;
-}
+} //end of contract ZKNOX_falcon_compact
