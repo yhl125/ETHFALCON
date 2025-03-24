@@ -2,8 +2,8 @@
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
-import "../../src/ZKNOX_NTT.sol";
-import "../../src/experimental/ZKNOX_falcon_epervier_shorter.sol";
+import "../src/ZKNOX_NTT.sol";
+import "../src/ZKNOX_epervier.sol";
 
 contract ZKNOX_falcon_epervier_shorterTest is Test {
     ZKNOX_falcon_epervier_shorter epervier;
@@ -64,13 +64,15 @@ contract ZKNOX_falcon_epervier_shorterTest is Test {
         sig.salt =
             "\x46\xb9\xdd\x2b\x0b\xa8\x8d\x13\x23\x3b\x3f\xeb\x74\x3e\xeb\x24\x3f\xcd\x52\xea\x62\xb8\x1b\x82\xb5\x0c\x27\x64\x6e\xd5\x76\x2f\xd7\x5d\xc4\xdd\xd8\xc0\xf2\x00";
         address recovered_pk_0;
-        recovered_pk_0 = epervier.recover(message, sig);
-        assertEq(pk_0, recovered_pk_0);
 
         uint256[] memory cs1 = _ZKNOX_NTT_Compact(tmps1);
         uint256[] memory cs2 = _ZKNOX_NTT_Compact(tmps2);
-
+        uint256 gasStart = gasleft();
         recovered_pk_0 = epervier.recover(message, sig.salt, cs1, cs2, sig.hint);
+        uint256 gasUsed = gasStart - gasleft();
+
+        console.log("gas used by epervier short:", gasUsed);
+
         assertEq(pk_0, recovered_pk_0);
     }
 

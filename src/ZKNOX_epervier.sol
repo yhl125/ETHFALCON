@@ -39,12 +39,12 @@
 pragma solidity ^0.8.25;
 
 import {console} from "forge-std/Test.sol";
-import {ZKNOX_NTT} from "../ZKNOX_NTT.sol";
-import "../ZKNOX_falcon_utils.sol";
-import "../ZKNOX_NTT_falcon.sol";
+import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
+import "./ZKNOX_falcon_utils.sol";
+import "./ZKNOX_NTT_falcon.sol";
 
 //choose the XOF to use here
-import "../ZKNOX_HashToPoint.sol";
+import "./ZKNOX_HashToPoint.sol";
 
 contract ZKNOX_falcon_epervier_shorter {
     ZKNOX_NTT ntt;
