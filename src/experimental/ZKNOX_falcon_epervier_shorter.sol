@@ -148,8 +148,6 @@ contract ZKNOX_falcon_epervier_shorter {
         uint256[] memory s1 = _ZKNOX_NTT_Expand(cs1); //avoiding another memory declaration
         uint256[] memory s2 = _ZKNOX_NTT_Expand(cs2); //avoiding another memory declaration
 
-        uint256 i;
-
         // (s1,s2) must be short
         uint256 norm = 0;
         // As (σ1,σ2) are given with positive values, small negative values are actually large (close to q).
@@ -185,48 +183,42 @@ contract ZKNOX_falcon_epervier_shorter {
         assembly {
             let temp := mload(add(prefix, 32)) //prefix[i-1]
 
-            for { let offset := 64 } gt(16384, offset) { offset := add(offset, 32) } {
+            for { let offset := 64 } gt(16416, offset) { offset := add(offset, 32) } {
                 // for (i = 1; i < 512; i++)
                 temp := mulmod(temp, mload(add(s2, offset)), q)
                 mstore(add(offset, prefix), temp) //prefix[i] = mulmod(prefix[i - 1], s2[i], q);
             }
         }
 
-        for (i = 1; i < 512; i++) {
-            s2_inverse_ntt[511 - i] = mulmod(s2_inverse_ntt[512 - i], s2[512 - i], q);
+        assembly {
+            for { let offset := 32 } gt(16384, offset) { offset := add(offset, 32) } {
+                let temp :=
+                    mulmod(mload(add(s2_inverse_ntt, sub(16416, offset))), mload(add(s2, sub(16416, offset))), q)
+                mstore(add(s2_inverse_ntt, sub(16384, offset)), temp)
+            }
         }
 
-        for (i = 1; i < 512; i++) {
-            s2_inverse_ntt[i] = mulmod(s2_inverse_ntt[i], prefix[i - 1], q);
+        assembly {
+            for { let offset := 64 } gt(16416, offset) { offset := add(offset, 32) } {
+                let a_temp := add(s2_inverse_ntt, offset) //address of s2_inverse_ntt[i]
+                let temp := mulmod(mload(add(prefix, sub(offset, 32))), mload(a_temp), q) //mulmod(s2_inverse_ntt[i], prefix[i - 1], q)
+                mstore(a_temp, temp) //s2_inverse_ntt[i] = mulmod(s2_inverse_ntt[i], prefix[i - 1], q);
+            }
         }
-        /*
-          assembly{
-            
-            for { let offset := 64 } gt(16384, offset) { offset := add(offset, 32) } {
-                let a_temp:=add(s2_inverse_ntt, offset)//address of s2_inverse_ntt[i]
-                let temp:=mulmod(mload(add(prefix,sub(offset, 32) ) ), mload(a_temp),q)
-                mstore(a_temp, temp)           //s2_inverse_ntt[i] = mulmod(s2_inverse_ntt[i], prefix[i - 1], q);
-               
-            }}*/
 
         //ntt(s2)*ntt(s2^-1)==ntt(1)?
         norm = 0; //accumulate the booleand of testing condition
         uint256[] memory hashed = hashToPointRIP(salt, msgs);
 
         assembly {
-            for { let offset := 32 } gt(16384, offset) { offset := add(offset, 32) } {
+            for { let offset := 32 } gt(16416, offset) { offset := add(offset, 32) } {
                 norm := add(norm, sub(1, mulmod(mload(add(offset, s2)), mload(add(offset, s2_inverse_ntt)), q)))
-                // let a_hashedi:=add(hashed, offset)
-                // mstore(a_hashedi, addmod(mload(a_hashedi), sub(q,mload(add(s1, offset))), q))
+                let a_hashedi := add(hashed, offset)
+                mstore(a_hashedi, addmod(mload(a_hashedi), sub(q, mload(add(s1, offset))), q))
             }
         }
 
         if (norm != 0) revert("wrong hint");
-
-        for (i = 0; i < 512; i++) {
-            //hashToPoint-s1
-            hashed[i] = addmod(hashed[i], q - s1[i], q);
-        }
 
         uint256[] memory hashed_mul_s2_ntt = _ZKNOX_VECMULMOD(_ZKNOX_NTTFW_vectorized(hashed), s2_inverse_ntt);
 
