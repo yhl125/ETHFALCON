@@ -22,6 +22,9 @@ Upon confirmation of the optimal algorithm for NTT, its critical parts have been
 |------------------------|---------------------|---------------------|---------------------|
 | ZKNOX_ethfalcon.verifyNIST       | ZKNOX_NTT      | 7M | :white_check_mark:|
 | ZKNOX_ethfalcon.verify       | ZKNOX_NTT      | 1.9 M | :white_check_mark:|
+| ZKNOX_epervier.verify       | ZKNOX_NTT      | 1.9 M | :white_check_mark:|
+
+
 
 **Note on the encoding**: polynomials are encoded as $(a_0 || a_1|| \ldots|| a_k)$, where $P=\sum {a_i}X^i$, the operator || being concatenation, each $a_i$ being encoded on 16 bits. This leads to a representation of $P$ over 32 uint256.
 

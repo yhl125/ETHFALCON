@@ -7,7 +7,7 @@ import "../src/ZKNOX_falcon_utils.sol";
 import "../src/ZKNOX_ethfalcon.sol";
 
 contract ZKNOX_FalconTest is Test {
-    ZKNOX_falcon_compact falcon;
+    ZKNOX_ethfalcon falcon;
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
     // forgefmt: disable-next-line
@@ -31,7 +31,7 @@ contract ZKNOX_FalconTest is Test {
 
         ntt.update(a_psirev, a_psiInvrev, 12289, 12265); //update ntt with outer contract
 
-        falcon = new ZKNOX_falcon_compact();
+        falcon = new ZKNOX_ethfalcon();
         falcon.updateNTT(ntt);
     }
 
@@ -60,7 +60,7 @@ contract ZKNOX_FalconTest is Test {
 
         uint256[] memory tmp_s2c = _ZKNOX_NTT_Compact(tmp_s2);
 
-        ZKNOX_falcon_compact.CompactSignature memory sig;
+        ZKNOX_ethfalcon.CompactSignature memory sig;
 
         sig.s2 = new uint256[](32);
 
@@ -102,7 +102,7 @@ contract ZKNOX_FalconTest is Test {
 
         uint256[] memory tmp_s2c = _ZKNOX_NTT_Compact(tmp_s2);
 
-        ZKNOX_falcon_compact.CompactSignature memory sig;
+        ZKNOX_ethfalcon.CompactSignature memory sig;
 
         sig.s2 = new uint256[](32);
 
