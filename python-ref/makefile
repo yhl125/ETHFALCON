@@ -47,6 +47,7 @@ generate_test_vectors:
 	$(PYTHON) -m generate_falcon_epervier_shorter_zknox_test_vectors -v
 	$(PYTHON) -m generate_ethfalcon_test_vectors -v
 	$(PYTHON) -m generate_hashtopoint_test_vectors -v
+	$(PYTHON) -m generate_delegate -v
 	forge fmt
 
 generate_hash_test_vectors:
@@ -65,6 +66,3 @@ clean:
 	rm -rf __pycache__ */__pycache__
 	rm -rf scripts/*.sage.py
 	@echo "Clean done"
-
-generate_delegate:
-	$(PYTHON) -m generate_delegate -v

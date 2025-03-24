@@ -50,8 +50,6 @@ for XOF in [KeccakPRNG, SHAKE]:
 
         file.write("\t\tuint256[512] memory expected_hash = [uint256({}), {}];\n".format(
             hash[0], ','.join(map(str, hash[1:]))))
-        file.write("\t\tuint256 q = 12289;\n")
-        file.write("\t\tuint256 n = 512;\n")
         file.write(
             "\t\tuint256[] memory hash = hashToPoint{}(salt, message);\n".format(hash_type))
         file.write(

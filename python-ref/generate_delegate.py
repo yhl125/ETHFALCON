@@ -60,8 +60,6 @@ contract ZKNOX_DelegateTest is Test {
         (a_psirev, a_psiInvrev) = Deploy(salt);
 
         falcon.update(a_psirev, a_psiInvrev);
-
-        console.log("deployment ok");
     }
 """
 file.write(header)

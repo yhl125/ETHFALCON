@@ -40,6 +40,8 @@ pragma solidity ^0.8.25;
 
 import "./ZKNOX_falcon_utils.sol";
 import "./ZKNOX_shake.sol";
+import {Test, console} from "forge-std/Test.sol";
+
 
 uint256 constant MASK_2BYTES = uint256(0xFFFF);
 
@@ -49,7 +51,6 @@ function hashToPointRIP(bytes memory salt, bytes memory msgHash) pure returns (u
     bytes32 state;
 
     // Initial state
-    // TODO: When implementing NIST version, switch `msgHash` and `salt`
     state = keccak256(abi.encodePacked(msgHash, salt));
     bytes memory extendedState = abi.encodePacked(state, uint64(0x00));
 
@@ -86,28 +87,27 @@ function splitToHex(bytes32 x) pure returns (uint16[16] memory) {
 }
 
 function hashToPointNIST(bytes memory salt, bytes memory msgHash) pure returns (uint256[] memory) {
+    // SALT AND MSG ARE SWAPPED!
     uint256[] memory hashed = new uint256[](512);
     uint256 i = 0;
     uint256 j = 0;
     ctx_shake memory ctx;
-    ctx = shake_update(ctx, abi.encodePacked(msgHash, salt));
-    bytes memory tmp = new bytes(_RATE);
-    bytes memory sample;
-    (ctx, sample) = shake_squeeze(ctx, _RATE);
-
+    bytes memory tmp;
+    ctx = shake_update(ctx, abi.encodePacked(salt, msgHash));
+    ctx = shake_pad(ctx);
+    (ctx, tmp) = shake_squeeze(ctx, _RATE);
     while (i < n) {
-        if (j == _RATE / 2) {
+        if (j == _RATE) {
             (ctx, tmp) = shake_squeeze(ctx, _RATE);
             j = 0;
         }
-        uint256 dibytes = uint256(uint8(tmp[j])) + (uint256(uint8(tmp[j + 1])) << 8); //flip a coin, for sure we get rekt by endianness
+        uint256 dibytes = uint256(uint8(tmp[j+1])) + (uint256(uint8(tmp[j])) << 8); 
         if (dibytes < kq) {
             hashed[i] = dibytes % q;
             i++;
         }
-        j++;
+        j+=2;
     }
-
     return hashed;
 }
 
