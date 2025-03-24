@@ -152,6 +152,34 @@ contract ZKNOX_falcon_compact is ISigVerifier {
         return result;
     }
 
+    function verifyNIST(
+        bytes memory h, //a 32 bytes hash
+        bytes memory salt, // compacted signature salt part
+        uint256[] memory s2, // compacted signature s2 part
+        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) external view returns (bool result) {
+        // if (h.length != 32) return false;
+        if (salt.length != 40) {
+            revert("invalid salt length");
+            //return false;
+        } //CVETH-2025-080201: control salt length to avoid potential forge
+        if (s2.length != falcon_S256) {
+            revert("invalid s2 length");
+            //return false;
+        } //"Invalid salt length"
+        if (ntth.length != falcon_S256) {
+            revert("invalid ntth length");
+            //return false;
+        } //"Invalid public key length"
+
+        uint256[] memory hashed = hashToPointNIST(salt, h);
+
+        result = falcon_core_spec(psirev, psiInvrev, s2, ntth, hashed);
+        //if (result == false) revert("wrong sig");
+
+        return result;
+    }
+
     function GetPublicKey(address _from) external view override returns (uint256[] memory Kpub) {
         Kpub = new uint256[](32);
 

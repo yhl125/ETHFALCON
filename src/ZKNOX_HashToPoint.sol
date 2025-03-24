@@ -42,7 +42,6 @@ import "./ZKNOX_falcon_utils.sol";
 import "./ZKNOX_shake.sol";
 import {Test, console} from "forge-std/Test.sol";
 
-
 uint256 constant MASK_2BYTES = uint256(0xFFFF);
 
 function hashToPointRIP(bytes memory salt, bytes memory msgHash) pure returns (uint256[] memory output) {
@@ -101,12 +100,12 @@ function hashToPointNIST(bytes memory salt, bytes memory msgHash) pure returns (
             (ctx, tmp) = shake_squeeze(ctx, _RATE);
             j = 0;
         }
-        uint256 dibytes = uint256(uint8(tmp[j+1])) + (uint256(uint8(tmp[j])) << 8); 
+        uint256 dibytes = uint256(uint8(tmp[j + 1])) + (uint256(uint8(tmp[j])) << 8);
         if (dibytes < kq) {
             hashed[i] = dibytes % q;
             i++;
         }
-        j+=2;
+        j += 2;
     }
     return hashed;
 }

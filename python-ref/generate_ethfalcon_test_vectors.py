@@ -2,7 +2,6 @@ import hashlib
 from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey, PublicKey
 from common import falcon_compact, q
 from keccak_prng import KeccakPRNG
-from keccaxof import KeccaXOF
 from polyntt.poly import Poly
 from generate_falcon_test_vectors import list_of_messages
 from shake import SHAKE
@@ -25,8 +24,6 @@ pk = PublicKey(n, sk.h)
 shake = SHAKE.new(b'')
 shake.flip()
 
-XOF = KeccakPRNG
-file = open("../test/ZKNOX_ethfalcon.t.sol", 'w')
 
 header = """
 // code generated using pythonref/generate_falcon_compact_test_vectors.py.
@@ -62,46 +59,50 @@ contract ZKNOX_FalconTest is Test {
         falcon.update(a_psirev, a_psiInvrev);
     }
 """
-file.write(header)
 
-for (i, message) in enumerate(list_of_messages):
-    sig = sk.sign(message.encode(),
-                  randombytes=shake.read, xof=XOF)
-    salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
-    enc_s = sig[HEAD_LEN + SALT_LEN:]
-    s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
-    s2 = [elt % q for elt in s2]
-    assert pk.verify(message.encode(), sig, xof=XOF)
+for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
+    file = open("../test/ZKNOX_ethfalcon_{}.t.sol".format(hash_type), 'w')
 
-    s2_compact = falcon_compact(s2)
-    pk_compact = falcon_compact(Poly(sk.h, q).ntt())
+    file.write(header)
 
-    file.write("function testVector{}() public view {{\n".format(i))
-    file.write("// public key\n")
-    file.write("// forgefmt: disable-next-line\n")
-    file.write("uint256[32] memory tmp_pkc = {};\n".format(pk_compact))
-    file.write("uint256[] memory pkc = new uint[](32);\n")
-    file.write("for (uint256 i = 0; i < 32; i++) {\n")
-    file.write("\tpkc[i] = tmp_pkc[i];\n")
+    for (i, message) in enumerate(list_of_messages):
+        sig = sk.sign(message.encode(),
+                      randombytes=shake.read, xof=XOF)
+        salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
+        enc_s = sig[HEAD_LEN + SALT_LEN:]
+        s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
+        s2 = [elt % q for elt in s2]
+        assert pk.verify(message.encode(), sig, xof=XOF)
+
+        s2_compact = falcon_compact(s2)
+        pk_compact = falcon_compact(Poly(sk.h, q).ntt())
+
+        file.write("function testVector{}() public view {{\n".format(i))
+        file.write("// public key\n")
+        file.write("// forgefmt: disable-next-line\n")
+        file.write("uint256[32] memory tmp_pkc = {};\n".format(pk_compact))
+        file.write("uint256[] memory pkc = new uint[](32);\n")
+        file.write("for (uint256 i = 0; i < 32; i++) {\n")
+        file.write("\tpkc[i] = tmp_pkc[i];\n")
+        file.write("}\n")
+
+        file.write("// signature s2\n")
+        file.write("// forgefmt: disable-next-line\n")
+        file.write("uint256[32] memory s2 = {};\n".format(s2_compact))
+
+        file.write("ZKNOX_falcon_compact.CompactSignature memory sig;\n")
+        file.write("sig.s2=new uint256[](32);\n")
+
+        file.write("for (uint i = 0; i < 32; i++) {\n")
+        file.write("\tsig.s2[i] = s2[i];\n")
+        file.write("}\n")
+
+        file.write("// message\n")
+        file.write("bytes memory message  = \"{}\"; \n".format(message))
+        file.write("sig.salt = \"{}\"; \n".format(
+            "".join(f"\\x{b:02x}" for b in salt)))
+        file.write(
+            "bool result = falcon.verify{}(message, sig.salt, sig.s2, pkc);\n".format("" if hash_type == 'RIP' else hash_type))
+        file.write("assertEq(true, result);")
+        file.write("}\n")
     file.write("}\n")
-
-    file.write("// signature s2\n")
-    file.write("// forgefmt: disable-next-line\n")
-    file.write("uint256[32] memory s2 = {};\n".format(s2_compact))
-
-    file.write("ZKNOX_falcon_compact.CompactSignature memory sig;\n")
-    file.write("sig.s2=new uint256[](32);\n")
-
-    file.write("for (uint i = 0; i < 32; i++) {\n")
-    file.write("\tsig.s2[i] = s2[i];\n")
-    file.write("}\n")
-
-    file.write("// message\n")
-    file.write("bytes memory message  = \"{}\"; \n".format(message))
-    file.write("sig.salt = \"{}\"; \n".format(
-        "".join(f"\\x{b:02x}" for b in salt)))
-    file.write(
-        "bool result = falcon.verify(message, sig.salt, sig.s2, pkc);\n")
-    file.write("assertEq(true, result);")
-    file.write("}\n")
-file.write("}\n")
