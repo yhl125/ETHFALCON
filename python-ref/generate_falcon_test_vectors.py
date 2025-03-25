@@ -111,7 +111,7 @@ for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
         file.write("sig.salt = \"{}\"; \n".format(
             "".join(f"\\x{b:02x}" for b in salt)))
         file.write(
-            "bool result = falcon.verify{}(message, sig.salt, sig.s2, pkc);\n".format("" if hash_type == 'RIP' else hash_type))
+            "bool result = falcon.verify(message, sig.salt, sig.s2, pkc);\n")
         file.write("assertEq(true, result);")
         file.write("}\n")
     file.write("}\n")

@@ -25,7 +25,7 @@ shake = SHAKE.new(b'')
 shake.flip()
 
 for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
-    file = open("../test/experimental/ZKNOXFalconEpervier" +
+    file = open("../test/deprecated/ZKNOXFalconEpervier" +
                 impl_str + "Vectors.t.sol", 'w')
 
     header = """
@@ -34,7 +34,7 @@ for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
 
     import {Test, console} from "forge-std/Test.sol";
     import "../../src/ZKNOX_NTT.sol";
-    import "../../src/experimental/ZKNOX_falcon_epervier.sol";
+    import "../../src/deprecated/ZKNOX_falcon_epervier_old.sol";
 
     contract ZKNOX_falcon_epervierTest is Test {
         ZKNOX_falcon_epervier epervier;
