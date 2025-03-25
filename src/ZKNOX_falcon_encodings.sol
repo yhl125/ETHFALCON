@@ -67,21 +67,7 @@ function _decompress_sig(bytes memory buf) pure returns (uint256[] memory) {
             let b := shr(acc_len, acc)
             s := and(b, 128)
             m := and(b, 127)
-        }
 
-        /*
-		 * Get next bits until a 1 is reached.
-		 */
-        // for (;;) {
-        /*
-            if (acc_len == 0) {
-                
-                acc = (acc << 8) | uint32(uint8(buf[v]));
-                v = v + 1;
-                acc_len = 8;
-            }*/
-
-        assembly {
             for {} eq(0, 0) {} {
                 if eq(0, acc_len) {
                     acc := or(shl(8, acc), byte(0, mload(add(add(buf, 32), v))))
@@ -89,10 +75,6 @@ function _decompress_sig(bytes memory buf) pure returns (uint256[] memory) {
                     acc_len := 8
                 }
                 acc_len := sub(acc_len, 1)
-                /*
-                if( and(shr(acc_len,acc),1)   ) {
-                    break
-                }*/
 
                 if and(shr(acc_len, acc), 1) {
                     // if (((acc >> acc_len) & 1) != 0)
@@ -133,15 +115,16 @@ function _decompress_sig(bytes memory buf) pure returns (uint256[] memory) {
     return x;
 }
 
+//decompressing kpub, assuming first byte is 0x09
 function decompress_kpub(bytes memory buf) pure returns (uint256[] memory) {
     uint256[] memory x = new uint256[](512);
     uint32 acc = 0;
     uint256 acc_len = 0;
-    uint256 u = 0;
+    uint256 u = 1;
     uint256 in_len = ((n * 14) + 7) >> 3;
     uint256 cpt = 0;
 
-    while (u < n) {
+    while (u < n + 1) {
         acc = (acc << 8) | uint32(uint8(buf[cpt]));
         cpt++;
 
@@ -174,14 +157,23 @@ function decompress_kpub(bytes memory buf) pure returns (uint256[] memory) {
 	 *   message              mlen bytes
 	 *   signature            slen bytes
 	 */
-function decompress_KAT(bytes memory pk, bytes memory sm)
+function decompress_KAT(bytes memory pk, bytes memory sm, uint256 mlen, uint256 slen)
     pure
-    returns (uint256[] memory ntth, uint256[] memory s2, bytes memory salt, bytes memory message)
+    returns (uint256[] memory h, uint256[] memory s2, bytes memory salt, bytes memory message)
 {
     /*
 	 * Decode public key.
 	 */
     if (pk[0] != 0x09) {
         revert("wrong public key encoding");
+    }
+    uint256 slen = (uint256(uint8(sm[0])) << 8) + uint256(uint8(sm[1]));
+    h = decompress_kpub(pk);
+    uint256 i;
+    for (i = 0; i < 40; i++) {
+        salt[i] = sm[i + 2];
+    }
+    for (uint256 j = 0; j < mlen; j++) {
+        message[j] = sm[j + 42];
     }
 }
