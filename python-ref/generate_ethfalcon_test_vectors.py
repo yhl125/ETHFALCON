@@ -1,5 +1,4 @@
-import hashlib
-from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey, PublicKey
+from falcon import HEAD_LEN, SALT_LEN, decompress, SecretKey, PublicKey
 from common import falcon_compact, q
 from keccak_prng import KeccakPRNG
 from polyntt.poly import Poly

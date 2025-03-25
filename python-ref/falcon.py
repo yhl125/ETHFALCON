@@ -10,7 +10,6 @@ from ffsampling import gram, ffldl_fft, ffsampling_fft
 from ntrugen import ntru_gen
 from encoding import compress, decompress
 from keccak_prng import KeccakPRNG
-from keccaxof import KeccaXOF
 from shake import SHAKE
 from polyntt.poly import Poly
 from polyntt.ntt_iterative import NTTIterative

@@ -1,7 +1,4 @@
-from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey, PublicKey
-from polyntt.poly import Poly
-from common import q
-from scripts.sign_KAT import sign_KAT
+from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey
 from keccaxof import KeccaXOF
 
 n = 512

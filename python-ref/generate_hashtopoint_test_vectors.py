@@ -1,5 +1,4 @@
-from falcon import HEAD_LEN, SALT_LEN, Params, decompress, SecretKey
-from common import q
+from falcon import SecretKey
 from shake import SHAKE
 from keccak_prng import KeccakPRNG
 

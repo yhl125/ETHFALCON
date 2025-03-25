@@ -22,7 +22,7 @@ test_keccak_prng:
 
 test_keccak:
 	$(PYTHON) -m unittest test_keccak -v
-
+ 
 test_shake:
 	$(PYTHON) -m unittest test_shake -v
 

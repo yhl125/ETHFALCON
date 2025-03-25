@@ -1,7 +1,7 @@
 """Python implementation of Recovery Falcon"""
 from common import q
 from encoding import compress, decompress
-from falcon import HEAD_LEN, SALT_LEN, SEED_LEN, Params, PublicKey, SecretKey, hash_to_point, logn
+from falcon import HEAD_LEN, SALT_LEN, SEED_LEN, Params, SecretKey, hash_to_point, logn
 from keccak_prng import KeccakPRNG
 from polyntt.poly import Poly
 from polyntt.ntt_iterative import NTTIterative
