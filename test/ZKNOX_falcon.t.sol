@@ -51,7 +51,7 @@ contract ZKNOX_FalconTest is Test {
         bytes memory message = "My name is Renaud";
         sig.salt =
             "\xab\x0b\xae\x31\x63\x39\x89\x43\x04\xe3\x58\x77\xb0\xc2\x8a\x9b\x1f\xd1\x66\xc7\x96\xb9\xcc\x25\x8a\x06\x4a\x8f\x57\xe2\x7f\x2a\x5b\x8d\x54\x8a\x72\x8c\x94\x44";
-        bool result = falcon.verifyNIST(message, sig.salt, sig.s2, pkc);
+        bool result = falcon.verify(message, sig.salt, sig.s2, pkc);
         assertEq(true, result);
     }
 
@@ -75,7 +75,7 @@ contract ZKNOX_FalconTest is Test {
         bytes memory message = "My name is Simon";
         sig.salt =
             "\x91\x89\x90\xff\x93\xe0\x65\x6b\x5f\x75\xb0\x87\x29\xc6\x0e\x6a\x9d\x73\x52\xb9\xef\xd2\xe3\x3e\x3d\x1b\xa6\xe6\xd8\x9e\xdf\xa6\x71\x26\x6e\xce\x6b\xe7\xbb\x5a";
-        bool result = falcon.verifyNIST(message, sig.salt, sig.s2, pkc);
+        bool result = falcon.verify(message, sig.salt, sig.s2, pkc);
         assertEq(true, result);
     }
 
@@ -99,7 +99,7 @@ contract ZKNOX_FalconTest is Test {
         bytes memory message = "My name is Nicolas";
         sig.salt =
             "\x13\x57\x9b\x4e\xf5\xf6\xb6\x42\x65\x63\xd7\x19\x5b\x8c\x5b\x84\x73\x6b\x14\x26\x61\x60\x34\x2c\x40\x93\xf8\xab\xea\x48\x37\x1b\xa9\x4c\xc0\x6d\xcb\x6b\x8a\x8e";
-        bool result = falcon.verifyNIST(message, sig.salt, sig.s2, pkc);
+        bool result = falcon.verify(message, sig.salt, sig.s2, pkc);
         assertEq(true, result);
     }
 
@@ -123,7 +123,7 @@ contract ZKNOX_FalconTest is Test {
         bytes memory message = "We are ZKNox";
         sig.salt =
             "\x5a\x54\x83\x5f\x8b\x04\xd4\xc0\xb2\x96\x67\xba\xeb\x0c\x32\x58\x80\x9e\xe6\x98\xdb\xc0\x35\x36\xa1\xc9\x36\xc8\x11\xf6\xe6\xf6\x92\x10\xf5\x63\x20\x80\x06\x49";
-        bool result = falcon.verifyNIST(message, sig.salt, sig.s2, pkc);
+        bool result = falcon.verify(message, sig.salt, sig.s2, pkc);
         assertEq(true, result);
     }
 
@@ -147,7 +147,7 @@ contract ZKNOX_FalconTest is Test {
         bytes memory message = "Practical security on the chain.";
         sig.salt =
             "\xc3\xff\x24\xbc\x6b\x6d\x7a\x3d\x30\x7c\xe7\xb1\x73\x1e\x7d\xf5\x96\x90\xd0\x53\x0d\x7f\x2f\x5b\xb9\xed\x37\xd1\x80\x16\x9a\x6c\x1b\xb0\x22\x25\x2a\xb8\xcc\x68";
-        bool result = falcon.verifyNIST(message, sig.salt, sig.s2, pkc);
+        bool result = falcon.verify(message, sig.salt, sig.s2, pkc);
         assertEq(true, result);
     }
 }
