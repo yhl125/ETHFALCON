@@ -35,83 +35,37 @@
 /**
  *
  */
-import "./ZKNOX_falcon_utils.sol";
+
+// code generated using pythonref/generate_falcon_epervier_shorter_zknox_test_vectors.py.
+pragma solidity ^0.8.25;
+
 import {Test, console} from "forge-std/Test.sol";
+import "../src/ZKNOX_falcon_encodings.sol";
 
-uint256 constant max_in_len = 666;
+contract Encodings_Test is Test {
+    function test_decode() public {
+        // forgefmt: disable-next-line
+        bytes memory compressed_s1=hex"5f687ff977ff368bf4e4775d97ef3731add04b456e46bbf8962c9a7ceb4871ed43ebe1fd4834068b87a7c56ef0b7666218eeb1bd6fee1d86435e3a5ca32afe435e267e895f34cc8d83dd609737f065f98e14265933d11c96d7dd0e510b440887549f83129dcbea0f74cbb07d10c45fa84a62f15ba6bf69134b1b67f2894999460a79e0d034a4a2812dc753db941da48c25bfc9110909cad9d71a3316b095ec4182decea89fbebd8ab668af9d7f1935852b6854a8a033f9db9b0af1ab983ae22e4113962cb14afc921ea3fef3c594797ad8fd7c26976dd39e82e8cde1925266cc8ad67fb18c3e8fcbc5fdbfd40d7bd3bbeeb6fbdfb4151c647bb94c59f798b4d1e4aaec4271f3b7fa068fa6d807caed1782a7e51b6e9bb3e85479b8caadfe0bbd51748d1c0b06498f6fe8fd99fdd3387accd26586e4e6118bfb9498b3fde90479fb9a7a3374192cf2f8eac83c020826f0ae7f658f28061208ec6a287fd47e54a7a8d6c8a4c6c6df7cc92cf98e715b98cc5d0155ecf077d193b46c7e645d148d6b64b46139f5fb1827650dac45b19c6f3e11ef9a9ead53b90d140439afcb1ba7b172cfb26e2749826fe45de249df8b385b799ac3f2a056ab9023e90ac7e5aff859dc313442d0525ac14f096a1ddfc52abe072be4a699a9472999c11f7beeb78ac09a2b3a64761fbdcbcff9d40456552ab89a89a62f731e21e253004dcb9cf74aa5ccfc79cfeae78a3998c7a3c4f3201e7c6d4977515005d1802d55aa2261cd9fac9d56760b4fd788e9a6e7e1e12e4d95982efa763362f5abb236b2fdc1703f195ecba9cf61d36df1f09f352ca579d21bd6246667b8567e68bac1317de48af38e821cb97b5688367000000000000000000000";
+        // forgefmt: disable-next-line
+        int[512] memory decompressed_s1=  [int(223), -33, -127, -151, -127, -155, 23, -83, 35, 117, -50, -123, -27, 49, 91, 321, 104, 91, 163, 119, -226, 98, -147, 190, -86, 33, -143, -168, -117, -97, -122, 32, -288, -34, -67, -39, -10, -59, -5, 246, -24, 140, -221, -13, -86, -125, -135, -134, 141, -99, 75, 40, -149, -124, 141, -226, -31, 68, 351, -166, -17, 96, -110, 96, 174, -63, 134, 254, -398, 194, -150, 51, -290, -201, -53, -110, 142, 324, 104, 258, 14, 210, -376, -137, 59, 47, 208, -110, 50, -344, -244, 140, 23, -340, 41, 23, 21, 116, -47, -52, 147, 172, -182, -124, 68, 73, 50, 280, 335, -96, -160, -293, 40, 64, 45, -14, 207, -185, 135, -36, 152, 45, -124, 290, 521, 185, 108, -471, -291, -139, 353, 94, -264, -2, -61, 58, 68, -123, -87, 98, 347, -34, 124, -87, -355, 53, 138, 219, 10, 298, 192, -31, -29, 243, -133, -227, 92, -3, 220, 279, 132, 185, -267, 98, 43, -100, 33, -212, -255, -103, 150, 71, 175, 236, -122, -112, 52, 118, -186, -207, 5, -291, -316, -146, 73, 182, -145, 363, -126, -140, -7, -35, -101, -69, -251, -126, 64, -175, -105, -59, -221, -55, -61, -118, 133, 156, -17, -93, -20, -267, -119, 177, -38, 158, 42, 374, 9, -15, 187, -126, 131, 159, 54, -128, -114, 118, 23, 133, 319, 70, -183, 183, -159, 10, 158, -56, -149, 111, -96, 119, 212, 116, 282, -64, 96, -146, -143, -63, 71, -89, 63, 116, -284, -363, -154, 50, -6, -73, -152, 24, 255, -202, 177, -31, -94, 32, 158, -123, 52, -104, -27, 65, 37, 60, 252, -85, 32, -480, 388, 55, 10, -79, -217, -271, 320, -4, 132, -88, -40, 67, -253, 31, 170, 207, 70, 108, 20, 49, 227, -62, -371, 37, 190, -142, -197, -57, 25, 151, 129, 87, 103, 135, -244, -19, 104, -49, -371, 151, 20, 26, -45, 37, 454, 57, -107, -236, -130, -217, 13, 88, 22, -12, -70, -103, -132, -111, 309, -106, -170, -92, 397, 192, 142, -47, -278, -186, -236, 114, -159, -147, -68, -210, -130, -63, 34, -350, 36, -95, 150, -66, -55, 179, 97, -114, 64, 90, 92, 258, -116, 10, -15, -22, 127, -5, 59, 140, 180, 139, 261, 173, -2, 316, 173, 14, -95, -138, 85, -224, -74, -242, 333, -26, 40, -202, -25, -258, -119, 125, -45, -197, -257, -34, 231, 306, -216, -123, -185, -103, -121, -552, 21, 42, 42, 369, -40, 52, -11, -57, 286, 399, 41, 128, 311, 115, 61, -165, 75, 51, -99, -28, -253, 115, -266, -76, -140, -104, -226, -230, 0, -103, -13, 210, 247, 197, 128, 244, -256, 106, 90, 196, 48, -77, 191, 100, -213, -29, 5, 79, -431, 285, -38, -79, -7, 137, -73, 229, -280, 119, -167, -12, -177, -235, 93, 163, -44, 126, -193, -64, -120, -21, -217, -84, -207, -135, 54, -318, -112, 190, -169, -20, 222, -466, -189, -393, -25, 61, -133, -31, 180, 117, 4, -11, -222, 34, 121, -14, 260, -75, 175, -171, 144, -51];
 
-// translation of https://github.com/zhenfeizhang/falcon-go/blob/main/c/codec.c with minor tricks, and return in [0..q-1] instead of centered
-function _decompress(bytes memory buf) pure returns (uint256[] memory) {
-    uint256[] memory x = new uint256[](512);
-
-    uint32 acc = 0;
-    uint256 acc_len = 0;
-    uint256 v = 0;
-
-    for (uint256 u = 0; u < 512; u++) {
-        uint256 b;
-        uint256 s;
-        uint256 m;
-
-        /*
-		 * Get next eight bits: sign and low seven bits of the
-		 * absolute value.
-		 */
-        if (v >= max_in_len) {
-            revert("too long");
-        }
-        acc = (acc << 8) | uint32(uint8(buf[v]));
-        v = v + 1;
-        b = acc >> acc_len;
-        s = b & 128;
-        m = b & 127;
-
-        /*
-		 * Get next bits until a 1 is reached.
-		 */
-        for (;;) {
-            if (acc_len == 0) {
-                /*if (v >= max_in_len) {
-					revert("too long");-> tested at end of function
-				}*/
-                acc = (acc << 8) | uint32(uint8(buf[v]));
-                v = v + 1;
-                acc_len = 8;
-            }
-
-            acc_len--;
-            if (((acc >> acc_len) & 1) != 0) {
-                break;
-            }
-
-            assembly {
-                //if eq(0, and(1, shr(acc_len, acc)) )   {break}
-                m := add(m, 128) //m += 128;
+        uint256[512] memory expected_s1;
+        for (uint256 i = 0; i < 512; i++) {
+            if (decompressed_s1[i] < 0) {
+                expected_s1[i] = uint256(int256(q) + (decompressed_s1[i]));
+            } else {
+                expected_s1[i] = uint256(decompressed_s1[i]);
             }
         }
 
-        if (m > 2047) {
-            revert("coeff to big");
+        uint256 gasStart = gasleft();
+        uint256[] memory res = _decompress(compressed_s1);
+        uint256 gasUsed = gasStart - gasleft();
+
+        console.log("gas used by decompress:", gasUsed);
+
+        for (uint256 i = 0; i < 512; i++) {
+            assertEq(expected_s1[i], res[i]);
         }
-        /*
-		 * "-0" is forbidden.
-		 */
-        //	if ( ((s==0) && (m==0)) ) {
-        //		revert("incorrect zero encoding");
-        //	}
-
-        if (s == 0x80) {
-            x[u] = q - m;
-        } else {
-            x[u] = m;
-        }
-
-        //  console.log("u=%d, s=%x, x=",u, s, m);
-    } //end loop u
-
-    if (v >= max_in_len) {
-        revert("too long");
     }
-
-    return x;
 }
