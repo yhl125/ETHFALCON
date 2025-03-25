@@ -38,7 +38,7 @@ import "../src/ZKNOX_ethfalcon.sol";
 import "../src/ZKNOX_falcon_deploy.sol";
 
 contract ZKNOX_DelegateTest is Test {
-    ZKNOX_falcon_compact falcon;
+    ZKNOX_ethfalcon falcon;
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
     // forgefmt: disable-next-line
@@ -50,7 +50,7 @@ contract ZKNOX_DelegateTest is Test {
     function setUp() public {
         bytes32 salt = keccak256(abi.encodePacked("ZKnox"));
 
-        falcon = new ZKNOX_falcon_compact();
+        falcon = new ZKNOX_ethfalcon();
 
         //non compact contract
         address a_psirev; //address of the precomputations bytecode contract
@@ -116,7 +116,7 @@ for (i, message) in enumerate(list_of_messages):
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint256[32] memory s2 = {};\n".format(s2_compact))
 
-    file.write("ZKNOX_falcon_compact.CompactSignature memory sig;\n")
+    file.write("ZKNOX_ethfalcon.CompactSignature memory sig;\n")
     file.write("sig.s2=new uint256[](32);\n")
 
     file.write("for (uint i = 0; i < 32; i++) {\n")
