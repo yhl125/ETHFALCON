@@ -41,14 +41,14 @@ import {Test, console} from "forge-std/Test.sol";
 uint256 constant max_in_len = 666;
 
 // translation of https://github.com/zhenfeizhang/falcon-go/blob/main/c/codec.c with minor tricks, and return in [0..q-1] instead of centered
-function _decompress(bytes memory buf) pure returns (uint256[] memory) {
+function _decompress_sig(bytes memory buf) pure returns (uint256[] memory) {
     uint256[] memory x = new uint256[](512);
 
     uint32 acc = 0;
     uint256 acc_len = 0;
     uint256 v = 0;
 
-    for (uint256 u = 0; u < 512; u++) {
+    for (uint256 u = 0; u < n; u++) {
         uint256 b;
         uint256 s;
         uint256 m;
@@ -114,4 +114,56 @@ function _decompress(bytes memory buf) pure returns (uint256[] memory) {
     }
 
     return x;
+}
+
+function decompress_kpub(bytes memory buf) pure returns (uint256[] memory){
+    uint256[] memory x = new uint256[](512);
+    uint32 acc = 0;
+    uint256 acc_len = 0;
+    uint256 u = 0;
+    uint in_len = ((n * 14) + 7) >> 3;
+    uint cpt=0;
+
+    while(u<n){
+        acc = (acc << 8) | uint32(uint8(buf[cpt]));
+        cpt++;
+
+		acc_len += 8;
+		if (acc_len >= 14) {
+			uint32 w;
+
+			acc_len -= 14;
+			w = (acc >> acc_len) & 0x3FFF;
+			if (w >= 12289) {
+				revert("wrong coeff");
+			}
+			x[u] = uint256(w);
+            u++;
+		}
+        if ((acc & ((1 << acc_len) - 1)) != 0) {
+		    revert();
+	    }
+    }
+
+    return x;
+}
+
+    /*
+	 * Decode NIST KAT made of
+     * the encoded public key:0x09+ public key compressed value
+     * the signature bundled with the message. Format is:
+	 *   signature length     2 bytes, big-endian
+	 *   nonce                40 bytes
+	 *   message              mlen bytes
+	 *   signature            slen bytes
+	 */
+function decompress_KAT(bytes memory pk, bytes memory sm) pure returns (uint256[] memory ntth, uint256[] memory s2){
+    /*
+	 * Decode public key.
+	 */
+	if (pk[0] != 0x09) {
+		revert("wrong public key encoding");
+	}
+
+
 }

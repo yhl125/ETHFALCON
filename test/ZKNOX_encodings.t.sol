@@ -59,7 +59,7 @@ contract Encodings_Test is Test {
         }
 
         uint256 gasStart = gasleft();
-        uint256[] memory res = _decompress(compressed_s1);
+        uint256[] memory res = _decompress_sig(compressed_s1);
         uint256 gasUsed = gasStart - gasleft();
 
         console.log("gas used by decompress:", gasUsed);
