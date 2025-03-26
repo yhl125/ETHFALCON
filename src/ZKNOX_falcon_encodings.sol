@@ -187,4 +187,6 @@ function decompress_KAT(bytes memory pk, bytes memory sm)
     }
 
     s2 = _decompress_sig(sm, 2 + 40 + mlen + 1);
+
+    return (h, s2, salt, message);
 }
