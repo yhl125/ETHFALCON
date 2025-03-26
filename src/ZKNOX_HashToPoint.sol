@@ -108,7 +108,7 @@ function hashToPointNIST(bytes memory salt, bytes memory msgHash) pure returns (
         }
         j += 2;
     }
-
+    //hashed=Swap(hashed);
     return hashed;
 }
 

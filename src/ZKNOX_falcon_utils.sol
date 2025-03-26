@@ -57,6 +57,13 @@ uint256 constant q = 12289;
 uint256 constant qs1 = 6144; // q >> 1;
 uint256 constant kq = 61445;
 
+function Swap(uint256[] memory Pol) pure returns (uint256[] memory Mirror) {
+    Mirror = new uint256[](512);
+    for (uint256 i = 0; i < 512; i++) {
+        Mirror[511 - i] = Pol[i];
+    }
+}
+
 function _ZKNOX_NTT_Compact(uint256[] memory a) pure returns (uint256[] memory b) {
     b = new uint256[](32);
 

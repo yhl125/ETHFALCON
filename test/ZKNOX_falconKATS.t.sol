@@ -94,6 +94,7 @@ contract FalconKATS_Test is Test {
         bytes memory message;
 
         (kpub, s2, salt, message) = decompress_KAT(pk, sm);
+
         uint256[] memory hashed = hashToPointNIST(salt, message);
 
         for (uint256 i = 0; i < 512; i++) {
@@ -106,9 +107,12 @@ contract FalconKATS_Test is Test {
         //Display_HexArray(" public key canonical form", kpub);
         //Display_HexArray("sig canonical form", s2);
 
+        //s2=Swap(s2);
+        //kpub=Swap(kpub);
+
         uint256[] memory ntth = _ZKNOX_NTT_Compact(_ZKNOX_NTTFW_vectorized(kpub));
 
-        cs2 = _ZKNOX_NTT_Compact(_ZKNOX_NTTFW_vectorized(s2));
+        cs2 = _ZKNOX_NTT_Compact(s2);
 
         console.log("ntth length:", ntth.length);
         console.log("salt:");
