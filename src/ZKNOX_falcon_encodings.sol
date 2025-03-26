@@ -36,17 +36,17 @@
  *
  */
 import "./ZKNOX_falcon_utils.sol";
-import {Test, console} from "forge-std/Test.sol";
+//import {Test, console} from "forge-std/Test.sol";
 
 uint256 constant max_in_len = 666;
 
-// translation of https://github.com/zhenfeizhang/falcon-go/blob/main/c/codec.c with minor tricks, and return in [0..q-1] instead of centered
-function _decompress_sig(bytes memory buf) pure returns (uint256[] memory) {
+// decompress signature starting from offset in buf
+function _decompress_sig(bytes memory buf, uint256 offset) pure returns (uint256[] memory) {
     uint256[] memory x = new uint256[](512);
 
     uint32 acc = 0;
     uint256 acc_len = 0;
-    uint256 v = 0;
+    uint256 v = offset;
 
     for (uint256 u = 0; u < n; u++) {
         uint256 s;
@@ -56,9 +56,6 @@ function _decompress_sig(bytes memory buf) pure returns (uint256[] memory) {
 		 * Get next eight bits: sign and low seven bits of the
 		 * absolute value.
 		 */
-        if (v >= max_in_len) {
-            revert("too long");
-        }
 
         assembly {
             let temp := byte(0, mload(add(add(buf, 32), v)))
@@ -94,7 +91,7 @@ function _decompress_sig(bytes memory buf) pure returns (uint256[] memory) {
         /*
 		 * "-0" is forbidden.
 		 */
-        //	if ( ((s==0) && (m==0)) ) {
+        //	if ( ((s==0) && (m==0)) ) {//TODO: replace
         //		revert("incorrect zero encoding");
         //	}
 
@@ -108,7 +105,8 @@ function _decompress_sig(bytes memory buf) pure returns (uint256[] memory) {
         }
     } //end loop u
 
-    if (v >= max_in_len) {
+    //console.log("last read sig:",uint8(buf[v]));
+    if ((v - offset) >= max_in_len) {
         revert("too long");
     }
 
@@ -116,15 +114,15 @@ function _decompress_sig(bytes memory buf) pure returns (uint256[] memory) {
 }
 
 //decompressing kpub, assuming first byte is 0x09
-function decompress_kpub(bytes memory buf) pure returns (uint256[] memory) {
+function decompress_kpub(bytes memory buf, uint256 offset) pure returns (uint256[] memory) {
     uint256[] memory x = new uint256[](512);
     uint32 acc = 0;
     uint256 acc_len = 0;
-    uint256 u = 1;
+    uint256 u = 0;
     uint256 in_len = ((n * 14) + 7) >> 3;
-    uint256 cpt = 0;
+    uint256 cpt = offset; //start with offset 1 to prune 0x09 header
 
-    while (u < n + 1) {
+    while (u < n) {
         acc = (acc << 8) | uint32(uint8(buf[cpt]));
         cpt++;
 
@@ -139,12 +137,13 @@ function decompress_kpub(bytes memory buf) pure returns (uint256[] memory) {
             }
             x[u] = uint256(w);
             u++;
-        }
-        if ((acc & ((1 << acc_len) - 1)) != 0) {
-            revert();
-        }
+        } //end if
+    } //end while
+    if ((acc & ((1 << acc_len) - 1)) != 0) {
+        revert();
     }
 
+    //console.log("last read kpub", uint8(buf[cpt-1]));
     return x;
 }
 
@@ -152,28 +151,40 @@ function decompress_kpub(bytes memory buf) pure returns (uint256[] memory) {
 	 * Decode NIST KAT made of
      * the encoded public key:0x09+ public key compressed value
      * the signature bundled with the message. Format is:
-	 *   signature length     2 bytes, big-endian
+	 *   signature length     slen encoded on 2 bytes, big-endian
 	 *   nonce                40 bytes
 	 *   message              mlen bytes
 	 *   signature            slen bytes
 	 */
-function decompress_KAT(bytes memory pk, bytes memory sm, uint256 mlen, uint256 slen)
+function decompress_KAT(bytes memory pk, bytes memory sm)
     pure
     returns (uint256[] memory h, uint256[] memory s2, bytes memory salt, bytes memory message)
 {
+    uint256 slen = (uint256(uint8(sm[0])) << 8) + uint256(uint8(sm[1]));
+    uint256 mlen = sm.length - slen - 42;
+
     /*
 	 * Decode public key.
 	 */
     if (pk[0] != 0x09) {
         revert("wrong public key encoding");
     }
-    uint256 slen = (uint256(uint8(sm[0])) << 8) + uint256(uint8(sm[1]));
-    h = decompress_kpub(pk);
+    h = decompress_kpub(pk, 1);
+
     uint256 i;
+    salt = new bytes(40);
+
     for (i = 0; i < 40; i++) {
         salt[i] = sm[i + 2];
     }
+    message = new bytes(mlen);
     for (uint256 j = 0; j < mlen; j++) {
         message[j] = sm[j + 42];
     }
+
+    if (sm[2 + 40 + mlen] != 0x29) {
+        revert("wrong header sigbytes");
+    }
+
+    s2 = _decompress_sig(sm, 2 + 40 + mlen + 1);
 }
