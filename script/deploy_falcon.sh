@@ -6,7 +6,8 @@
 
 # Configuration
 # Replace with your contract name
-CONTRACT_NAME="DeployFalcon.s.sol"   
+#DeployETHFalcon.s.sol, DeployFalcon.s.sol
+CONTRACT_NAME="DeployETHFalcon.s.sol"   
 PRIVATE_KEY="fill with your own, then delete" 
 
 # Deploy to networks

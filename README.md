@@ -42,11 +42,11 @@ An example showing generation of keys and signatures using python followed by on
 
 Current deployment addresses:
 
-| Function                   | Description               |address | networks |
-|------------------------|---------------------|---------------------|---------------------|
-| EPERVIER     | Epervier      | TBD | Holesky|
-| ETHFALCON     | ETHFalcon implementation      | 0x28c37C0b6Bb7eBfD1790E3923E1E89B562d9DdbF | Holesky|
-| FALCON     | Falcon NIST Legacy implementation      | TBD | Holesky|
+| Function                   | Description               |address | networks | Date |
+|------------------------|---------------------|---------------------|---------------------|----------------|
+| EPERVIER     | Epervier      | TBD | Holesky| | 
+| ETHFALCON     | ETHFalcon implementation      | 0x28c37C0b6Bb7eBfD1790E3923E1E89B562d9DdbF | Holesky| | 
+| FALCON     | Falcon NIST Legacy implementation      | [0x5dc45800383d30c2c4c8f7e948090b38b22025f9](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9) | [Holeski](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9), [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9)| 2025/3/27 | 
 
 
 ## CONCLUSION
