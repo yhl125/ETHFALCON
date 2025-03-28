@@ -19,14 +19,14 @@ It is possible to generate a key pair, sign a message and verify a signature in 
 
 
 ```
-./sign_cli.py genkeys --version='falcon' # or 'falconrec' or 'epervier'
+./sign_cli.py genkeys --version='falcon' # or 'ethfalcon'
 ```
 It creates two files `private_key.pem` and `public_key.pem` storing the private and public keys.
 It also prints the public key in Solidity format.
 
 ###### Signature
 ```
-./sign_cli.py sign --data="Example of message" --privkey=private_key.pem --version='falcon' # or 'falconrec' or 'epervier'
+./sign_cli.py sign --data="Example of message" --privkey=private_key.pem --version='falcon' # or 'ethfalcon'
 ```
 It create a signature file `sig` for the given  message and the private key.
 The signature is stored in hexadecimal format.

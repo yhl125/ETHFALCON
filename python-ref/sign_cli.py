@@ -72,11 +72,11 @@ def load_pk(filename):
     pk = ast.literal_eval(variables["pk "])
     version = variables["version "].lstrip()
     if version == 'ethfalcon' or version == 'falcon':
-        return PublicKey(n, pk)
+        return [PublicKey(n, pk), version]
     elif version == 'falconrec':
-        return RecoveryModePublicKey(n, pk)
+        return [RecoveryModePublicKey(n, pk), version]
     elif version == 'epervier':
-        return EpervierPublicKey(n, pk)
+        return [EpervierPublicKey(n, pk), version]
     else:
         print("This version is not supported.")
         return
@@ -333,11 +333,11 @@ def cli():
 
     elif args.action == "verify":
         if not args.data or not args.pubkey or not args.signature:
-            print("Error: Provide --data, --pubkey, --signature and --version")
+            print("Error: Provide --data, --pubkey, and --signature")
             return
-        pk = load_pk(args.pubkey)
+        [pk, version] = load_pk(args.pubkey)
         sig = load_signature(args.signature)
-        if verify_signature(pk, bytes.fromhex(args.data), sig, args.version):
+        if verify_signature(pk, bytes.fromhex(args.data), sig, version):
             print("Signature is valid.")
         else:
             print("Invalid signature.")
@@ -347,7 +347,7 @@ def cli():
             print(
                 "Error: Provide --data, --pubkey, --signature, --contractaddress and --rpc")
             return
-        pk = load_pk(args.pubkey)
+        [pk, version] = load_pk(args.pubkey)
         sig = load_signature(args.signature)
         verify_signature_on_chain(
             pk, bytes.fromhex(args.data), sig, args.contractaddress, args.rpc)
