@@ -1,13 +1,25 @@
 # ETHFALCON
 
 ETHFALCON gather experimentations around FALCON adaptations for the ETHEREUM ecosystem. [Falcon signature scheme](https://falcon-sign.info/) is a post-quantum digital signature algorithm. 
+This repo provides:
 
+* on-chain [contracts](https://github.com/ZKNoxHQ/ETHFALCON/tree/main/src) for verification
+* [python](https://github.com/ZKNoxHQ/ETHFALCON/tree/main/python-ref) signers and verification for testing (offchain and on-chain wrapping cast).
 
 
 
 ## SPECIFICATION
 
-The repo implements several versions of FALCON, some are tunned to EVM constraints, find specification [here](./doc/specification.md) 
+The repo implements several versions of FALCON:
+
+* FALCON is the legacy NIST round3 compliant (tested against official [KATS](https://csrc.nist.gov/projects/post-quantum-cryptography/post-quantum-cryptography-standardization/round-3-submissions), just [here](https://github.com/ZKNoxHQ/ETHFALCON/blob/8152c5fc770e863bec799b5cc21dd551ab585fd9/test/ZKNOX_falconKATS.t.sol#L73)).
+
+* ETHFALCON is an EVM friendly version, security equivalent replacing SHAKE by keccak to reduce costs.
+
+* EPERVIER is a 'FALCON with recovery' EVM version, enabling to mimic the ecrecover functionning (recover address from signature).
+
+
+Detailed specification is [here](./doc/specification.md). 
 
 
 ## INSTALLATION
@@ -21,6 +33,7 @@ The repo contains a solidity verifier and a python signer.
     make install
     ```
     (or `make install_signer` or `make install_verifier`)
+
 * **Tests:**
     ```bash
     make test
@@ -29,10 +42,15 @@ The repo contains a solidity verifier and a python signer.
 
 ## BENCHMARKS
 
-Benchmarks for both solidity code and python are available [here](./doc/benchmarks.md)
 
-Current fastest implementation is 1.9M gas.
+| Function                   | Description               | gas cost | Tests Status |
+|------------------------|---------------------|---------------------|---------------------|
+| ZKNOX_falcon.verify       | NIST       | 7M | :white_check_mark:|
+| ZKNOX_ethfalcon.verify       | EVM Friendly      | 1.9 M | :white_check_mark:|
+| ZKNOX_epervier.verify       | Recover EVM friendly      | 1.9 M | :white_check_mark:|
 
+
+More details for both solidity code and python are available [here](./doc/benchmarks.md).
 
 ## EXAMPLE
 
@@ -42,11 +60,11 @@ An example showing generation of keys and signatures using python followed by on
 
 Current deployment addresses:
 
-| Function                   | Description               |address | networks | Date |
-|------------------------|---------------------|---------------------|---------------------|----------------|
-| EPERVIER     | Epervier      | TBD | Holesky| | 
-| ETHFALCON     | ETHFalcon implementation      | 0x28c37C0b6Bb7eBfD1790E3923E1E89B562d9DdbF | Holesky| | 
-| FALCON     | Falcon NIST Legacy implementation      | [0x5dc45800383d30c2c4c8f7e948090b38b22025f9](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9) | [Holeski](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9), [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9)| 2025/3/27 | 
+| Function                   | Description               |address | testnets | mainnets |Date |
+|------------------------|---------------------|---------------------|---------------------|---------------------|----------------|
+| EPERVIER     | Epervier      | TBD | Holesky| | | 
+| ETHFALCON     | ETHFalcon implementation      | 0x28c37C0b6Bb7eBfD1790E3923E1E89B562d9DdbF |  | Holesky| | 
+| FALCON     | Falcon NIST Legacy implementation      | [0x5dc45800383d30c2c4c8f7e948090b38b22025f9](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9) | [Holeski](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9), [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9)|  | 2025/3/27 | 
 
 
 ## CONCLUSION

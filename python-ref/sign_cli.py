@@ -215,22 +215,18 @@ def verify_signature_on_chain(pk, data, sig, contract_address, rpc):
     pk_compact = falcon_compact(Poly(pk.pk, q).ntt())
     PK = str(pk_compact)
 
-    command = "cast call {} \"verify(bytes,bytes,uint256[],uint256[])\" {} {} \"{}\" \"{}\" --rpc-url {}".format(
-        contract_address,
-        MSG,
-        SALT,
-        S2,
-        PK,
-        rpc
-    )
-    print("Command:\n", command)
+    command = [
+    "cast", "call", contract_address,
+    "verify(bytes,bytes,uint256[],uint256[])", MSG, SALT, S2, PK, "--rpc-url", rpc
+    ]
+    #print("Command:\n", command)
     result = subprocess.run(
         command,
-        shell=True,
         capture_output=True,
         text=True
     )
-    assert result.stderr == ''
+    #assert result.stderr == ''
+    print(result.stderr)
     print(result.stdout)
 
 
