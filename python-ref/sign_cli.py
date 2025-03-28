@@ -191,7 +191,13 @@ def print_signature_transaction(sig, pk, tx_hash):
 
 
 def verify_signature(pk, data, sig, version):
-    return pk.verify(data, sig, xof=SHAKE if version == 'falcon' else KeccakPRNG)
+    if version == 'falcon':
+        XOF = SHAKE
+    elif version == 'ethfalcon':
+        XOF = KeccakPRNG
+    else:
+        print('NOT IMPLEMENTED YET')
+    return pk.verify(data, sig, xof=XOF)
 
 
 def verify_signature_on_chain(pk, data, sig, contract_address, rpc):
