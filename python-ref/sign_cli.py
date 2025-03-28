@@ -215,15 +215,17 @@ def verify_signature_on_chain(pk, data, sig, contract_address, rpc):
     pk_compact = falcon_compact(Poly(pk.pk, q).ntt())
     PK = str(pk_compact)
 
+    command = "cast call {} \"verify(bytes,bytes,uint256[],uint256[])\" {} {} \"{}\" \"{}\" --rpc-url {}".format(
+        contract_address,
+        MSG,
+        SALT,
+        S2,
+        PK,
+        rpc
+    )
+    print("Command:\n", command)
     result = subprocess.run(
-        "cast call {} \"verify(bytes,bytes,uint256[],uint256[])\" {} {} \"{}\" \"{}\" --rpc-url {}".format(
-            contract_address,
-            MSG,
-            SALT,
-            S2,
-            PK,
-            rpc
-        ),
+        command,
         shell=True,
         capture_output=True,
         text=True
@@ -247,16 +249,18 @@ def verify_signature_on_chain_with_transaction(pk, data, sig, contract_address, 
     pk_compact = falcon_compact(Poly(pk.pk, q).ntt())
     PK = str(pk_compact)
 
+    command = "cast send --private-key {} {} \"verify(bytes,bytes,uint256[],uint256[])\" {} {} \"{}\" \"{}\" --rpc-url {}".format(
+        private_key,
+        contract_address,
+        MSG,
+        SALT,
+        S2,
+        PK,
+        rpc
+    )
+    print("Command:\n", command)
     result = subprocess.run(
-        "cast send --private-key {} {} \"verify(bytes,bytes,uint256[],uint256[])\" {} {} \"{}\" \"{}\" --rpc-url {}".format(
-            private_key,
-            contract_address,
-            MSG,
-            SALT,
-            S2,
-            PK,
-            rpc
-        ),
+        command,
         shell=True,
         capture_output=True,
         text=True
