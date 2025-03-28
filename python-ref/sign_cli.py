@@ -9,13 +9,14 @@ from falcon_epervier import EpervierPublicKey, EpervierSecretKey
 from falcon_recovery import RecoveryModePublicKey, RecoveryModeSecretKey
 from polyntt.poly import Poly
 from shake import SHAKE
+from keccak_prng import KeccakPRNG
 from keccak import KeccakHash
 from eth_abi import encode
 
 
 def generate_keys(n, version):
     # private key
-    if version == 'ethfalcon':
+    if version == 'ethfalcon' or version == 'falcon':
         SK = SecretKey
     elif version == 'falconrec':
         SK = RecoveryModeSecretKey
@@ -27,7 +28,7 @@ def generate_keys(n, version):
 
     sk = SK(n)
 
-    if version == 'ethfalcon':
+    if version == 'ethfalcon' or version == 'falcon':
         pk = PublicKey(n, sk.h)
     elif version == 'falconrec':
         pk = RecoveryModePublicKey(n, sk.pk)
@@ -70,7 +71,7 @@ def load_pk(filename):
     n = int(variables["n "])
     pk = ast.literal_eval(variables["pk "])
     version = variables["version "].lstrip()
-    if version == 'ethfalcon':
+    if version == 'ethfalcon' or version == 'falcon':
         return PublicKey(n, pk)
     elif version == 'falconrec':
         return RecoveryModePublicKey(n, pk)
@@ -93,7 +94,7 @@ def load_sk(filename):
     F = ast.literal_eval(variables["F "])
     G = ast.literal_eval(variables["G "])
     version = variables["version "].lstrip()
-    if version == 'ethfalcon':
+    if version == 'ethfalcon' or version == 'falcon':
         return SecretKey(n, polys=[f, g, F, G])
     elif version == 'falconrec':
         return RecoveryModeSecretKey(n, polys=[f, g, F, G])
@@ -128,9 +129,10 @@ def signature(sk, data, version):
 
     sig = sk.sign(
         data,
-        randombytes=deterministic_bytes.read
+        randombytes=deterministic_bytes.read,
+        xof=SHAKE if version == 'falcon' else KeccakPRNG
     )
-    if version == 'ethfalcon':
+    if version == 'ethfalcon' or version == 'falcon':
         enc_s = sig[HEAD_LEN + SALT_LEN:]
         s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
         s2 = [elt % q for elt in s2]
@@ -226,7 +228,7 @@ def verify_signature_on_chain(pk, data, sig, contract_address, rpc):
 
 def verify_signature_on_chain_with_transaction(pk, data, sig, contract_address, rpc, private_key):
 
-    MSG = "0x" + data.encode().hex()
+    MSG = "0x" + data.hex()
 
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     SALT = "0x"+salt.hex()
@@ -263,7 +265,7 @@ def cli():
     parser.add_argument("action", choices=[
                         "genkeys", "sign", "sign_tx", "verify", "verifyonchain", "verifyonchainsend"], help="Action to perform")
     parser.add_argument("--version", type=str,
-                        help="Version to use (falcon or falconrec)")
+                        help="Version to use (falcon or ethfalcon or falconrec or epervier)")
     parser.add_argument("--nonce", type=str,
                         help="nonce in hexadecimal to sign the transaction")
     parser.add_argument("--to", type=str,
@@ -321,7 +323,7 @@ def cli():
         pk = PublicKey(512, sk.h)
         sig = signature(sk, tx_hash, args.version)
         assert (verify_signature(pk, tx_hash, sig))
-        print_signature_transaction(sig, pk, tx_hash)
+        print_signature_transaction(sig, pk, tx_hash, args.version)
 
     elif args.action == "verify":
         if not args.data or not args.pubkey or not args.signature:
