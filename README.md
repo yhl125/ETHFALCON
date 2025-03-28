@@ -54,7 +54,23 @@ More details for both solidity code and python are available [here](./doc/benchm
 
 ## EXAMPLE
 
-An example showing generation of keys and signatures using python followed by onchain verification is [here](./doc/example.md).
+
+Use the following commands to generate, sign a message and verify it with the onchain contract
+```bash
+# generate public and private keys using 'falcon' or 'ethfalcon'
+./sign_cli.py genkeys --version='falcon'
+# generate a signature for the message "This is a demo"
+./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e
+# verify onchain the  signature using address of contract specified below (ensure --version is compliant with address)
+./sign_cli.py verifyonchain --pubkey='public_key.pem' --data=546869732069732061207472616e73616374696f6e --signature='sig' --contractaddress='0x5dc45800383d30c2c4c8f7e948090b38b22025f9' --rpc='https://ethereum-holesky-rpc.publicnode.com'
+```
+The contract address refers to the contract implementing FALCON in Solidity. This should output:
+```
+0x0000000000000000000000000000000000000000000000000000000000000001
+```
+More details [here](./doc/example.md).
+
+
 
 ## DEPLOYMENTS
 
@@ -63,7 +79,7 @@ Current deployment addresses:
 | Function                   | Description               |address | testnets | mainnets |Date |
 |------------------------|---------------------|---------------------|---------------------|---------------------|----------------|
 | EPERVIER     | Epervier      | TBD | Holesky| | | 
-| ETHFALCON     | ETHFalcon implementation      | 0x28c37C0b6Bb7eBfD1790E3923E1E89B562d9DdbF |  | Holesky| | 
+| ETHFALCON     | ETHFalcon implementation      | 0x28c37C0b6Bb7eBfD1790E3923E1E89B562d9DdbF | Holesky | | | 
 | FALCON     | Falcon NIST Legacy implementation      | [0x5dc45800383d30c2c4c8f7e948090b38b22025f9](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9) | [Holeski](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9), [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9)|  | 2025/3/27 | 
 
 
