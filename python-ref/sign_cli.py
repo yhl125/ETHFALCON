@@ -190,8 +190,8 @@ def print_signature_transaction(sig, pk, tx_hash):
     print("SALT = {}".format(SALT))
 
 
-def verify_signature(pk, data, sig):
-    return pk.verify(data, sig)
+def verify_signature(pk, data, sig, version):
+    return pk.verify(data, sig, xof=SHAKE if version == 'falcon' else KeccakPRNG)
 
 
 def verify_signature_on_chain(pk, data, sig, contract_address, rpc):
@@ -327,11 +327,11 @@ def cli():
 
     elif args.action == "verify":
         if not args.data or not args.pubkey or not args.signature:
-            print("Error: Provide --data, --pubkey and --signature")
+            print("Error: Provide --data, --pubkey, --signature and --version")
             return
         pk = load_pk(args.pubkey)
         sig = load_signature(args.signature)
-        if verify_signature(pk, bytes.fromhex(args.data), sig):
+        if verify_signature(pk, bytes.fromhex(args.data), sig, args.version):
             print("Signature is valid.")
         else:
             print("Invalid signature.")
