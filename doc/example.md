@@ -18,7 +18,7 @@ The public and private keys are generated using Python:
 The signature is computed from the private key (stored in `private_key.pem`):
 ```bash
 # generate a signature for the message "This is a demo"
-./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e --version='ethfalcon'
+./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e
 ```
 The signature can be verified on chain:
 ```bash
@@ -41,7 +41,7 @@ The public and private keys are generated with:
 The signature is computed from the private key (stored in `private_key.pem`):
 ```bash
 # generate a signature for the message "This is a demo"
-./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e --version='falcon'
+./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e
 ```
 The signature can be verified on chain:
 ```bash

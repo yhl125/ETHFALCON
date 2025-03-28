@@ -95,11 +95,11 @@ def load_sk(filename):
     G = ast.literal_eval(variables["G "])
     version = variables["version "].lstrip()
     if version == 'ethfalcon' or version == 'falcon':
-        return SecretKey(n, polys=[f, g, F, G])
+        return [SecretKey(n, polys=[f, g, F, G]), version]
     elif version == 'falconrec':
-        return RecoveryModeSecretKey(n, polys=[f, g, F, G])
+        return [RecoveryModeSecretKey(n, polys=[f, g, F, G]), version]
     elif version == 'epervier':
-        return EpervierSecretKey(n, polys=[f, g, F, G])
+        return [EpervierSecretKey(n, polys=[f, g, F, G]), version]
     else:
         print("This version is not supported.")
         return
@@ -306,17 +306,17 @@ def cli():
         print("Keys generated and saved.")
 
     elif args.action == "sign":
-        if not args.data or not args.privkey or not args.version:
-            print("Error: Provide --data, --privkey and --version")
+        if not args.data or not args.privkey:
+            print("Error: Provide --data, and --privkey")
             return
-        sk = load_sk(args.privkey)
-        sig = signature(sk, bytes.fromhex(args.data), args.version)
+        [sk, version] = load_sk(args.privkey)
+        sig = signature(sk, bytes.fromhex(args.data), version)
         save_signature(sig, 'sig')
 
     elif args.action == "sign_tx":
-        if not args.data or not args.privkey or not args.version or not args.nonce or not args.to or not args.value:
+        if not args.data or not args.privkey or not args.nonce or not args.to or not args.value:
             print(
-                "Error: Provide --data, --privkey, --version, --nonce, --to and --value")
+                "Error: Provide --data, --privkey, --nonce, --to and --value")
             return
         tx_hash = transaction_hash(
             int(args.nonce, 16),
@@ -325,11 +325,11 @@ def cli():
             int(args.value, 16)
         )
         print(tx_hash)
-        sk = load_sk(args.privkey)
+        [sk, version] = load_sk(args.privkey)
         pk = PublicKey(512, sk.h)
         sig = signature(sk, tx_hash, args.version)
         assert (verify_signature(pk, tx_hash, sig))
-        print_signature_transaction(sig, pk, tx_hash, args.version)
+        print_signature_transaction(sig, pk, tx_hash, version)
 
     elif args.action == "verify":
         if not args.data or not args.pubkey or not args.signature:
