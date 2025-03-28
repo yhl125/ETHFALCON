@@ -11,12 +11,12 @@ make install
 The public and private keys are generated using Python:
 ```bash
 # generate public and private keys
-./sign_cli.py genkeys --version='falcon'
+./sign_cli.py genkeys --version='ethfalcon'
 ```
 The signature is computed from the private key (stored in `private_key.pem`):
 ```bash
 # generate a signature for the message "This is a demo"
-./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e --version='falcon'
+./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e --version='ethfalcon'
 ```
 The signature can be verified on chain:
 ```bash
@@ -41,7 +41,7 @@ For the signature, we also need to provide:
 * The private key file,
 * The version of the scheme (it works only for `falcon` for now),
 ```bash
-./sign_cli.py sign_tx --data=546869732069732061207472616e73616374696f6e --privkey=private_key.pem --version='falcon' --nonce=0123456789 --to=add4e55 --value=123
+./sign_cli.py sign_tx --data=546869732069732061207472616e73616374696f6e --privkey=private_key.pem --version='ethfalcon' --nonce=0123456789 --to=add4e55 --value=123
 ```
 This outputs the useful data for the transaction:
 * The hash for the transaction`TX_HASH`: `Keccak256(nonce|to|data|value)`,

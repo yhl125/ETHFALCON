@@ -15,7 +15,7 @@ from eth_abi import encode
 
 def generate_keys(n, version):
     # private key
-    if version == 'falcon':
+    if version == 'ethfalcon':
         SK = SecretKey
     elif version == 'falconrec':
         SK = RecoveryModeSecretKey
@@ -27,7 +27,7 @@ def generate_keys(n, version):
 
     sk = SK(n)
 
-    if version == 'falcon':
+    if version == 'ethfalcon':
         pk = PublicKey(n, sk.h)
     elif version == 'falconrec':
         pk = RecoveryModePublicKey(n, sk.pk)
@@ -70,7 +70,7 @@ def load_pk(filename):
     n = int(variables["n "])
     pk = ast.literal_eval(variables["pk "])
     version = variables["version "].lstrip()
-    if version == 'falcon':
+    if version == 'ethfalcon':
         return PublicKey(n, pk)
     elif version == 'falconrec':
         return RecoveryModePublicKey(n, pk)
@@ -93,7 +93,7 @@ def load_sk(filename):
     F = ast.literal_eval(variables["F "])
     G = ast.literal_eval(variables["G "])
     version = variables["version "].lstrip()
-    if version == 'falcon':
+    if version == 'ethfalcon':
         return SecretKey(n, polys=[f, g, F, G])
     elif version == 'falconrec':
         return RecoveryModeSecretKey(n, polys=[f, g, F, G])
@@ -130,7 +130,7 @@ def signature(sk, data, version):
         data,
         randombytes=deterministic_bytes.read
     )
-    if version == 'falcon':
+    if version == 'ethfalcon':
         enc_s = sig[HEAD_LEN + SALT_LEN:]
         s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
         s2 = [elt % q for elt in s2]
