@@ -12,8 +12,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -26,11 +31,12 @@ jobs:
       - name: Install Foundry (Manual Method)
         run: |
           mkdir -p $HOME/.foundry/bin
-          curl -L https://github.com/foundry-rs/foundry/releases/latest/download/foundry-toolchain-linux -o $HOME/.foundry/bin/foundryup
+          # Download the correct binary for Linux
+          curl -L https://github.com/foundry-rs/foundry/releases/latest/download/foundry-toolchain-linux-x86_64 -o $HOME/.foundry/bin/foundryup
           chmod +x $HOME/.foundry/bin/foundryup
           echo "$HOME/.foundry/bin" >> $GITHUB_PATH
           export PATH="$HOME/.foundry/bin:$PATH"
-          foundryup
+          foundryup 
 
       - name: Debug Foundry Installation
         run: |
