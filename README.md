@@ -76,11 +76,11 @@ More details [here](./doc/example.md).
 
 Current deployment addresses:
 
-| Function                   | Description               |address | testnets | mainnets |Date |
+| Function                   | Description               |address | testnets | mainnets | commit |
 |------------------------|---------------------|---------------------|---------------------|---------------------|----------------|
 | EPERVIER     | Epervier      | TBD | Holesky| | | 
-| ETHFALCON     | ETHFalcon implementation      | 0x28c37C0b6Bb7eBfD1790E3923E1E89B562d9DdbF | Holesky | | | 
-| FALCON     | Falcon NIST Legacy implementation      | [0x5dc45800383d30c2c4c8f7e948090b38b22025f9](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9) | [Holeski](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9), [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9)|  | 2025/3/27 | 
+| ETHFALCON     | ETHFalcon implementation      | 0xC916569fcdf68CdD11229a98e9981664DBb79A2d | Holesky | [Optimism](https://optimistic.etherscan.io/address/0xC916569fcdf68CdD11229a98e9981664DBb79A2d) |[c0d465794f67044ddd19f73c21acd9570e9e578b](https://github.com/ZKNoxHQ/ETHFALCON/commit/c0d465794f67044ddd19f73c21acd9570e9e578b) | 
+| FALCON     | Falcon NIST Legacy implementation      | [0x5dc45800383d30c2c4c8f7e948090b38b22025f9](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9) | [Holeski](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9), [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9), [Base Sepolia](https://sepolia.basescan.org/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9#code)| [Optimism](https://optimistic.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9#code), [L1 (mainnet)](https://etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9#code) | [c0d465794f67044ddd19f73c21acd9570e9e578b](https://github.com/ZKNoxHQ/ETHFALCON/commit/c0d465794f67044ddd19f73c21acd9570e9e578b) | 
 
 
 ## CONCLUSION
