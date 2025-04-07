@@ -30,6 +30,7 @@
  */
 
 #include "inner.h"
+#include <stdio.h>
 
 /* see inner.h */
 size_t
@@ -74,6 +75,48 @@ Zf(modq_encode)(
 
 /* see inner.h */
 size_t
+Zf(modq_encode16)(
+	void *out, size_t max_out_len,
+	const uint16_t *x, unsigned logn)
+{
+	size_t n, out_len, u;
+	uint8_t *buf;
+	uint32_t acc;
+	int acc_len;
+
+	n = (size_t)1 << logn;
+	for (u = 0; u < n; u ++) {
+		if (x[u] >= 12289) {
+			return 0;
+		}
+	}
+	out_len = ((n * 16) + 7) >> 3;
+	if (out == NULL) {
+		return out_len;
+	}
+	
+	if (out_len > max_out_len) {
+		return 0;
+	}
+	buf = out;
+	acc = 0;
+	acc_len = 0;
+	for (u = 0; u < n; u ++) {
+		acc = (acc << 16) | x[u];
+		acc_len += 16;
+		while (acc_len >= 8) {
+			acc_len -= 8;
+			*buf ++ = (uint8_t)(acc >> acc_len);
+		}
+	}
+	if (acc_len > 0) {
+		*buf = (uint8_t)(acc << (8 - acc_len));
+	}
+	return out_len;
+}
+
+/* see inner.h */
+size_t
 Zf(modq_decode)(
 	uint16_t *x, unsigned logn,
 	const void *in, size_t max_in_len)
@@ -100,6 +143,46 @@ Zf(modq_decode)(
 
 			acc_len -= 14;
 			w = (acc >> acc_len) & 0x3FFF;
+			if (w >= 12289) {
+				return 0;
+			}
+			x[u ++] = (uint16_t)w;
+		}
+	}
+	if ((acc & (((uint32_t)1 << acc_len) - 1)) != 0) {
+		return 0;
+	}
+	return in_len;
+}
+
+/* see inner.h */
+size_t
+Zf(modq_decode16)(
+	uint16_t *x, unsigned logn,
+	const void *in, size_t max_in_len)
+{
+	size_t n, in_len, u;
+	const uint8_t *buf;
+	uint32_t acc;
+	int acc_len;
+
+	n = (size_t)1 << logn;
+	in_len = ((n * 16) + 7) >> 3;
+	if (in_len > max_in_len) {
+		return 0;
+	}
+	buf = in;
+	acc = 0;
+	acc_len = 0;
+	u = 0;
+	while (u < n) {
+		acc = (acc << 8) | (*buf ++);
+		acc_len += 8;
+		if (acc_len >= 16) {
+			unsigned w;
+
+			acc_len -= 16;
+			w = (acc >> acc_len) & 0xFFFF;
 			if (w >= 12289) {
 				return 0;
 			}
@@ -402,6 +485,54 @@ Zf(comp_encode)(
 
 /* see inner.h */
 size_t
+Zf(comp_encode16)(
+	void *out, size_t max_out_len,
+	const int16_t *x, unsigned logn)
+{
+	// SAME AS `modq_encode16`
+	size_t n, out_len, u;
+	uint8_t *buf;
+	uint32_t acc;
+	int acc_len;
+
+	n = (size_t)1 << logn;
+	for (u = 0; u < n; u ++) {
+		if (x[u] >= 12289 || x[u] <= -12289) {
+			return 0;
+		}
+	}
+	out_len = ((n * 16) + 7) >> 3;
+	if (out == NULL) {
+		return out_len;
+	}
+	
+	if (out_len > max_out_len) {
+		return 0;
+	}
+	buf = out;
+	acc = 0;
+	acc_len = 0;
+	for (u = 0; u < n; u ++) {
+		if (x[u] >= 0) {
+			acc = (acc << 16) | x[u];
+		}
+		else {
+			acc = (acc << 16) | (12289+x[u]);
+		}
+		acc_len += 16;
+		while (acc_len >= 8) {
+			acc_len -= 8;
+			*buf ++ = (uint8_t)(acc >> acc_len);
+		}
+	}
+	if (acc_len > 0) {
+		*buf = (uint8_t)(acc << (8 - acc_len));
+	}
+	return out_len;
+}
+
+/* see inner.h */
+size_t
 Zf(comp_decode)(
 	int16_t *x, unsigned logn,
 	const void *in, size_t max_in_len)
@@ -470,6 +601,55 @@ Zf(comp_decode)(
 	}
 
 	return v;
+}
+
+/* see inner.h */
+size_t
+Zf(comp_decode16)(
+	int16_t *x, unsigned logn,
+	const void *in, size_t max_in_len)
+{
+	size_t n, in_len, u;
+	const uint8_t *buf;
+	uint32_t acc;
+	int acc_len;
+
+	n = (size_t)1 << logn;
+	in_len = ((n * 16) + 7) >> 3;
+	if (in_len > max_in_len) {
+		return 0;
+	}
+	buf = in;
+	acc = 0;
+	acc_len = 0;
+	u = 0;
+	while (u < n) {
+		acc = (acc << 8) | (*buf ++);
+		acc_len += 8;
+		if (acc_len >= 16) {
+			int16_t w;
+
+			acc_len -= 16;
+			w = (acc >> acc_len) & 0xFFFF;
+			if (w >= 12289) {
+				return 0;
+			}
+			if (w > 1000) {
+				w = w - 12289;
+			}
+			printf("%d\n", w);
+			printf("%d\n\n", x[u+1]);
+			x[u ++] = w;
+			printf("x[%ld] = %d\n", u, x[u]);
+			/*
+			HUNTING BUG HERE WITH `make and ./build/zknox_kat512int...
+			*/
+		}
+	}
+	if ((acc & (((uint32_t)1 << acc_len) - 1)) != 0) {
+		return 0;
+	}
+	return in_len;
 }
 
 /*
