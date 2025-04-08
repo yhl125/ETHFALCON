@@ -163,13 +163,9 @@ main()
             printf("zknox_crypto_sign_open_epervier returned bad 'm' value\n");
             return KAT_CRYPTO_FAILURE;
         }
-        printf("1\n");
         free(m);
-        printf("2\n");
         free(m1);
-        printf("3\n");
         free(sm);
-        printf("4\n");
 
     } while ( !done );
     

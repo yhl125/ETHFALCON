@@ -50,7 +50,6 @@ zknox_crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 	inner_shake256_flip(&rng);
 	Zf(keygen)(&rng, f, g, F, NULL, h, 9, tmp.b);
 
-
 	/*
 	 * Encode private key.
 	 */
@@ -206,14 +205,12 @@ zknox_crypto_sign_epervier(unsigned char *sm, unsigned long long *smlen,
 	} tmp;
 	TEMPALLOC int8_t f[512], g[512], F[512], G[512];
 	TEMPALLOC union {
-		// int16_t s1[512];
-		// int16_t s2[512];
+		int16_t s1[512];
+		int16_t s2[512];
 		uint16_t hm[512];
 	} r;
-	TEMPALLOC int16_t s1[512];
-	TEMPALLOC int16_t s2[512];
 	TEMPALLOC unsigned char seed[48], nonce[NONCELEN];
-	TEMPALLOC unsigned char esig[2*(ZKNOX_CRYPTO_BYTES - 2 - sizeof nonce)];
+	TEMPALLOC unsigned char esig[ZKNOX_CRYPTO_BYTES_EPERVIER - sizeof nonce];
 	TEMPALLOC inner_shake256_context sc;
 	size_t u, v, sig_len, s2_len;
 
@@ -278,9 +275,9 @@ zknox_crypto_sign_epervier(unsigned char *sm, unsigned long long *smlen,
 	 */
 
 	 do {
-		Zf(sign_dyn)(s2, &sc, f, g, F, G, r.hm, 9, tmp.b);
-		memcpy(s1, tmp.b, 512 * sizeof *s1);
-	} while (!Zf(is_invertible)(s2, 9, tmp.b));          
+		Zf(sign_dyn)(r.s2, &sc, f, g, F, G, r.hm, 9, tmp.b);
+		memcpy(r.s1, tmp.b, 512 * sizeof *r.s1);
+	} while (!Zf(is_invertible)(r.s2, 9, tmp.b));          
 
 	/*
 	 * Encode the signature and bundle it with the message. Format is:
@@ -292,13 +289,13 @@ zknox_crypto_sign_epervier(unsigned char *sm, unsigned long long *smlen,
 	 */
 
 	esig[0] = 0x20 + 9;
-	sig_len = Zf(comp_encode16)(esig + 1, ZKNOX_CRYPTO_BYTES - 1, s1, 9);
+	sig_len = Zf(comp_encode16)(esig + 1, 1024, r.s1, 9);
 	if (sig_len == 0) {
 		return -1;
 	}
 	sig_len ++;
 	esig[sig_len] = 0x20 + 9;
-	s2_len = Zf(comp_encode16)(esig + sig_len + 1, ZKNOX_CRYPTO_BYTES - 1, s2, 9);
+	s2_len = Zf(comp_encode16)(esig + sig_len + 1, 1024, r.s2, 9);
 	if (s2_len == 0) {
 		return -1;
 	}
@@ -399,23 +396,33 @@ zknox_crypto_sign_open_epervier(unsigned char *m, unsigned long long *mlen,
 		fpr dummy_fpr;
 	} tmp;
 	const unsigned char *esig;
-	TEMPALLOC uint16_t h[512], hm[512];
+	TEMPALLOC uint16_t h[512], h2[512], hm[512];
 	TEMPALLOC int16_t s1[512], s2[512];
 	TEMPALLOC inner_shake256_context sc;
 	size_t sig_len, msg_len;
 
-	// /*
-	//  * Decode public key.
-	//  */
-	// if (pk[0] != 0x00 + 9) {
-	// 	return -1;
-	// }
-	// if (Zf(modq_decode16)(h, 9, pk + 1, ZKNOX_CRYPTO_PUBLICKEYBYTES - 1)
-	// 	!= ZKNOX_CRYPTO_PUBLICKEYBYTES - 1)
-	// {
-	// 	return -1;
-	// }
-	// Zf(to_ntt_monty)(h, 9);
+	/*
+	 * Decode public key.
+	 */
+	if (pk[0] != 0x00 + 9) {
+		return -1;
+	}
+	if (Zf(modq_decode16)(h, 9, pk + 1, ZKNOX_CRYPTO_PUBLICKEYBYTES - 1)
+		!= ZKNOX_CRYPTO_PUBLICKEYBYTES - 1)
+	{
+		return -1;
+	}
+	printf("H\n");
+	for (uint16_t i = 0 ; i < 10 ; i++){
+		printf("%X ", h[512+i]);
+	}
+	printf("\n");
+	Zf(to_ntt_monty)(h, 9);
+	printf("HHAT\n");
+	for (uint16_t i = 0 ; i < 10 ; i++){
+		printf("%X ", h[512+i]);
+	}
+	printf("\n");
 
 	/*
 	 * Find nonce, signature, message length.
@@ -437,7 +444,6 @@ zknox_crypto_sign_open_epervier(unsigned char *m, unsigned long long *mlen,
 		return -1;
 	}
 
-
 	if (Zf(comp_decode16)(s1, 9,
 		esig + 1, 1024) != 1024)
 	{
@@ -458,20 +464,21 @@ zknox_crypto_sign_open_epervier(unsigned char *m, unsigned long long *mlen,
 	Zf(hash_to_point_vartime)(&sc, hm, 9);
 
 	printf("START RECOVER\n");
-	if (!Zf(verify_recover)(h, hm, s1, s2, 9, tmp.b)) {
+	if (!Zf(verify_recover)(h2, hm, s1, s2, 9, tmp.b)) {
 		return -1;
 	}
-	Zf(to_ntt_monty)(h, 9);
+	for (uint16_t i = 0 ; i < 10 ; i++){
+		printf("%X ", h2[i]);
+	}
+	printf("\n");
+	Zf(to_ntt_monty)(h2, 9);
 	printf("TODO CHECK HASH MATCH\n");
+	for (uint16_t i = 0 ; i < 10 ; i++){
+		printf("%X ", h2[i]);
+	}
+	printf("\n");
 	// check_eq(h, h2, n * sizeof *h, "recovered public key");
 
-
-	// /*
-	//  * Verify signature.
-	//  */
-	// if (!Zf(verify_raw)(hm, sig, h, 9, tmp.b)) {
-	// 	return -1;
-	// }
 	/*
 	 * Return plaintext.
 	 */

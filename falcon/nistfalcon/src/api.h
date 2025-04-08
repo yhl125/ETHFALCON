@@ -3,8 +3,8 @@
 #define ZKNOX_CRYPTO_PUBLICKEYBYTES  1025
 
 #define CRYPTO_BYTES            690
-#define ZKNOX_CRYPTO_BYTES            1067
-#define ZKNOX_CRYPTO_BYTES_EPERVIER   2090 // 2 * (1024 + 1) + 40 for s1,s2,salt
+#define ZKNOX_CRYPTO_BYTES            1067 // 2??? +     (1024 + 1) + 40 for s2, salt
+#define ZKNOX_CRYPTO_BYTES_EPERVIER   2092 // 2??? + 2 * (1024 + 1) + 40 for s1,s2,salt
 #define CRYPTO_ALGNAME          "Falcon-512"
 
 // FALCON
