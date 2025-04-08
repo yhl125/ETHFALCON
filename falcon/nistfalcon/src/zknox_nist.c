@@ -77,6 +77,12 @@ zknox_crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 		return -1;
 	}
 
+	printf("h keygen\n");
+	for(uint16_t i = 0 ; i < 10 ; i++){
+		printf("%X ", h[i]);
+	}
+	printf("\n");
+
 	/*
 	 * Encode public key.
 	 */
@@ -412,17 +418,6 @@ zknox_crypto_sign_open_epervier(unsigned char *m, unsigned long long *mlen,
 	{
 		return -1;
 	}
-	printf("H\n");
-	for (uint16_t i = 0 ; i < 10 ; i++){
-		printf("%X ", h[512+i]);
-	}
-	printf("\n");
-	Zf(to_ntt_monty)(h, 9);
-	printf("HHAT\n");
-	for (uint16_t i = 0 ; i < 10 ; i++){
-		printf("%X ", h[512+i]);
-	}
-	printf("\n");
 
 	/*
 	 * Find nonce, signature, message length.
@@ -467,16 +462,32 @@ zknox_crypto_sign_open_epervier(unsigned char *m, unsigned long long *mlen,
 	if (!Zf(verify_recover)(h2, hm, s1, s2, 9, tmp.b)) {
 		return -1;
 	}
+
+	printf("H\n");
+	for (uint16_t i = 0 ; i < 10 ; i++){
+		printf("%X ", h[i]);
+	}
+	printf("\n");
+	Zf(to_ntt_monty)(h, 9);
+	printf("HHAT\n");
+	for (uint16_t i = 0 ; i < 10 ; i++){
+		printf("%X ", h[i]);
+	}
+	printf("\n\n");
+
+	printf("h2\n");
 	for (uint16_t i = 0 ; i < 10 ; i++){
 		printf("%X ", h2[i]);
 	}
 	printf("\n");
 	Zf(to_ntt_monty)(h2, 9);
-	printf("TODO CHECK HASH MATCH\n");
+	printf("h2hat\n");
 	for (uint16_t i = 0 ; i < 10 ; i++){
 		printf("%X ", h2[i]);
 	}
-	printf("\n");
+	printf("\n\n");
+	
+	printf("TODO CHECK HASH MATCH\n");
 	// check_eq(h, h2, n * sizeof *h, "recovered public key");
 
 	/*
