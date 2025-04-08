@@ -619,7 +619,9 @@ Zf(comp_decode16)(
 	if (in_len > max_in_len) {
 		return 0;
 	}
+
 	buf = in;
+
 	acc = 0;
 	acc_len = 0;
 	u = 0;
@@ -638,9 +640,6 @@ Zf(comp_decode16)(
 				w = w - 12289;
 			}
 			x[u++] = w;
-			/*
-			HUNTING BUG HERE WITH `make and ./build/zknox_kat512int...
-			*/
 		}
 	}
 	if ((acc & (((uint32_t)1 << acc_len) - 1)) != 0) {

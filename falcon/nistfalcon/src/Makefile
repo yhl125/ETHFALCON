@@ -18,22 +18,27 @@ OBJ1 = build/codec.o build/common.o build/fft.o build/fpr.o build/keygen.o build
 
 OBJ2 = build/PQCgenKAT_sign.o build/katrng.o
 OBJ3 = build/zknox_PQCgenKAT_sign.o build/katrng.o
+OBJ4 = build/zknox_PQCgenKAT_sign_epervier.o build/katrng.o
+
 HEAD1 = api.h fpr.h inner.h
 HEAD2 = api.h katrng.h
 
-all: build build/kat512int build/zknox_kat512int
+all: build build/kat512int build/zknox_kat512int build/zknox_kat512int_epervier
 
 build:
 	-mkdir build
 
 clean:
-	-rm -f build/kat512int $(OBJ1) $(OBJ2) $(OBJ3)
+	-rm -f build/kat512int $(OBJ1) $(OBJ2) $(OBJ3) $(OBJ4)
  
 build/kat512int: $(OBJ1) $(OBJ2)
 	$(LD) $(LDFLAGS) -o build/kat512int $(OBJ1) $(OBJ2) $(LIBS)
 
 build/zknox_kat512int: $(OBJ1) $(OBJ3)
 	$(LD) $(LDFLAGS) -o build/zknox_kat512int $(OBJ1) $(OBJ3) $(LIBS)
+
+build/zknox_kat512int_epervier: $(OBJ1) $(OBJ4)
+	$(LD) $(LDFLAGS) -o build/zknox_kat512int_epervier $(OBJ1) $(OBJ4) $(LIBS)
 
 build/codec.o: codec.c $(HEAD1)
 	$(CC) $(CFLAGS) -c -o build/codec.o codec.c
@@ -73,6 +78,9 @@ build/PQCgenKAT_sign.o: PQCgenKAT_sign.c $(HEAD2)
 
 build/zknox_PQCgenKAT_sign.o: zknox_PQCgenKAT_sign.c $(HEAD2)
 	$(CC) $(CFLAGS) -I . -DALGNAME=falcon512int -c -o build/zknox_PQCgenKAT_sign.o zknox_PQCgenKAT_sign.c
+	
+build/zknox_PQCgenKAT_sign_epervier.o: zknox_PQCgenKAT_sign_epervier.c $(HEAD2)
+	$(CC) $(CFLAGS) -I . -DALGNAME=falcon512int -c -o build/zknox_PQCgenKAT_sign_epervier.o zknox_PQCgenKAT_sign_epervier.c
 	
 build/katrng.o: katrng.c $(HEAD2)
 	$(CC) $(CFLAGS) -I . -c -o build/katrng.o katrng.c
