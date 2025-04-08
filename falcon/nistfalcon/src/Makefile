@@ -34,7 +34,7 @@ build/kat512int: $(OBJ1) $(OBJ2)
 
 build/zknox_kat512int: $(OBJ1) $(OBJ3)
 	$(LD) $(LDFLAGS) -o build/zknox_kat512int $(OBJ1) $(OBJ3) $(LIBS)
-zknox_
+
 build/codec.o: codec.c $(HEAD1)
 	$(CC) $(CFLAGS) -c -o build/codec.o codec.c
 

@@ -637,10 +637,7 @@ Zf(comp_decode16)(
 			if (w > 1000) {
 				w = w - 12289;
 			}
-			printf("%d\n", w);
-			printf("%d\n\n", x[u+1]);
-			x[u ++] = w;
-			printf("x[%ld] = %d\n", u, x[u]);
+			x[u++] = w;
 			/*
 			HUNTING BUG HERE WITH `make and ./build/zknox_kat512int...
 			*/

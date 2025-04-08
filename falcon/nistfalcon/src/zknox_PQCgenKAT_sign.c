@@ -50,7 +50,7 @@ main()
     static unsigned char       seed[48];
     static unsigned char       entropy_input[48];
     static unsigned char       msg[3300];
-    static unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
+    static unsigned char       pk[ZKNOX_CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     
     // Create the REQUEST file
 #ifdef ALGNAME
@@ -139,7 +139,7 @@ main()
             printf("zknox_crypto_sign_keypair returned <%d>\n", ret_val);
             return KAT_CRYPTO_FAILURE;
         }
-        fprintBstr(fp_rsp, "pk = ", pk, CRYPTO_PUBLICKEYBYTES);
+        fprintBstr(fp_rsp, "pk = ", pk, ZKNOX_CRYPTO_PUBLICKEYBYTES);
         fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);
         
         if ( (ret_val = zknox_crypto_sign(sm, &smlen, m, mlen, sk)) != 0) {
@@ -154,7 +154,6 @@ main()
             printf("zknox_crypto_sign_open returned <%d>\n", ret_val);
             return KAT_CRYPTO_FAILURE;
         }
-        printf("AAAAAA\n\n\n\n");
         if ( mlen != mlen1 ) {
             printf("zknox_crypto_sign_open returned bad 'mlen': Got <%llu>, expected <%llu>\n", mlen1, mlen);
             return KAT_CRYPTO_FAILURE;
@@ -164,7 +163,6 @@ main()
             printf("zknox_crypto_sign_open returned bad 'm' value\n");
             return KAT_CRYPTO_FAILURE;
         }
-        
         free(m);
         free(m1);
         free(sm);

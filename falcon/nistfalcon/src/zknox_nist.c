@@ -233,7 +233,6 @@ zknox_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 	if (sig_len > (smlen - 2 - NONCELEN)) {
 		return -1;
 	}
-	printf("sig_len =  %ld\n", sig_len);
 	msg_len = smlen - 2 - NONCELEN - sig_len;
 
 	/*

@@ -3,7 +3,7 @@
 #define ZKNOX_CRYPTO_PUBLICKEYBYTES  1025
 
 #define CRYPTO_BYTES            690
-#define ZKNOX_CRYPTO_BYTES            1065//?????
+#define ZKNOX_CRYPTO_BYTES            1067
 #define CRYPTO_ALGNAME          "Falcon-512"
 
 int crypto_sign_keypair(unsigned char *pk, unsigned char *sk);
