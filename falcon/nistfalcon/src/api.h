@@ -30,6 +30,8 @@ int zknox_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 	const unsigned char *pk);
 
 // ZKNOX EPERVIER
+int zknox_pk_epervier(unsigned char *pk);
+
 int zknox_crypto_sign_epervier(unsigned char *sm, unsigned long long *smlen,
 	const unsigned char *m, unsigned long long mlen,
 	const unsigned char *sk);

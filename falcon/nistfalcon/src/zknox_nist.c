@@ -91,6 +91,41 @@ zknox_crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 }
 
 int
+zknox_pk_epervier(unsigned char *pk)
+{
+	// Additional NTT for epervier
+	// Hash is not computed here
+	TEMPALLOC uint16_t h[512];
+	size_t v;
+	TEMPALLOC inner_shake256_context sc;
+
+	// Decode h
+	 if (pk[0] != 0x00 + 9) {
+		return -1;
+	}
+	if (Zf(modq_decode16)(h, 9, pk + 1, ZKNOX_CRYPTO_PUBLICKEYBYTES - 1)
+		!= ZKNOX_CRYPTO_PUBLICKEYBYTES - 1)
+	{
+		return -1;
+	}
+
+	// NTT
+	Zf(to_ntt_monty)(h, 9);
+
+	/*
+	 * Re-encode public key.
+	 */
+	pk[0] = 0x00 + 9;
+	v = Zf(modq_encode16)(pk + 1, ZKNOX_CRYPTO_PUBLICKEYBYTES - 1, h, 9);
+	
+	if (v != ZKNOX_CRYPTO_PUBLICKEYBYTES - 1) {
+		return -1;
+	}
+
+	return 0;
+}
+
+int
 zknox_crypto_sign(unsigned char *sm, unsigned long long *smlen,
 	const unsigned char *m, unsigned long long mlen,
 	const unsigned char *sk)
@@ -453,16 +488,15 @@ zknox_crypto_sign_open_epervier(unsigned char *m, unsigned long long *mlen,
 	inner_shake256_flip(&sc);
 	Zf(hash_to_point_vartime)(&sc, hm, 9);
 
-	Zf(to_ntt_monty)(h, 9);
-
-	if (!Zf(verify_recover)(h2, hm, s1, s2, 9, tmp.b)) {
+	if (!Zf(verify_recover_epervier)(h2, hm, s1, s2, 9, tmp.b)) {
 		return -1;
 	}
 	// We check that the recovered public key matches with the input pk.
 	// In epervier, we would implement pk = H(NTT(h)) in order to have a smaller pk.
-	Zf(to_ntt_monty)(h2, 9);
+	// Zf(to_ntt_monty)(h2, 9);
 	for (uint16_t i = 0 ; i < 512 ; i++){
 		if (h[i] != h2[i]) {
+			printf("%d %d\n", h[i], h2[i]);
 			return -1;
 		}
 	}

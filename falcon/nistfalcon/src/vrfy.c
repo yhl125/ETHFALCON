@@ -844,6 +844,63 @@ Zf(verify_recover)(uint16_t *h,
 
 /* see inner.h */
 int
+Zf(verify_recover_epervier)(uint16_t *h,
+	const uint16_t *c0, const int16_t *s1, const int16_t *s2,
+	unsigned logn, uint8_t *tmp)
+{
+	size_t u, n;
+	uint16_t *tt;
+	uint32_t r;
+
+	n = (size_t)1 << logn;
+
+	/*
+	 * Reduce elements of s1 and s2 modulo q; then write s2 into tt[]
+	 * and c0 - s1 into h[].
+	 */
+	tt = (uint16_t *)tmp;
+	for (u = 0; u < n; u ++) {
+		uint32_t w;
+
+		w = (uint32_t)s2[u];
+		w += Q & -(w >> 31);
+		tt[u] = (uint16_t)w;
+
+		w = (uint32_t)s1[u];
+		w += Q & -(w >> 31);
+		w = mq_sub(c0[u], w);
+		h[u] = (uint16_t)w;
+	}
+
+	/*
+	 * Compute h = (c0 - s1) / s2. If one of the coefficients of s2
+	 * is zero (in NTT representation) then the operation fails. We
+	 * keep that information into a flag so that we do not deviate
+	 * from strict constant-time processing; if all coefficients of
+	 * s2 are non-zero, then the high bit of r will be zero.
+	 */
+	mq_NTT(tt, logn);
+	mq_NTT(h, logn);
+	r = 0;
+	for (u = 0; u < n; u ++) {
+		r |= (uint32_t)(tt[u] - 1);
+		h[u] = (uint16_t)mq_div_12289(h[u], tt[u]);
+	}
+	mq_poly_tomonty(h, logn);
+
+	/*
+	 * Signature is acceptable if and only if it is short enough,
+	 * and s2 was invertible mod phi mod q. The caller must still
+	 * check that the rebuilt public key matches the expected
+	 * value (e.g. through a hash).
+	 */
+	r = ~r & (uint32_t)-Zf(is_short)(s1, s2, logn);
+	return (int)(r >> 31);
+}
+
+
+/* see inner.h */
+int
 Zf(count_nttzero)(const int16_t *sig, unsigned logn, uint8_t *tmp)
 {
 	uint16_t *s2;
