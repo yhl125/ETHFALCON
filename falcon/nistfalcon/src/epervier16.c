@@ -73,9 +73,10 @@ zknox_crypto_sign_epervier(unsigned char *sm, unsigned long long *smlen,
 	} r;
 	TEMPALLOC int16_t s1[512];
 	TEMPALLOC int16_t s2[512];
+	TEMPALLOC int16_t hint;
 
 	TEMPALLOC unsigned char seed[48], nonce[NONCELEN];
-	TEMPALLOC unsigned char esig[ZKNOX_CRYPTO_BYTES_EPERVIER - sizeof nonce];
+	TEMPALLOC unsigned char esig[ZKNOX_CRYPTO_BYTES_EPERVIER - sizeof nonce - 2];
 	TEMPALLOC inner_shake256_context sc;
 	size_t u, v, sig_len, s2_len;
 	/*
@@ -167,11 +168,17 @@ zknox_crypto_sign_epervier(unsigned char *sm, unsigned long long *smlen,
 	}
 	sig_len += s2_len;
 	sig_len ++;
+
+	// hint computation for Solidity: uint16_t = 2 bytes
+	hint = Zf(hint_epervier)(s2, 9);
+	sig_len +=2;
+
 	memmove(sm + 2 + sizeof nonce, m, mlen);
 	sm[0] = (unsigned char)(sig_len >> 8);
 	sm[1] = (unsigned char)sig_len;
 	memcpy(sm + 2, nonce, sizeof nonce);
-	memcpy(sm + 2 + (sizeof nonce) + mlen, esig, sig_len);
+	memcpy(sm + 2 + (sizeof nonce) + mlen, esig, sig_len-2);
+	memcpy(sm + 2 + (sizeof nonce) + mlen + sig_len-2, &hint, 2);
 	*smlen = 2 + (sizeof nonce) + mlen + sig_len;
 	return 0;
 }
@@ -181,6 +188,8 @@ zknox_crypto_sign_open_epervier(unsigned char *m, unsigned long long *mlen,
 	const unsigned char *sm, unsigned long long smlen,
 	const unsigned char *pk)
 {
+	// NB: this function does not utilize the hint.
+	// The hint is useful for the Solidity version.
 	TEMPALLOC union {
 		uint8_t b[2 * 512];
 		uint64_t dummy_u64;
@@ -207,7 +216,7 @@ zknox_crypto_sign_open_epervier(unsigned char *m, unsigned long long *mlen,
 	/*
 	 * Find nonce, signature, message length.
 	 */
-	if (smlen < 2 + NONCELEN) {
+	 if (smlen < 2 + NONCELEN) {
 		return -1;
 	}
 	sig_len = ((size_t)sm[0] << 8) | (size_t)sm[1];

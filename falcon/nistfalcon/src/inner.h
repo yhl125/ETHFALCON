@@ -296,6 +296,11 @@ int Zf(is_short_half)(uint32_t sqn, const int16_t *s2, unsigned logn);
 void Zf(to_ntt_monty)(uint16_t *h, unsigned logn);
 
 /*
+ * Computes a hint prod(ntt(s2)) for a faster verification (in Solidity).
+ */
+uint16_t Zf(hint_epervier)(int16_t *s2, unsigned logn);
+
+/*
  * Internal signature verification code:
  *   c0[]      contains the hashed nonce+message
  *   s2[]      is the decoded signature

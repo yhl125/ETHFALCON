@@ -641,6 +641,33 @@ Zf(to_ntt_monty)(uint16_t *h, unsigned logn)
 }
 
 /* see inner.h */
+uint16_t Zf(hint_epervier)(int16_t *s2, unsigned logn)
+{
+		// uint8_t *tmp) ??
+	size_t u, n;
+	uint16_t *tt;
+	uint32_t r;
+	uint16_t s2_unsigned[512];
+
+	n = (size_t)1 << logn;
+	for (u = 0; u < n; u ++) {
+		uint32_t w;
+
+		w = (uint32_t)s2[u];
+		w += Q & -(w >> 31);
+		s2_unsigned[u] = (uint16_t)w;
+	}
+	mq_NTT(s2_unsigned, logn);
+	mq_poly_tomonty(s2_unsigned, logn);
+	uint16_t hint = 1;
+	for (u = 0; u < n; u ++) {
+		hint = mq_montymul(hint, s2_unsigned[u]);
+	}
+	return mq_div_12289(1, hint);
+}
+
+/* see inne	for (uint16_t i = 1 ; i < n ; i++) {
+r.h */
 int
 Zf(verify_raw)(const uint16_t *c0, const int16_t *s2,
 	const uint16_t *h, unsigned logn, uint8_t *tmp)

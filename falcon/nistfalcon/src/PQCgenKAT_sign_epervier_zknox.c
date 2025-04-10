@@ -67,7 +67,7 @@ main()
 #else
     sprintf(fn_rsp, "PQCsignKAT_%d_epervier_zknox.rsp", CRYPTO_SECRETKEYBYTES);
 #endif
-    if ( (fp_rsp = f    open(fn_rsp, "w")) == NULL ) {
+    if ( (fp_rsp = fopen(fn_rsp, "w")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_rsp);
         return KAT_FILE_OPEN_ERROR;
     }
