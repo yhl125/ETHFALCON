@@ -54,20 +54,20 @@ main()
     
     // Create the REQUEST file
 #ifdef ALGNAME
-    fn_req = "PQCsign_epervierKAT_" STR(ALGNAME) "_epervier_zknox.req";
+    fn_req = "PQCsignKAT_" STR(ALGNAME) "_epervier_zknox.req";
 #else
-    sprintf(fn_req, "PQCsign_epervierKAT_%d_epervier_zknox.req", CRYPTO_SECRETKEYBYTES);
+    sprintf(fn_req, "PQCsignKAT_%d_epervier_zknox.req", CRYPTO_SECRETKEYBYTES);
 #endif
     if ( (fp_req = fopen(fn_req, "w")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_req);
         return KAT_FILE_OPEN_ERROR;
     }
 #ifdef ALGNAME
-    fn_rsp = "PQCsign_epervierKAT_" STR(ALGNAME) "_epervier_zknox.rsp";
+    fn_rsp = "PQCsignKAT_" STR(ALGNAME) "_epervier_zknox.rsp";
 #else
-    sprintf(fn_rsp, "PQCsign_epervierKAT_%d_epervier_zknox.rsp", CRYPTO_SECRETKEYBYTES);
+    sprintf(fn_rsp, "PQCsignKAT_%d_epervier_zknox.rsp", CRYPTO_SECRETKEYBYTES);
 #endif
-    if ( (fp_rsp = fopen(fn_rsp, "w")) == NULL ) {
+    if ( (fp_rsp = f    open(fn_rsp, "w")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_rsp);
         return KAT_FILE_OPEN_ERROR;
     }
