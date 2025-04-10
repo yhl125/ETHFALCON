@@ -26,6 +26,7 @@ make
     ```
     **WIP: using it in solidity.**
 
+## Solidity binding
 The three commands should create the following files:
 ```bash
 PQCsignKAT_falcon512int.req
@@ -35,3 +36,4 @@ zknox_PQCsign_epervierKAT_falcon512int.rsp
 zknox_PQCsignKAT_falcon512int.req
 zknox_PQCsignKAT_falcon512int.rsp
 ```
+The test vectors can be used in Solidity as explained above. See the examples in [this file](../../../test/ZKNOX_falconKATS.t.sol).
