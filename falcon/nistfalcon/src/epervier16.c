@@ -21,64 +21,31 @@
  */
 #define TEMPALLOC
 
-void randombytes_init(unsigned char *entropy_input,
-	unsigned char *personalization_string,
-	int security_strength);
 int randombytes(unsigned char *x, unsigned long long xlen);
 
 int
-zknox_crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
+zknox_pk_epervier(unsigned char *pk)
 {
-	TEMPALLOC union {
-		uint8_t b[FALCON_KEYGEN_TEMP_9];
-		uint64_t dummy_u64;
-		fpr dummy_fpr;
-	} tmp;
-	TEMPALLOC int8_t f[512], g[512], F[512];
+	// Additional NTT for epervier
+	// Hash is not computed here
 	TEMPALLOC uint16_t h[512];
-	TEMPALLOC unsigned char seed[48];
-	TEMPALLOC inner_shake256_context rng;
-	size_t u, v;
+	size_t v;
 
+	// Decode h
+	 if (pk[0] != 0x00 + 9) {
+		return -1;
+	}
+	if (Zf(modq_decode16)(h, 9, pk + 1, ZKNOX_CRYPTO_PUBLICKEYBYTES - 1)
+		!= ZKNOX_CRYPTO_PUBLICKEYBYTES - 1)
+	{
+		return -1;
+	}
 
-	/*
-	 * Generate key pair.
-	 */
-	randombytes(seed, sizeof seed);
-	inner_shake256_init(&rng);
-	inner_shake256_inject(&rng, seed, sizeof seed);
-	inner_shake256_flip(&rng);
-	Zf(keygen)(&rng, f, g, F, NULL, h, 9, tmp.b);
-
-	/*
-	 * Encode private key.
-	 */
-	sk[0] = 0x50 + 9;
-	u = 1;
-	v = Zf(trim_i8_encode)(sk + u, CRYPTO_SECRETKEYBYTES - u,
-		f, 9, Zf(max_fg_bits)[9]);
-	if (v == 0) {
-		return -1;
-	}
-	u += v;
-	v = Zf(trim_i8_encode)(sk + u, CRYPTO_SECRETKEYBYTES - u,
-		g, 9, Zf(max_fg_bits)[9]);
-	if (v == 0) {
-		return -1;
-	}
-	u += v;
-	v = Zf(trim_i8_encode)(sk + u, CRYPTO_SECRETKEYBYTES - u,
-		F, 9, Zf(max_FG_bits)[9]);
-	if (v == 0) {
-		return -1;
-	}
-	u += v;
-	if (u != CRYPTO_SECRETKEYBYTES) {
-		return -1;
-	}
+	// NTT
+	Zf(to_ntt_monty)(h, 9);
 
 	/*
-	 * Encode public key.
+	 * Re-encode public key.
 	 */
 	pk[0] = 0x00 + 9;
 	v = Zf(modq_encode16)(pk + 1, ZKNOX_CRYPTO_PUBLICKEYBYTES - 1, h, 9);
@@ -91,7 +58,7 @@ zknox_crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 }
 
 int
-zknox_crypto_sign(unsigned char *sm, unsigned long long *smlen,
+zknox_crypto_sign_epervier(unsigned char *sm, unsigned long long *smlen,
 	const unsigned char *m, unsigned long long mlen,
 	const unsigned char *sk)
 {
@@ -102,14 +69,15 @@ zknox_crypto_sign(unsigned char *sm, unsigned long long *smlen,
 	} tmp;
 	TEMPALLOC int8_t f[512], g[512], F[512], G[512];
 	TEMPALLOC union {
-		int16_t sig[512];
 		uint16_t hm[512];
 	} r;
-	TEMPALLOC unsigned char seed[48], nonce[NONCELEN];
-	TEMPALLOC unsigned char esig[ZKNOX_CRYPTO_BYTES_EPERVIER - sizeof nonce];//ZKNOX_CRYPTO_BYTES - 2 - sizeof nonce];
-	TEMPALLOC inner_shake256_context sc;
-	size_t u, v, sig_len;
+	TEMPALLOC int16_t s1[512];
+	TEMPALLOC int16_t s2[512];
 
+	TEMPALLOC unsigned char seed[48], nonce[NONCELEN];
+	TEMPALLOC unsigned char esig[ZKNOX_CRYPTO_BYTES_EPERVIER - sizeof nonce];
+	TEMPALLOC inner_shake256_context sc;
+	size_t u, v, sig_len, s2_len;
 	/*
 	 * Decode the private key.
 	 */
@@ -156,6 +124,7 @@ zknox_crypto_sign(unsigned char *sm, unsigned long long *smlen,
 	inner_shake256_flip(&sc);
 	Zf(hash_to_point_vartime)(&sc, r.hm, 9);
 
+
 	/*
 	 * Initialize a RNG.
 	 */
@@ -167,8 +136,13 @@ zknox_crypto_sign(unsigned char *sm, unsigned long long *smlen,
 
 	/*
 	 * Compute the signature.
+	 * s2 must be invertible.
 	 */
-	Zf(sign_dyn)(r.sig, &sc, f, g, F, G, r.hm, 9, tmp.b);
+ 
+	do {
+		Zf(sign_dyn)(s2, &sc, f, g, F, G, r.hm, 9, tmp.b);
+		memcpy(s1, tmp.b, 512 * sizeof *s1);
+	} while (!Zf(is_invertible)(s2, 9, tmp.b));
 
 
 	/*
@@ -176,13 +150,22 @@ zknox_crypto_sign(unsigned char *sm, unsigned long long *smlen,
 	 *   signature length     2 bytes, big-endian
 	 *   nonce                40 bytes
 	 *   message              mlen bytes
-	 *   signature            slen bytes
+	 *   s1			          slen bytes
+	 *   s2			          slen bytes
 	 */
+
 	esig[0] = 0x20 + 9;
-	sig_len = Zf(comp_encode16)(esig + 1, ZKNOX_CRYPTO_BYTES - 1, r.sig, 9);
+	sig_len = Zf(comp_encode16)(esig + 1, 1024, s1, 9);
 	if (sig_len == 0) {
 		return -1;
 	}
+	sig_len ++;
+	esig[sig_len] = 0x20 + 9;
+	s2_len = Zf(comp_encode16)(esig + sig_len + 1, 1024, s2, 9);
+	if (s2_len == 0) {
+		return -1;
+	}
+	sig_len += s2_len;
 	sig_len ++;
 	memmove(sm + 2 + sizeof nonce, m, mlen);
 	sm[0] = (unsigned char)(sig_len >> 8);
@@ -194,7 +177,7 @@ zknox_crypto_sign(unsigned char *sm, unsigned long long *smlen,
 }
 
 int
-zknox_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
+zknox_crypto_sign_open_epervier(unsigned char *m, unsigned long long *mlen,
 	const unsigned char *sm, unsigned long long smlen,
 	const unsigned char *pk)
 {
@@ -204,8 +187,8 @@ zknox_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 		fpr dummy_fpr;
 	} tmp;
 	const unsigned char *esig;
-	TEMPALLOC uint16_t h[512], hm[512];
-	TEMPALLOC int16_t sig[512];
+	TEMPALLOC uint16_t h[512], h2[512], hm[512];
+	TEMPALLOC int16_t s1[512], s2[512];
 	TEMPALLOC inner_shake256_context sc;
 	size_t sig_len, msg_len;
 
@@ -220,7 +203,6 @@ zknox_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 	{
 		return -1;
 	}
-	Zf(to_ntt_monty)(h, 9);
 
 	/*
 	 * Find nonce, signature, message length.
@@ -233,19 +215,25 @@ zknox_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 		return -1;
 	}
 	msg_len = smlen - 2 - NONCELEN - sig_len;
-
 	/*
 	 * Decode signature.
 	 */
-	 esig = sm + 2 + NONCELEN + msg_len;
-	if (sig_len < 1 || esig[0] != 0x20 + 9) {
+	esig = sm + 2 + NONCELEN + msg_len;
+	if (sig_len < 1 || esig[0] != 0x20 + 9 || esig[1025] != 0x20 + 9) {
 		return -1;
 	}
-	if (Zf(comp_decode16)(sig, 9,
-		esig + 1, sig_len - 1) != sig_len - 1)
+
+	if (Zf(comp_decode16)(s1, 9,
+		esig + 1, 1024) != 1024)
 	{
 		return -1;
 	}
+	if (Zf(comp_decode16)(s2, 9,
+		esig+1+1024+1, 1024) != 1024)
+	{
+		return -1;
+	}
+	
 	/*
 	 * Hash nonce +	 message into a vector.
 	 */
@@ -254,12 +242,19 @@ zknox_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 	inner_shake256_flip(&sc);
 	Zf(hash_to_point_vartime)(&sc, hm, 9);
 
-	/*
-	 * Verify signature.
-	 */
-	if (!Zf(verify_raw)(hm, sig, h, 9, tmp.b)) {
+	if (!Zf(verify_recover_epervier)(h2, hm, s1, s2, 9, tmp.b)) {
 		return -1;
 	}
+	// We check that the recovered public key matches with the input pk.
+	// In epervier, we would implement pk = H(NTT(h)) in order to have a smaller pk.
+	// Zf(to_ntt_monty)(h2, 9);
+	for (uint16_t i = 0 ; i < 512 ; i++){
+		if (h[i] != h2[i]) {
+			printf("%d %d\n", h[i], h2[i]);
+			return -1;
+		}
+	}
+
 	/*
 	 * Return plaintext.
 	 */

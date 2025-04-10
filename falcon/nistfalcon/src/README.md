@@ -3,10 +3,13 @@
 ## Description
 This directory is based on the FALCON reference implementation submitted to NIST. We follow the implementation of the public-key recovery that was located in `Extra/` directory. We obtain two new versions of FALCON:
 * One version follows the NIST with a 16-bit encoding of the public key and the signature. In FALCON, a specific encoding is used from the fact that integers are always less than $q$ and fit in 14 bits. We decide here to encode with 16 bits, as it fits better with the architecture in Solidity, where a "machine word" is 256-bit long.
-* One version is a public-key recovery version where `pk` is moved to the NTT domain. The public key is finally $H(NTT(h))$ where $h$ is the public key in falcon, and $H$ is a 256-bit output hash function such as Keccak. Note that we did not implement the final hash $H$ here. Thus, the verifier recomputes completely $NTT(h)$ and a final check would be required in practice (in solidity).
+    This is done in `nist16.c`.
+* One version is a public-key recovery version where `pk` is moved to the NTT domain. The public key is finally $H(NTT(h(x)))$ where $h(x)$ is the public key in falcon, and $H$ is a 256-bit output hash function such as Keccak. Note that we did not implement the final hash $H$ here. Thus, the verifier recomputes completely $NTT(h(x))$ and a final check would be required in practice (in solidity).
+    This is done in `epervier16.c`.
   
 ## How to use 
-We provide a way to create _KAT vectors_ following NIST standards. First, run:
+We provide a way to create _KAT vectors_ following NIST standards. The generation files are `PQCgenKAT_sign_zknox.c` and `PQCgenKAT_sign_epervier_zknox.c`.
+First, run:
 ```bash
 make
 ```
@@ -31,9 +34,11 @@ The three commands should create the following files:
 ```bash
 PQCsignKAT_falcon512int.req
 PQCsignKAT_falcon512int.rsp
-zknox_PQCsign_epervierKAT_falcon512int.req
-zknox_PQCsign_epervierKAT_falcon512int.rsp
-zknox_PQCsignKAT_falcon512int.req
-zknox_PQCsignKAT_falcon512int.rsp
+PQCsignKAT_falcon512int_zknox.req
+PQCsignKAT_falcon512int_zknox.rsp
+PQCsignKAT_falcon512int_epervier_zknox.req
+PQCsignKAT_falcon512int_epervier_zknox.rsp
 ```
-The test vectors can be used in Solidity as explained above. See the examples in [this file](../../../test/ZKNOX_falconKATS.t.sol).
+The test vectors can be used in Solidity as explained above.
+See the examples in [this file](../../../test/ZKNOX_falconKATS.t.sol).
+**WIP for the epervier solidity tests**.

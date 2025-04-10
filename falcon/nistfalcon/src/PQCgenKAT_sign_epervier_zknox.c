@@ -54,18 +54,18 @@ main()
     
     // Create the REQUEST file
 #ifdef ALGNAME
-    fn_req = "zknox_PQCsignKAT_" STR(ALGNAME) ".req";
+    fn_req = "PQCsign_epervierKAT_" STR(ALGNAME) "_epervier_zknox.req";
 #else
-    sprintf(fn_req, "zknox_PQCsignKAT_%d.req", CRYPTO_SECRETKEYBYTES);
+    sprintf(fn_req, "PQCsign_epervierKAT_%d_epervier_zknox.req", CRYPTO_SECRETKEYBYTES);
 #endif
     if ( (fp_req = fopen(fn_req, "w")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_req);
         return KAT_FILE_OPEN_ERROR;
     }
 #ifdef ALGNAME
-    fn_rsp = "zknox_PQCsignKAT_" STR(ALGNAME) ".rsp";
+    fn_rsp = "PQCsign_epervierKAT_" STR(ALGNAME) "_epervier_zknox.rsp";
 #else
-    sprintf(fn_rsp, "zknox_PQCsignKAT_%d.rsp", CRYPTO_SECRETKEYBYTES);
+    sprintf(fn_rsp, "PQCsign_epervierKAT_%d_epervier_zknox.rsp", CRYPTO_SECRETKEYBYTES);
 #endif
     if ( (fp_rsp = fopen(fn_rsp, "w")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_rsp);
@@ -126,41 +126,47 @@ main()
         
         m = (unsigned char *)calloc(mlen, sizeof(unsigned char));
         m1 = (unsigned char *)calloc(mlen, sizeof(unsigned char));
-        sm = (unsigned char *)calloc(mlen+ZKNOX_CRYPTO_BYTES, sizeof(unsigned char));
+        sm = (unsigned char *)calloc(mlen+ZKNOX_CRYPTO_BYTES_EPERVIER, sizeof(unsigned char));
         
         if ( !ReadHex(fp_req, m, (int)mlen, "msg = ") ) {
             printf("ERROR: unable to read 'msg' from <%s>\n", fn_req);
             return KAT_DATA_ERROR;
         }
         fprintBstr(fp_rsp, "msg = ", m, mlen);
-        
+      
         // Generate the public/private keypair
         if ( (ret_val = zknox_crypto_sign_keypair(pk, sk)) != 0) {
             printf("zknox_crypto_sign_keypair returned <%d>\n", ret_val);
             return KAT_CRYPTO_FAILURE;
         }
+        // Move to Epervier mode
+        if ( (ret_val = zknox_pk_epervier(pk)) != 0) {
+            printf("zknox_pk_epervier returned <%d>\n", ret_val);
+            return KAT_CRYPTO_FAILURE;
+        }
+        
         fprintBstr(fp_rsp, "pk = ", pk, ZKNOX_CRYPTO_PUBLICKEYBYTES);
         fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);
         
-        if ( (ret_val = zknox_crypto_sign(sm, &smlen, m, mlen, sk)) != 0) {
-            printf("crypto_sign returned <%d>\n", ret_val);
+        if ( (ret_val = zknox_crypto_sign_epervier(sm, &smlen, m, mlen, sk)) != 0) {
+            printf("zknox_crypto_sign_epervier returned <%d>\n", ret_val);
             return KAT_CRYPTO_FAILURE;
         }
         fprintf(fp_rsp, "smlen = %llu\n", smlen);
         fprintBstr(fp_rsp, "sm = ", sm, smlen);
         fprintf(fp_rsp, "\n");
-        
-        if ( (ret_val = zknox_crypto_sign_open(m1, &mlen1, sm, smlen, pk)) != 0) {
-            printf("zknox_crypto_sign_open returned <%d>\n", ret_val);
+
+        if ( (ret_val = zknox_crypto_sign_open_epervier(m1, &mlen1, sm, smlen, pk)) != 0) {
+            printf("zknox_crypto_sign_open_epervier returned <%d>\n", ret_val);
             return KAT_CRYPTO_FAILURE;
         }
         if ( mlen != mlen1 ) {
-            printf("zknox_crypto_sign_open returned bad 'mlen': Got <%llu>, expected <%llu>\n", mlen1, mlen);
+            printf("zknox_crypto_sign_open_epervier returned bad 'mlen': Got <%llu>, expected <%llu>\n", mlen1, mlen);
             return KAT_CRYPTO_FAILURE;
         }
         
         if ( memcmp(m, m1, mlen) ) {
-            printf("zknox_crypto_sign_open returned bad 'm' value\n");
+            printf("zknox_crypto_sign_open_epervier returned bad 'm' value\n");
             return KAT_CRYPTO_FAILURE;
         }
         free(m);
