@@ -14,7 +14,7 @@ LD = gcc
 LDFLAGS = 
 LIBS = 
 
-OBJ1 = build/codec.o build/common.o build/fft.o build/fpr.o build/keygen.o build/nist.o build/zknox_nist.o build/rng.o build/shake.o build/sign.o build/vrfy.o
+OBJ1 = build/codec.o build/common.o build/fft.o build/fpr.o build/keygen.o build/nist.o build/nist16.o build/rng.o build/shake.o build/sign.o build/vrfy.o
 
 OBJ2 = build/PQCgenKAT_sign.o build/katrng.o
 OBJ3 = build/zknox_PQCgenKAT_sign.o build/katrng.o
@@ -58,8 +58,8 @@ build/keygen.o: keygen.c $(HEAD1)
 build/nist.o: nist.c $(HEAD1)
 	$(CC) $(CFLAGS) -c -o build/nist.o nist.c
 
-build/zknox_nist.o: zknox_nist.c $(HEAD1)
-	$(CC) $(CFLAGS) -c -o build/zknox_nist.o zknox_nist.c
+build/nist16.o: nist16.c $(HEAD1)
+	$(CC) $(CFLAGS) -c -o build/nist16.o nist16.c
 
 build/rng.o: rng.c $(HEAD1)
 	$(CC) $(CFLAGS) -c -o build/rng.o rng.c
