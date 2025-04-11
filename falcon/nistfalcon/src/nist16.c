@@ -106,7 +106,7 @@ zknox_crypto_sign(unsigned char *sm, unsigned long long *smlen,
 		uint16_t hm[512];
 	} r;
 	TEMPALLOC unsigned char seed[48], nonce[NONCELEN];
-	TEMPALLOC unsigned char esig[ZKNOX_CRYPTO_BYTES_EPERVIER - sizeof nonce];//ZKNOX_CRYPTO_BYTES - 2 - sizeof nonce];
+	TEMPALLOC unsigned char esig[ZKNOX_CRYPTO_BYTES - 2 - sizeof nonce];
 	TEMPALLOC inner_shake256_context sc;
 	size_t u, v, sig_len;
 
