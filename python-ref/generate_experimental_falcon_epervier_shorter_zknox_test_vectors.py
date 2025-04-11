@@ -63,7 +63,7 @@ contract ZKNOX_falcon_epervier_shorterTest is Test {
 file.write(header)
 
 for (i, message) in enumerate(list_of_messages):
-    sig = sk.sign(message.encode(), randombytes=shake.read)
+    sig = sk.sign(message.encode(), randombytes=shake.read, xof=SHAKE)
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
     s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
@@ -76,7 +76,7 @@ for (i, message) in enumerate(list_of_messages):
         hint = (hint * s2_ntt[j]) % q
     hint = inv_mod(hint, q) % q
     # s2_inv_ntt = Poly(s2, q).inverse().ntt()
-    pk_recover = pk.recover(message.encode(), sig)
+    pk_recover = pk.recover(message.encode(), sig, xof=SHAKE)
     assert sk.pk == pk_recover
 
     file.write("function testVector{}() public view {{\n".format(i))

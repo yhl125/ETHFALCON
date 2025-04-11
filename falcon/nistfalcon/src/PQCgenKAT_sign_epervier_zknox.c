@@ -127,7 +127,6 @@ main()
         m = (unsigned char *)calloc(mlen, sizeof(unsigned char));
         m1 = (unsigned char *)calloc(mlen, sizeof(unsigned char));
         sm = (unsigned char *)calloc(mlen+ZKNOX_CRYPTO_BYTES_EPERVIER, sizeof(unsigned char));
-        
         if ( !ReadHex(fp_req, m, (int)mlen, "msg = ") ) {
             printf("ERROR: unable to read 'msg' from <%s>\n", fn_req);
             return KAT_DATA_ERROR;
@@ -139,11 +138,15 @@ main()
             printf("zknox_crypto_sign_keypair returned <%d>\n", ret_val);
             return KAT_CRYPTO_FAILURE;
         }
-        // Move to Epervier mode
-        if ( (ret_val = zknox_pk_epervier(pk)) != 0) {
-            printf("zknox_pk_epervier returned <%d>\n", ret_val);
-            return KAT_CRYPTO_FAILURE;
-        }
+
+        //
+        // TODO ENABLE THIS ONCE NTT IS COMPATIBLE IN SOLIDITY
+        //
+        // // Move to Epervier mode
+        // if ( (ret_val = zknox_pk_epervier(pk)) != 0) {
+        //     printf("zknox_pk_epervier returned <%d>\n", ret_val);
+        //     return KAT_CRYPTO_FAILURE;
+        // }
         
         fprintBstr(fp_rsp, "pk = ", pk, ZKNOX_CRYPTO_PUBLICKEYBYTES);
         fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);

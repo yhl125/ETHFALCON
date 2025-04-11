@@ -121,7 +121,7 @@ contract ZKNOX_falcon_epervier_shorter {
             if (mulmod(s2[i], s2_inverse_ntt[i], q) != 1) revert("wrong hint");
         }
 
-        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
+        uint256[] memory hashed = hashToPointNIST(signature.salt, msgs);
         for (i = 0; i < 512; i++) {
             //hashToPoint-s1
             hashed[i] = addmod(hashed[i], q - signature.s1[i], q);
@@ -206,8 +206,8 @@ contract ZKNOX_falcon_epervier_shorter {
         }
 
         //ntt(s2)*ntt(s2^-1)==ntt(1)?
-        norm = 0; //accumulate the booleand of testing condition
-        uint256[] memory hashed = hashToPointRIP(salt, msgs);
+        norm = 0; //accumulate the boolean   of testing condition
+        uint256[] memory hashed = hashToPointNIST(salt, msgs);
 
         assembly {
             for { let offset := 32 } gt(16416, offset) { offset := add(offset, 32) } {

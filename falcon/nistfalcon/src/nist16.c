@@ -40,7 +40,6 @@ zknox_crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 	TEMPALLOC inner_shake256_context rng;
 	size_t u, v;
 
-
 	/*
 	 * Generate key pair.
 	 */

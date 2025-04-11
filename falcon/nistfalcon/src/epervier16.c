@@ -178,7 +178,8 @@ zknox_crypto_sign_epervier(unsigned char *sm, unsigned long long *smlen,
 	sm[1] = (unsigned char)sig_len;
 	memcpy(sm + 2, nonce, sizeof nonce);
 	memcpy(sm + 2 + (sizeof nonce) + mlen, esig, sig_len-2);
-	memcpy(sm + 2 + (sizeof nonce) + mlen + sig_len-2, &hint, 2);
+	sm[2 + (sizeof nonce) + mlen + sig_len-2] = (unsigned char)(hint >> 8);
+	sm[2 + (sizeof nonce) + mlen + sig_len-1] = (unsigned char)hint;
 	*smlen = 2 + (sizeof nonce) + mlen + sig_len;
 	return 0;
 }
@@ -259,7 +260,6 @@ zknox_crypto_sign_open_epervier(unsigned char *m, unsigned long long *mlen,
 	// Zf(to_ntt_monty)(h2, 9);
 	for (uint16_t i = 0 ; i < 512 ; i++){
 		if (h[i] != h2[i]) {
-			printf("%d %d\n", h[i], h2[i]);
 			return -1;
 		}
 	}
