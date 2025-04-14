@@ -37,6 +37,7 @@
  */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
+
 import {Test, console} from "forge-std/Test.sol";
 
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
