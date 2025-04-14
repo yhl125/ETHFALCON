@@ -910,9 +910,7 @@ Zf(verify_recover_epervier)(uint16_t *h,
 		r |= (uint32_t)(tt[u] - 1);
 		h[u] = (uint16_t)mq_div_12289(h[u], tt[u]);
 	}
-	// TODO CHANGE NEXT LINES ONCE NTT IS COMPATIBLE IN SOLIDITY
-	mq_iNTT(h, logn);
-	// mq_poly_tomonty(h, logn);
+	mq_poly_tomonty(h, logn);
 
 	/*
 	 * Signature is acceptable if and only if it is short enough,

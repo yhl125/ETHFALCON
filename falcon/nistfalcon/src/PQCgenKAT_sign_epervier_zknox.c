@@ -139,14 +139,11 @@ main()
             return KAT_CRYPTO_FAILURE;
         }
 
-        //
-        // TODO ENABLE THIS ONCE NTT IS COMPATIBLE IN SOLIDITY
-        //
-        // // Move to Epervier mode
-        // if ( (ret_val = zknox_pk_epervier(pk)) != 0) {
-        //     printf("zknox_pk_epervier returned <%d>\n", ret_val);
-        //     return KAT_CRYPTO_FAILURE;
-        // }
+        // Move to Epervier mode
+        if ( (ret_val = zknox_pk_epervier(pk)) != 0) {
+            printf("zknox_pk_epervier returned <%d>\n", ret_val);
+            return KAT_CRYPTO_FAILURE;
+        }
         
         fprintBstr(fp_rsp, "pk = ", pk, ZKNOX_CRYPTO_PUBLICKEYBYTES);
         fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);
