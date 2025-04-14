@@ -17,20 +17,25 @@ make
     ```bash
     ./build/kat512int
     ```
-    These vectors can be used in [this file](../../../test/ZKNOX_falconKATS.t.sol) in order to test the solidity verification algorithm, but this requires a `decompression_KAT()` first.
+    This creates a two files
+    ```bash
+PQCsignKAT_falcon512int.req
+PQCsignKAT_falcon512int.rsp
+    ```
+    and the vectors of the `.rsp` file can be used in [this file](../../../test/ZKNOX_falconKATS.t.sol) in order to test the solidity verification algorithm, but this requires a `decompression_KAT()` first.
 * In order to create the same KAT vectors but with the 16-bit encoding for the public key and the signature:
     ```bash
     ./build/kat512int_zknox
     ```
-    Using these vectors, it is easier to manipulate in solidity (see [this same file](../../../test/ZKNOX_falconKATS.t.sol) below).
+    Similarly, the vectors of `PQCsignKAT_falcon512int_zknox.rsp` can be manipulated in solidity (see [this same file](../../../test/ZKNOX_falconKATS.t.sol) below).
 * In order to create KAT vectors for EPERVIER, the public-key recovery version of FALCON (with 16-bit encoding):
     ```bash
     ./build/kat512int_epervier_zknox
     ```
-    It is possible to recover a public key in solidity using EPERVIER, as shown in [this file](../../../test/ZKNOX_epervierKATS.t.sol).
+    It is possible to recover a public key in solidity using EPERVIER from the vectors of the file `PQCsignKAT_falcon512int_epervier_zknox.rsp`, as shown in [this file](../../../test/ZKNOX_epervierKATS.t.sol).
 
 ## Solidity binding
-The three commands should create the following files:
+The commands above should create the following files in the `build/` subdirectory:
 ```bash
 PQCsignKAT_falcon512int.req
 PQCsignKAT_falcon512int.rsp
@@ -39,5 +44,4 @@ PQCsignKAT_falcon512int_zknox.rsp
 PQCsignKAT_falcon512int_epervier_zknox.req
 PQCsignKAT_falcon512int_epervier_zknox.rsp
 ```
-The test vectors can be used in Solidity as explained above.
-See the examples in [ZKNOX_falconKATS.t.sol](../../../test/ZKNOX_falconKATS.t.sol) and [ZKNOX_epervierKATS.t.sol](../../../test/ZKNOX_falconKATS.t.sol).
+The test vectors can be used in Solidity as explained above. Some tests are provided in [ZKNOX_falconKATS.t.sol](../../../test/ZKNOX_falconKATS.t.sol) and [ZKNOX_epervierKATS.t.sol](../../../test/ZKNOX_falconKATS.t.sol) using the first test vector of the `.rsp` files.
