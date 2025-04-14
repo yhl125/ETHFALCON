@@ -20,12 +20,12 @@ make
     These vectors can be used in [this file](../../../test/ZKNOX_falconKATS.t.sol) in order to test the solidity verification algorithm, but this requires a `decompression_KAT()` first.
 * In order to create the same KAT vectors but with the 16-bit encoding for the public key and the signature:
     ```bash
-    ./build/zknox_kat512int
+    ./build/kat512int_zknox
     ```
     Using these vectors, it is easier to manipulate in solidity (see [this same file](../../../test/ZKNOX_falconKATS.t.sol) below).
 * In order to create KAT vectors for EPERVIER, the public-key recovery version of FALCON (with 16-bit encoding):
     ```bash
-    ./build/zknox_kat512int_epervier
+    ./build/kat512int_epervier_zknox
     ```
     **WIP: using it in solidity.**
 
@@ -40,5 +40,4 @@ PQCsignKAT_falcon512int_epervier_zknox.req
 PQCsignKAT_falcon512int_epervier_zknox.rsp
 ```
 The test vectors can be used in Solidity as explained above.
-See the examples in [this file](../../../test/ZKNOX_falconKATS.t.sol).
-**WIP for the epervier solidity tests**.
+See the examples in [ZKNOX_falconKATS.t.sol](../../../test/ZKNOX_falconKATS.t.sol) and [ZKNOX_epervierKATS.t.sol](../../../test/ZKNOX_falconKATS.t.sol).
