@@ -119,7 +119,6 @@ function decompress_kpub(bytes memory buf, uint256 offset) pure returns (uint256
     uint32 acc = 0;
     uint256 acc_len = 0;
     uint256 u = 0;
-    uint256 in_len = ((n * 14) + 7) >> 3;
     uint256 cpt = offset; //start with offset 1 to prune 0x09 header
 
     while (u < n) {

@@ -295,6 +295,8 @@ int Zf(is_short_half)(uint32_t sqn, const int16_t *s2, unsigned logn);
  */
 void Zf(to_ntt_monty)(uint16_t *h, unsigned logn);
 
+void Zf(to_ntt)(uint16_t *h, unsigned logn);
+
 /*
  * Computes a hint prod(ntt(s2)) for a faster verification (in Solidity).
  */

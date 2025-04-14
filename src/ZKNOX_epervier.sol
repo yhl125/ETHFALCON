@@ -37,6 +37,7 @@
  */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
+import {Test, console} from "forge-std/Test.sol";
 
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 import "./ZKNOX_falcon_utils.sol";
@@ -220,7 +221,6 @@ contract ZKNOX_falcon_epervier_shorter {
         if (norm != 0) revert("wrong hint");
 
         uint256[] memory hashed_mul_s2_ntt = _ZKNOX_VECMULMOD(_ZKNOX_NTTFW_vectorized(hashed), s2_inverse_ntt);
-
         return HashToAddress(abi.encodePacked(hashed_mul_s2_ntt));
     }
 } //end of contract

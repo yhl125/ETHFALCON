@@ -641,6 +641,16 @@ Zf(to_ntt_monty)(uint16_t *h, unsigned logn)
 }
 
 /* see inner.h */
+void
+Zf(to_ntt)(uint16_t *h, unsigned logn)
+{
+	// an interface to get ntt not in montgomery representation
+	mq_NTT(h, logn);
+}
+
+
+
+/* see inner.h */
 uint16_t Zf(hint_epervier)(int16_t *s2, unsigned logn)
 {
 	size_t u, n;
@@ -910,7 +920,6 @@ Zf(verify_recover_epervier)(uint16_t *h,
 		r |= (uint32_t)(tt[u] - 1);
 		h[u] = (uint16_t)mq_div_12289(h[u], tt[u]);
 	}
-	mq_poly_tomonty(h, logn);
 
 	/*
 	 * Signature is acceptable if and only if it is short enough,

@@ -41,8 +41,8 @@ zknox_pk_epervier(unsigned char *pk)
 		return -1;
 	}
 
-	// NTT
-	Zf(to_ntt_monty)(h, 9);
+	// NTT not in montgomery representation
+	Zf(to_ntt)(h, 9);
 
 	/*
 	 * Re-encode public key.
@@ -144,7 +144,6 @@ zknox_crypto_sign_epervier(unsigned char *sm, unsigned long long *smlen,
 		Zf(sign_dyn)(s2, &sc, f, g, F, G, r.hm, 9, tmp.b);
 		memcpy(s1, tmp.b, 512 * sizeof *s1);
 	} while (!Zf(is_invertible)(s2, 9, tmp.b));
-
 
 	/*
 	 * Encode the signature and bundle it with the message. Format is:
