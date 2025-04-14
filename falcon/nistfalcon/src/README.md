@@ -27,7 +27,7 @@ make
     ```bash
     ./build/kat512int_epervier_zknox
     ```
-    **WIP: using it in solidity.**
+    It is possible to recover a public key in solidity using EPERVIER, as shown in [this file](../../../test/ZKNOX_epervierKATS.t.sol).
 
 ## Solidity binding
 The three commands should create the following files:
