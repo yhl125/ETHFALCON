@@ -1,4 +1,4 @@
-// code generated using pythonref/generate_falcon_recovery_zknox_test_vectors.py.
+// code generated using pythonref/generate_experimental_falcon_recovery_shorter_zknox_test_vectors.py.
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";

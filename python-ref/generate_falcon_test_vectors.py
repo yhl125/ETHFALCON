@@ -32,7 +32,7 @@ shake.flip()
 
 def header(is_eth):
     return """
-// code generated using pythonref/generate_falcon_compact_test_vectors.py.
+// code generated using pythonref/generate_falcon_test_vectors.py.
 pragma solidity ^0.8.25;
 
 import {{Test, console}} from "forge-std/Test.sol";
