@@ -30,8 +30,8 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_common.sol
-///* Description: A contract designed to be delegated to a 7702 authorization
+///* FILE: ZKNOX_delegate_noproxy.sol
+///* Description: A contract designed to be delegated to a 7702 authorization wihtout proxy
 /**
  *
  */

@@ -30,8 +30,8 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_falcon.sol
-///* Description: shake XOF function implementation
+///* FILE: ZKNOX_shake.sol
+///* Description: SHAKE XOF function implementation
 /**
  *
  */

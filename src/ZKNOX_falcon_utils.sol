@@ -31,7 +31,7 @@
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
 ///* FILE: ZKNOX_falcon_utils.sol
-///* Description: Compute ethereum friendly version of falcon verification
+///* Description: Auxiliary functions for falcon
 /**
  *
  */

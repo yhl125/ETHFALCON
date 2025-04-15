@@ -30,8 +30,8 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_NTT.sol
-///* Description: Compute Negative Wrap Convolution NTT as specified in EIP-NTT
+///* FILE: ZKNOX_NTT_falcon.sol
+///* Description: Compute Negative Wrap Convolution NTT as specified in EIP-NTT, specific FALCON case
 /**
  *
  */
