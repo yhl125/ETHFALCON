@@ -216,16 +216,16 @@ def verify_signature_on_chain(pk, data, sig, contract_address, rpc):
     PK = str(pk_compact)
 
     command = [
-    "cast", "call", contract_address,
-    "verify(bytes,bytes,uint256[],uint256[])", MSG, SALT, S2, PK, "--rpc-url", rpc
+        "cast", "call", contract_address,
+        "verify(bytes,bytes,uint256[],uint256[])", MSG, SALT, S2, PK, "--rpc-url", rpc
     ]
-    #print("Command:\n", command)
+    # print("Command:\n", command)
     result = subprocess.run(
         command,
         capture_output=True,
         text=True
     )
-    #assert result.stderr == ''
+    # assert result.stderr == ''
     print(result.stderr)
     print(result.stdout)
 
@@ -298,7 +298,6 @@ def cli():
         if not args.version:
             print("Error: Provide --version")
             return
-        # TODO make it parameterizable?
         n = 512
         priv, pub = generate_keys(n, args.version)
         save_pk(pub, "public_key.pem", args.version)
