@@ -48,8 +48,6 @@ import "./ZKNOX_falcon_core.sol";
 //choose the XOF to use here
 import "./ZKNOX_HashToPoint.sol";
 
-//import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-//import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
 contract ZKNOX_falcon is ISigVerifier {
