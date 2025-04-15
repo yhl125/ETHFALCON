@@ -7,7 +7,7 @@ AUX = *.pyc *.cprof */*.pyc
 install:
 	$(PY) -m venv $(VENV)
 	$(PIP) install eth_abi pandas pycryptodome scipy matplotlib 
-	$(PIP) install -e "git+https://github.com/ZKNoxHQ/NTT.git@simon/ψ_rev_nist#egg=polyntt&subdirectory=assets/pythonref/"
+	$(PIP) install -e "git+https://github.com/ZKNoxHQ/NTT.git@main#egg=polyntt&subdirectory=assets/pythonref/"
 
 test:
 	$(PYTHON) test.py

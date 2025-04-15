@@ -17,12 +17,12 @@ The public and private keys are generated using Python:
 ```
 The signature is computed from the private key (stored in `private_key.pem`):
 ```bash
-# generate a signature for the message "This is a demo"
+# generate a signature
 ./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e
 ```
 The signature can be verified on chain:
 ```bash
-./sign_cli.py verifyonchain --pubkey='public_key.pem' --data=546869732069732061207472616e73616374696f6e --signature='sig' --contractaddress='0xD2d8e3a5bCf8E177A627698176bC9a99E03D358D' --rpc='https://ethereum-holesky-rpc.publicnode.com'
+./sign_cli.py verifyonchain --pubkey='public_key.pem' --data=546869732069732061207472616e73616374696f6e --signature='sig' --contractaddress='0x2F27b854B719921f03f30d1e5d0aE8e0aE7f96cA' --rpc='https://sepolia.optimism.io'
 ```
 The contract address refers to the contract implementing ETHFALCON in Solidity. This should output:
 ```
@@ -36,24 +36,49 @@ We can also use the NIST version of FALCON. It works very similarly.
 The public and private keys are generated with:
 ```bash
 # generate public and private keys
-./sign_cli.py genkeys --version='falcon'
+    ./sign_cli.py genkeys --version='falcon'
 ```
 The signature is computed from the private key (stored in `private_key.pem`):
 ```bash
-# generate a signature for the message "This is a demo"
+# generate a signature
 ./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e
 ```
 The signature can be verified on chain:
 ```bash
-./sign_cli.py verifyonchain --pubkey='public_key.pem' --data=546869732069732061207472616e73616374696f6e --signature='sig' --contractaddress='0x5dc45800383d30c2c4c8f7e948090b38b22025f9' --rpc='https://ethereum-holesky-rpc.publicnode.com'
+./sign_cli.py verifyonchain --pubkey='public_key.pem' --data=546869732069732061207472616e73616374696f6e --signature='sig' --contractaddress='0xD088Ede58BD1736477d66d114D842bDE279A41Fa' --rpc='https://sepolia.optimism.io'
 ```
 The contract address refers to the contract implementing FALCON in Solidity. This should output:
 ```
 0x0000000000000000000000000000000000000000000000000000000000000001
 ```
 
+
+## EPERVIER
+
+We can also use the public-key recovery version (reducing the size of the public key) of FALCON. It also works similarly.
+
+The public and private keys are generated with:
+```bash
+# generate public and private keys
+./sign_cli.py genkeys --version='epervier'
+```
+The signature is computed from the private key (stored in `private_key.pem`):
+```bash
+# generate a signature
+./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e
+```
+The signature can be verified on chain:
+```bash
+./sign_cli.py verifyonchain --pubkey='public_key.pem' --data=546869732069732061207472616e73616374696f6e --signature='sig' --contractaddress='0x5ab1d6db02f48bad63cbef5d51c534A76aEB824B' --rpc='https://sepolia.optimism.io'
+```
+The contract address refers to the contract implementing EPERVIER in Solidity. This should output:
+```
+0x0000000000000000000000000000000000000000000000000000000000000001
+```
+
 ___
 ___
+
 ## Transaction output
 
 For computing a transaction, we need to provide:

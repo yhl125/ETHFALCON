@@ -127,36 +127,11 @@ def signature(sk, data, version):
     # if H does not output 32 bytes, change V above.
     deterministic_bytes.update(data)
 
-    sig = sk.sign(
+    return sk.sign(
         data,
         randombytes=deterministic_bytes.read,
-        xof=SHAKE if version == 'falcon' else KeccakPRNG
+        xof=SHAKE if version == 'falcon' or version == 'epervier' else KeccakPRNG
     )
-    if version == 'ethfalcon' or version == 'falcon':
-        enc_s = sig[HEAD_LEN + SALT_LEN:]
-        s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
-        s2 = [elt % q for elt in s2]
-    elif version == 'falconrec':
-        enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
-        s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
-        mid = len(s)//2
-        s = [elt % q for elt in s]
-        s1, s2 = s[:mid], s[mid:]
-        s2_inv_ntt = Poly(s2, q).inverse().ntt()
-    elif version == 'epervier':
-        enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
-        s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
-        mid = len(s)//2
-        s = [elt % q for elt in s]
-        s1, s2 = s[:mid], s[mid:]
-        s2_inv_ntt = Poly(s2, q).inverse().ntt()
-        s2_inv_ntt_prod = 1
-        for elt in s2_inv_ntt:
-            s2_inv_ntt_prod = (s2_inv_ntt_prod * elt) % q
-    else:
-        print("This version is not implemented.")
-        return
-    return sig
 
 
 def transaction_hash(nonce, to, data, value):
@@ -191,7 +166,7 @@ def print_signature_transaction(sig, pk, tx_hash):
 
 
 def verify_signature(pk, data, sig, version):
-    if version == 'falcon':
+    if version == 'falcon' or version == 'epervier':
         XOF = SHAKE
     elif version == 'ethfalcon':
         XOF = KeccakPRNG
@@ -200,28 +175,112 @@ def verify_signature(pk, data, sig, version):
     return pk.verify(data, sig, xof=XOF)
 
 
-def verify_signature_on_chain(pk, data, sig, contract_address, rpc):
+def recover_on_chain(data, sig, contract_address, rpc, version):
+    assert version == 'epervier'
+    MSG = "0x" + data.hex()
+
+    salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
+    SALT = "0x"+salt.hex()
+
+    enc_s = sig[HEAD_LEN + SALT_LEN:-512*3]
+    s = decompress(enc_s, 666*2 - HEAD_LEN - SALT_LEN, 512*2)
+    mid = len(s)//2
+    s = [elt % q for elt in s]
+    s1, s2 = s[:mid], s[mid:]
+    s1_compact = falcon_compact(s1)
+    s2_compact = falcon_compact(s2)
+    S1 = str(s1_compact)
+    S2 = str(s2_compact)
+    s2_inv_ntt = Poly(s2, q).inverse().ntt()
+    hint = 1
+    for elt in s2_inv_ntt:
+        hint = (hint * elt) % q
+    HINT = str(hint)
+
+    command = [
+        "cast", "call", contract_address,
+        "recover(bytes,bytes,uint256[],uint256[],uint256,)", MSG, SALT, S1, S2, HINT, "--rpc-url", rpc
+    ]
+
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True
+    )
+    assert result.stderr == ''
+    return result.stdout
+
+
+def verify_signature_on_chain(pk, data, sig, contract_address, rpc, version):
 
     MSG = "0x" + data.hex()
 
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
     SALT = "0x"+salt.hex()
 
-    enc_s = sig[HEAD_LEN + SALT_LEN:]
-    s2 = decompress(enc_s, pk.sig_bytelen - HEAD_LEN - SALT_LEN, 512)
-    s2 = [elt % q for elt in s2]
-    s2_compact = falcon_compact(s2)
-    S2 = str(s2_compact)
-    pk_compact = falcon_compact(Poly(pk.pk, q).ntt())
-    PK = str(pk_compact)
+    if version == 'epervier':
+        # the output of recover_on_chain is a string containing the public key in hexadecimal
+        if int(recover_on_chain(data, sig, contract_address, rpc, version), 16) == pk.pk:
+            print(
+                "\n0x0000000000000000000000000000000000000000000000000000000000000001\n")
+    elif version == 'ethfalcon' or version == 'falcon':
+        enc_s = sig[HEAD_LEN + SALT_LEN:]
+        s2 = decompress(enc_s, 666 - HEAD_LEN - SALT_LEN, 512)
+        s2 = [elt % q for elt in s2]
+        s2_compact = falcon_compact(s2)
+        S2 = str(s2_compact)
+        PK = str(falcon_compact(Poly(pk.pk, q).ntt()))
+        command = [
+            "cast", "call", contract_address,
+            "verify(bytes,bytes,uint256[],uint256[])", MSG, SALT, S2, PK, "--rpc-url", rpc
+        ]
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True
+        )
+        # assert result.stderr == ''
+        print(result.stderr)
+        print(result.stdout)
+    else:
+        print("This version is not implemented.")
+        return
 
-    command = [
-        "cast", "call", contract_address,
-        "verify(bytes,bytes,uint256[],uint256[])", MSG, SALT, S2, PK, "--rpc-url", rpc
-    ]
-    # print("Command:\n", command)
+
+def recover_on_chain_with_transaction(data, sig, contract_address, rpc, private_key, version):
+    assert version == 'epervier'
+    MSG = "0x" + data.hex()
+
+    salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
+    SALT = "0x"+salt.hex()
+
+    enc_s = sig[HEAD_LEN + SALT_LEN:-512*3]
+    s = decompress(enc_s, 666*2 - HEAD_LEN - SALT_LEN, 512*2)
+    mid = len(s)//2
+    s = [elt % q for elt in s]
+    s1, s2 = s[:mid], s[mid:]
+    s1_compact = falcon_compact(s1)
+    s2_compact = falcon_compact(s2)
+    S1 = str(s1_compact)
+    S2 = str(s2_compact)
+    s2_inv_ntt = Poly(s2, q).inverse().ntt()
+    hint = 1
+    for elt in s2_inv_ntt:
+        hint = (hint * elt) % q
+    HINT = str(hint)
+
+    command = "cast send --private-key {} {} \"recover(bytes,bytes,uint256[],uint256[], uint256)\" {} {} \"{}\" \"{}\" \"{}\" --rpc-url {}".format(
+        private_key,
+        contract_address,
+        MSG,
+        SALT,
+        S2,
+        HINT,
+        rpc
+    )
     result = subprocess.run(
         command,
+        shell=True,
         capture_output=True,
         text=True
     )
@@ -230,8 +289,9 @@ def verify_signature_on_chain(pk, data, sig, contract_address, rpc):
     print(result.stdout)
 
 
-def verify_signature_on_chain_with_transaction(pk, data, sig, contract_address, rpc, private_key):
+def verify_signature_on_chain_with_transaction(pk, data, sig, contract_address, rpc, private_key, version):
 
+    assert version == 'falcon' or version == 'ethfalcon'
     MSG = "0x" + data.hex()
 
     salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
@@ -254,24 +314,23 @@ def verify_signature_on_chain_with_transaction(pk, data, sig, contract_address, 
         PK,
         rpc
     )
-    print("Command:\n", command)
     result = subprocess.run(
         command,
         shell=True,
         capture_output=True,
         text=True
     )
+    # assert result.stderr == ''
     print(result.stderr)
-    assert result.stderr == ''
     print(result.stdout)
 
 
 def cli():
     parser = argparse.ArgumentParser(description="CLI for Falcon Signature")
     parser.add_argument("action", choices=[
-                        "genkeys", "sign", "sign_tx", "verify", "verifyonchain", "verifyonchainsend"], help="Action to perform")
+                        "genkeys", "sign", "sign_tx", "verify", "verifyonchain", "verifyonchainsend", "recoveronchain", "recoveronchainsend"], help="Action to perform")
     parser.add_argument("--version", type=str,
-                        help="Version to use (falcon or ethfalcon or falconrec or epervier)")
+                        help="Version to use (falcon or ethfalcon or epervier)")
     parser.add_argument("--nonce", type=str,
                         help="nonce in hexadecimal to sign the transaction")
     parser.add_argument("--to", type=str,
@@ -349,17 +408,39 @@ def cli():
         [pk, version] = load_pk(args.pubkey)
         sig = load_signature(args.signature)
         verify_signature_on_chain(
-            pk, bytes.fromhex(args.data), sig, args.contractaddress, args.rpc)
+            pk, bytes.fromhex(args.data), sig, args.contractaddress, args.rpc, version)
 
     elif args.action == "verifyonchainsend":
         if not args.data or not args.pubkey or not args.signature or not args.rpc or not args.contractaddress or not args.privatekey:
             print(
                 "Error: Provide --data, --pubkey, --signature, --contractaddress, --rpc and --privatekey")
             return
-        pk = load_pk(args.pubkey)
+        [pk, version] = load_pk(args.pubkey)
         sig = load_signature(args.signature)
         verify_signature_on_chain_with_transaction(
-            pk, bytes.fromhex(args.data), sig, args.contractaddress, args.rpc, args.privatekey)
+            pk, bytes.fromhex(args.data), sig, args.contractaddress, args.rpc, args.privatekey, version)
+
+    elif args.action == "recoveronchain":
+        if not args.data or not args.pubkey or not args.signature or not args.rpc or not args.contractaddress:
+            print(
+                "Error: Provide --data, --pubkey, --signature, --contractaddress and --rpc")
+            return
+        [pk, version] = load_pk(args.pubkey)
+        sig = load_signature(args.signature)
+        pk_rec = recover_on_chain(
+            bytes.fromhex(args.data), sig, args.contractaddress, args.rpc, version)
+        print("Public key recovered: {}".format(pk_rec))
+
+    elif args.action == "recoveronchainsend":
+        if not args.data or not args.pubkey or not args.signature or not args.rpc or not args.contractaddress or not args.privatekey:
+            print(
+                "Error: Provide --data, --pubkey, --signature, --contractaddress, --rpc and --privatekey")
+            return
+        [pk, version] = load_pk(args.pubkey)
+        sig = load_signature(args.signature)
+        pk_rec = recover_on_chain_with_transaction(
+            bytes.fromhex(args.data), sig, args.contractaddress, args.rpc, args.privatekey, version)
+        print("Public key recovered: {}".format(pk_rec))
 
 
 if __name__ == "__main__":
