@@ -52,13 +52,6 @@ contract ZKNOX_DelegateTest is Test {
 
         falcon = new ZKNOX_ethfalcon();
 
-        //non compact contract
-        address a_psirev; //address of the precomputations bytecode contract
-        address a_psiInvrev; //address of the precomputations bytecode contract
-
-        (a_psirev, a_psiInvrev) = Deploy(salt);
-
-        falcon.update(a_psirev, a_psiInvrev);
     }
 """
 file.write(header)

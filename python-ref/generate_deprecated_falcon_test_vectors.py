@@ -29,7 +29,7 @@ for (XOF, impl_str) in [(KeccakPRNG, ''), (KeccaXOF, 'Tetration')]:
                 impl_str + "Vectors.t.sol", 'w')
 
     header = """
-    // code generated using pythonref/generate_falcon_test_vectors.py.
+    // code generated using pythonref/generate_deprecated_falcon_test_vectors.py.
     pragma solidity ^0.8.25;
 
     import {Test, console} from "forge-std/Test.sol";

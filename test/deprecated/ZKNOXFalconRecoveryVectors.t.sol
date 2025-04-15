@@ -1,4 +1,4 @@
-// code generated using pythonref/generate_falcon_recovery_test_vectors.py.
+// code generated using pythonref/generate_deprecated_falcon_recovery_test_vectors.py.
 pragma solidity ^0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
