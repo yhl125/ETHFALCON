@@ -31,9 +31,11 @@ pragma solidity ^0.8.25;
 import {Test, console} from "forge-std/Test.sol";
 import "../../src/ZKNOX_NTT.sol";
 import "../../src/ZKNOX_epervier.sol";
+import "../../src/ZKNOX_falcon_utils.sol";
 
-contract ZKNOX_falcon_epervier_shorterTest is Test {
-    ZKNOX_falcon_epervier_shorter epervier;
+contract ZKNOX_epervierTest is Test {
+    ZKNOX_epervier epervier;
+
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
     // forgefmt: disable-next-line
@@ -44,21 +46,7 @@ contract ZKNOX_falcon_epervier_shorterTest is Test {
 
     //stateful initialisation
     function setUp() public {
-        bytes memory bytecode_psirev = abi.encodePacked(psi_rev);
-
-        address a_psirev; //address of the precomputations bytecode contract
-        a_psirev = address(uint160(0xcaca)); //here it is etched, use create in the future
-        vm.etch(a_psirev, bytecode_psirev); //pushing psirev bytecode into contract todo : replace with create
-
-        bytes memory bytecode_psiInvrev = abi.encodePacked(psi_inv_rev);
-
-        address a_psiInvrev; //address of the precomputations bytecode contract
-        a_psiInvrev = address(uint160(0xa5a5)); //here it is etched, use create in the future
-        vm.etch(a_psiInvrev, bytecode_psiInvrev); //pushing psirev bytecode into contract todo : replace with create
-
-        ntt.update(a_psirev, a_psiInvrev, 12289, 12265); //update ntt with outer contract
-
-        epervier = new ZKNOX_falcon_epervier_shorter(ntt);
+        epervier = new ZKNOX_epervier();
     }"""
 file.write(header)
 
@@ -95,20 +83,24 @@ for (i, message) in enumerate(list_of_messages):
     file.write("// forgefmt: disable-next-line\n")
     file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n\n".format(
         s2[0], ','.join(map(str, s2[1:]))))
-    file.write("ZKNOX_falcon_epervier_shorter.Signature memory sig;\n")
+    file.write("uint256[] memory s1 = new uint256[](512);\n")
+    file.write("uint256[] memory s2 = new uint256[](512);\n")
     file.write("for (uint i = 0; i < 512; i++) {\n")
-    file.write("\tsig.s1[i] = tmp_s1[i];\n")
-    file.write("\tsig.s2[i] = tmp_s2[i];\n")
+    file.write("\ts1[i] = tmp_s1[i];\n")
+    file.write("\ts2[i] = tmp_s2[i];\n")
     file.write("}\n")
+    file.write("uint256[] memory cs1 = _ZKNOX_NTT_Compact(s1);\n")
+    file.write("uint256[] memory cs2 = _ZKNOX_NTT_Compact(s2);\n")
     file.write("// short hint\n")
-    file.write("sig.hint = {};\n".format(hint))
+    file.write("uint256 hint = {};\n".format(hint))
 
     file.write("// message\n")
     file.write("bytes memory message  = \"{}\"; \n".format(message))
-    file.write("sig.salt = \"{}\"; \n".format(
+    file.write("bytes memory salt = \"{}\"; \n".format(
         "".join(f"\\x{b:02x}" for b in salt)))
     file.write("address recovered_pk_{};\n".format(i))
-    file.write("recovered_pk_{} = epervier.recover(message, sig);\n".format(i))
+    file.write(
+        "recovered_pk_{} = epervier.recover(message, salt, cs1, cs2, hint);\n".format(i))
     file.write("assertEq(pk_{}, recovered_pk_{});\n".format(i, i))
     file.write("}\n")
 file.write("}\n")
