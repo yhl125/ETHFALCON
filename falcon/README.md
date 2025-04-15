@@ -27,3 +27,7 @@ An example of use (key generation, sign and verify) is provided in test_example.
 
 ## Go bindings
 
+ ```bash
+ make go
+go run falcon.go
+ ```

@@ -17,7 +17,6 @@ js:
 	cd build;rm -f *.o *.a;
  #build C library, first line is the path to your emsdk environment
 	. $(HOME)/github/emsdk/emsdk_env.sh && \
-	cd nistfalcon;rm -rf build;mkdir build;\
 	cd src;\
 emcc \
   codec.c common.c epervier16.c fft.c fpr.c keygen.c katrng.c nist.c rng.c shake.c sign.c vrfy.c \
