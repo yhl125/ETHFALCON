@@ -1,30 +1,16 @@
-// Copyright 2025 Renaud Dubois, ZKNOX. All rights reserved.
-// Use of this source code is governed by a MIT license that can be found in
-// the LICENSE file.
 package main
+
 /*
+#cgo CFLAGS: -I${SRCDIR}/nistfalcon/src
+#cgo LDFLAGS: -L${SRCDIR}/nistfalcon/build 
+#cgo LDFLAGS: -lfalcon
 
-#define DALGNAME falcon512int
-#cgo CFLAGS: -I. -DALGNAME=falcon512int
-#cgo LDFLAGS: -DALGNAME=falcon512int -L. -lfalcon
+#include <stdlib.h>
+#include "api.h"
 
+// Wrapper for crypto_sign_keypair
 
-
-#include "nistfalcon/src/api.h"
-#include "nistfalcon/src/fpr.h"
-#include "nistfalcon/src/inner.h"
-#include "nistfalcon/src/keygen.h"
-#include "nistfalcon/src/nist.h"
-#include "nistfalcon/src/nist.c"
-#include "nistfalcon/src/rng.h"
-#include "nistfalcon/src/shake.h"
-#include "nistfalcon/src/sign.h"
-#include "nistfalcon/src/vrfy.h"
-#include "nistfalcon/src/rng.h"
-#include "nistfalcon/src/katrng.h"
-#include "nistfalcon/src/PQCgenKAT_sign.cs"
 */
-
 import "C"
 
 import (
@@ -33,32 +19,33 @@ import (
 )
 
 const (
-	PublicKeySize = 897
-	SecretKeySize = 1281
+	PublicKeySize = 897  // Adjust if api.h specifies differently
+	SecretKeySize = 1281 // Adjust if api.h specifies differently
 )
 
 func GenerateKeypair() ([]byte, []byte, error) {
-	pk := make([]byte, PublicKeySize)
-	sk := make([]byte, SecretKeySize)
+	var pk [PublicKeySize]C.uchar
+	var sk [SecretKeySize]C.uchar
 
-	ret := C.crypto_sign_keypair(
-		(*C.uchar)(unsafe.Pointer(&pk[0])),
-		(*C.uchar)(unsafe.Pointer(&sk[0])),
-	)
-
+	ret := C.crypto_sign_keypair(&pk[0], &sk[0])
 	if ret != 0 {
 		return nil, nil, fmt.Errorf("keypair generation failed: %d", int(ret))
 	}
 
-	return pk, sk, nil
+	pkBytes := C.GoBytes(unsafe.Pointer(&pk[0]), C.int(PublicKeySize))
+	skBytes := C.GoBytes(unsafe.Pointer(&sk[0]), C.int(SecretKeySize))
+
+	return pkBytes, skBytes, nil
 }
+
+
 
 func main() {
 	pk, sk, err := GenerateKeypair()
 	if err != nil {
-		panic(err)
+		fmt.Println("Error:", err)
+		return
 	}
-
-	fmt.Printf("Public key: %x...\n", pk[:16])
-	fmt.Printf("Secret key: %x...\n", sk[:16])
+	fmt.Printf("Public Key (first 10 bytes): %x\n", pk[:10])
+	fmt.Printf("Secret Key (first 10 bytes): %x\n", sk[:10])
 }
