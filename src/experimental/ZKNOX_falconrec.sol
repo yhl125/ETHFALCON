@@ -31,7 +31,7 @@
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
 ///* FILE: ZKNOX_falconrec.sol
-///* Description: verify falcon with recovery signature
+///* Description: verify falcon with recovery signature (old version)
 /**
  *
  */

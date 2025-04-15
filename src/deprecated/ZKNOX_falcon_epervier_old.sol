@@ -30,8 +30,8 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_falcon_epervier.sol
-///* Description: verify falcon with recovery signature
+///* FILE: ZKNOX_falcon_epervier_old.sol
+///* Description: verify falcon with recovery signature (old version)
 /**
  *
  */

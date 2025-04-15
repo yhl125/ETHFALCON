@@ -30,8 +30,8 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_ethfalcon.sol
-///* Description: Compute ethereum friendly version of falcon verification
+///* FILE: ZKNOX_ethfalcon_old.sol
+///* Description: Compute ethereum friendly version of falcon verification (old version)
 /**
  *
  */
