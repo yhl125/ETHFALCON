@@ -46,7 +46,7 @@ import "../src/ZKNOX_falcon_deploy.sol";
 import "../src/ZKNOX_display.sol";
 
 contract EpervierKATS_Test is Test {
-    ZKNOX_falcon_epervier_shorter epervier;
+    ZKNOX_epervier epervier;
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
     // forgefmt: disable-next-line
@@ -58,7 +58,7 @@ contract EpervierKATS_Test is Test {
     function setUp() public {
         bytes32 salt = keccak256(abi.encodePacked("ZKnox"));
 
-        epervier = new ZKNOX_falcon_epervier_shorter(ntt);
+        epervier = new ZKNOX_epervier();
 
         //non compact contract
         address a_psirev; //address of the precomputations bytecode contract
