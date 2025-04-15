@@ -46,7 +46,7 @@ The repo contains a solidity verifier and a python signer.
 | Function                   | Description               | gas cost | Tests Status |
 |------------------------|---------------------|---------------------|---------------------|
 | ZKNOX_falcon.verify       | NIST       | 7M | :white_check_mark:|
-| ZKNOX_ethfalcon.verify       | EVM Friendly      | 1.9 M | :white_check_mark:|
+| ZKNOX_ethfalcon.verify       | EVM Friendly      | 1.8 M | :white_check_mark:|
 | ZKNOX_epervier.verify       | Recover EVM friendly      | 1.9 M | :white_check_mark:|
 
 

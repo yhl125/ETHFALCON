@@ -30,8 +30,8 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_ethfalcon.sol
-///* Description: Compute ethereum friendly version of falcon verification
+///* FILE: ZKNOX_falcon.sol
+///* Description: Compute NIST compliant falcon verification
 /**
  *
  */
@@ -92,8 +92,6 @@ contract ZKNOX_falcon is ISigVerifier {
         return true;
     }
 
-
-
     function verify(
         bytes memory h, //a 32 bytes hash
         bytes memory salt, // compacted signature salt part
@@ -116,7 +114,7 @@ contract ZKNOX_falcon is ISigVerifier {
 
         uint256[] memory hashed = hashToPointNIST(salt, h);
 
-        result = falcon_core( s2, ntth, hashed);
+        result = falcon_core(s2, ntth, hashed);
         //if (result == false) revert("wrong sig");
 
         return result;

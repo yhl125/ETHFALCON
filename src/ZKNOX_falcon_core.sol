@@ -96,70 +96,18 @@ function falcon_normalize(
     return result;
 }
 
-//core falcon verification function, compacted input
-function falcon_core(
-    ZKNOX_NTT ntt,
-    bytes memory salt,
-    uint256[] memory s2,
-    uint256[] memory ntth, // public key, compacted 16  coefficients of 16 bits per word
-    uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
-) view returns (bool result) {
-    if (hashed.length != 512) return false;
-    if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-    if (s2.length != 32) return false; //"Invalid salt length"
-
-    result = false;
-
-    uint256[] memory s1 = _ZKNOX_NTT_Expand(ntt.ZKNOX_NTT_HALFMUL_Compact(s2, ntth)); //build on top of EIP-7885
-
-    return falcon_normalize(s1, s2, hashed);
-}
-
-//core falcon verification function, expanded input
-function falcon_core_expanded(
-    ZKNOX_NTT ntt,
-    bytes memory salt,
-    uint256[] memory s2,
-    uint256[] memory ntth, // public key
-    uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
-) view returns (bool result) {
-    if (hashed.length != 512) return false;
-    if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-    if (s2.length != 512) return false; //"Invalid salt length"
-
-    return falcon_core(ntt, salt, _ZKNOX_NTT_Compact(s2), _ZKNOX_NTT_Compact(ntth), hashed);
-}
-
-//core falcon verification function, compacted input and external contract (WIP)
-function falcon_core_spec(
-    address psiRev,
-    address psiInvRev,
-    uint256[] memory s2,
-    uint256[] memory ntth, // public key, compacted 16  coefficients of 16 bits per word
-    uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
-) view returns (bool result) {
-    if (hashed.length != 512) return false;
-    if (s2.length != 32) return false; //"Invalid salt length"
-
-    result = false;
-
-    uint256[] memory s1 = _ZKNOX_NTT_Expand(_ZKNOX_NTT_HALFMUL_Compact(s2, ntth, psiRev, psiInvRev)); //build on top of specific NTT
-
-    return falcon_normalize(s1, s2, hashed);
-}
-
-//core falcon verification function, compacted input, no external contract 
+//core falcon verification function, compacted input, no external contract
 function falcon_core(
     uint256[] memory s2,
     uint256[] memory ntth, // public key, compacted 16  coefficients of 16 bits per word
     uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
 ) view returns (bool result) {
- if (hashed.length != 512) return false;
+    if (hashed.length != 512) return false;
     if (s2.length != 32) return false; //"Invalid signature length"
 
     result = false;
 
-  uint256[] memory s1 = _ZKNOX_NTT_Expand(_ZKNOX_NTT_HALFMUL_Compact(s2, ntth)); //build on top of specific NTT
+    uint256[] memory s1 = _ZKNOX_NTT_Expand(_ZKNOX_NTT_HALFMUL_Compact(s2, ntth)); //build on top of specific NTT
 
     return falcon_normalize(s1, s2, hashed);
 }

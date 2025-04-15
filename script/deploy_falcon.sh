@@ -7,7 +7,7 @@
 # Configuration
 # Replace with your contract name
 #DeployETHFalcon.s.sol, DeployFalcon.s.sol
-CONTRACT_NAME="DeployFalcon.s.sol"
+CONTRACT_NAME="DeployETHFalcon.s.sol"
 
 # Deploy to networks
 echo "Deploying $CONTRACT_NAME with Forge..."

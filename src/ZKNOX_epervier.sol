@@ -52,7 +52,6 @@ contract ZKNOX_epervier {
 
     uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;
 
-
     struct Signature {
         bytes salt;
         uint256[512] s1;

@@ -53,7 +53,6 @@ import "./ZKNOX_HashToPoint.sol";
 
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
 contract ZKNOX_ethfalcon is ISigVerifier {
-
     struct CompactSignature {
         bytes salt;
         uint256[] s2; // compacted signature
@@ -66,7 +65,6 @@ contract ZKNOX_ethfalcon is ISigVerifier {
 
         return true;
     }
-
 
     function verify(
         bytes memory h, //a 32 bytes hash

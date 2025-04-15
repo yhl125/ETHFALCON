@@ -74,7 +74,7 @@ contract SignDelegationTest is Test {
         uint256 iAlgoID = FALCONSHAKE_ID;
 
         bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.14"));
-       
+
         ZKNOX_Verifier Verifier_logic = new ZKNOX_Verifier{salt: salty}();
 
         address iVerifier_algo = address(falcon);

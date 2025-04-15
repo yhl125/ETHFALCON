@@ -21,8 +21,6 @@ contract ZKNOX_DelegateTest is Test {
         bytes32 salt = keccak256(abi.encodePacked("ZKnox"));
 
         falcon = new ZKNOX_ethfalcon();
-
-      
     }
 
     function testVector0() public view {

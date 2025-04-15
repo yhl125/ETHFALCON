@@ -101,7 +101,6 @@ contract SignDelegationTest is BaseScript {
         address a_psirev;
         address a_psiInvrev;
         bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.14"));
-     
 
         address iVerifier_algo = address(falcon);
         address iPublicKey = DeployPolynomial(salty, pkc);
