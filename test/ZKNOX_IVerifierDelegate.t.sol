@@ -73,12 +73,8 @@ contract SignDelegationTest is Test {
         uint256[] memory pkc = ZKNOX_memcpy32(tmp_pkc);
         uint256 iAlgoID = FALCONSHAKE_ID;
 
-        address a_psirev;
-        address a_psiInvrev;
         bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.14"));
-        (a_psirev, a_psiInvrev) = Deploy(salty);
-        falcon.update(a_psirev, a_psiInvrev); //update falcon with precomputed tables
-
+       
         ZKNOX_Verifier Verifier_logic = new ZKNOX_Verifier{salt: salty}();
 
         address iVerifier_algo = address(falcon);

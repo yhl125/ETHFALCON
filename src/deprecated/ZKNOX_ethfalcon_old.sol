@@ -38,21 +38,46 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import "./ZKNOX_common.sol";
-import "./ZKNOX_IVerifier.sol";
+import "../ZKNOX_common.sol";
+import "../ZKNOX_IVerifier.sol";
 
-import "./ZKNOX_falcon_utils.sol";
-import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
-import "./ZKNOX_falcon_core.sol";
+import "../ZKNOX_falcon_utils.sol";
+import {ZKNOX_NTT} from "../ZKNOX_NTT.sol";
+import "../ZKNOX_falcon_core.sol";
 
 //choose the XOF to use here
-import "./ZKNOX_HashToPoint.sol";
+import "../ZKNOX_HashToPoint.sol";
 
 //import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 //import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
 contract ZKNOX_ethfalcon is ISigVerifier {
+    ZKNOX_NTT ntt;
+    address public psirev;
+    address public psiInvrev;
+    bool EIP7885;
+    bool immutableMe;
+    uint256 err_flag; //a debug flag
+
+    function update(address i_psirev, address i_psiInvrev) public {
+        if (immutableMe == true) revert();
+        psirev = i_psirev;
+        psiInvrev = i_psiInvrev;
+        EIP7885 = false;
+        immutableMe = true;
+    }
+
+    function updateNTT(ZKNOX_NTT i_ntt) public {
+        if (immutableMe == true) revert();
+        ntt = i_ntt;
+        EIP7885 = true;
+        immutableMe = true;
+    }
+
+    function setflag(uint256 value) public {
+        err_flag = value;
+    }
 
     struct CompactSignature {
         bytes salt;
@@ -67,6 +92,37 @@ contract ZKNOX_ethfalcon is ISigVerifier {
         return true;
     }
 
+    function verify(
+        bytes memory msgs,
+        CompactSignature memory signature,
+        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) public view returns (bool result) {
+        if (CheckParameters(signature, ntth) == false) return false;
+
+        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
+        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
+    }
+
+    function verifyTetration(
+        bytes memory msgs,
+        CompactSignature memory signature,
+        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) public view returns (bool result) {
+        if (CheckParameters(signature, ntth) == false) return false;
+        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs);
+        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
+    }
+
+    function verify_spec(
+        bytes memory msgs,
+        CompactSignature memory signature,
+        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) public view returns (bool result) {
+        if (CheckParameters(signature, ntth) == false) return false;
+
+        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
+        return falcon_core(signature.s2, ntth, hashed);
+    }
 
     function verify(
         bytes memory h, //a 32 bytes hash

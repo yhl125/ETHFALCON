@@ -4,7 +4,7 @@ pragma solidity ^0.8.25;
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ZKNOX_NTT.sol";
 import "../src/ZKNOX_falcon_utils.sol";
-import "../src/ZKNOX_ethfalcon.sol";
+import "../src/deprecated/ZKNOX_ethfalcon_old.sol";
 
 contract ZKNOX_FalconTest is Test {
     ZKNOX_ethfalcon falcon;
