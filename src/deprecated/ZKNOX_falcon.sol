@@ -43,7 +43,7 @@ import {ZKNOX_NTT} from "../ZKNOX_NTT.sol";
 //choose the XOF to use here
 import "../ZKNOX_HashToPoint.sol";
 import "../ZKNOX_falcon_utils.sol";
-import "../ZKNOX_falcon_core.sol";
+import "./ZKNOX_falcon_core_old.sol";
 
 contract ZKNOX_falcon {
     ZKNOX_NTT ntt;

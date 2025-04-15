@@ -54,18 +54,18 @@ main()
     
     // Create the REQUEST file
 #ifdef ALGNAME
-    fn_req = "zknox_PQCsignKAT_" STR(ALGNAME) ".req";
+    fn_req = "PQCsignKAT_" STR(ALGNAME) "_zknox.req";
 #else
-    sprintf(fn_req, "zknox_PQCsignKAT_%d.req", CRYPTO_SECRETKEYBYTES);
+    sprintf(fn_req, "PQCsignKAT_%d_zknox.req", CRYPTO_SECRETKEYBYTES);
 #endif
     if ( (fp_req = fopen(fn_req, "w")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_req);
         return KAT_FILE_OPEN_ERROR;
     }
 #ifdef ALGNAME
-    fn_rsp = "zknox_PQCsignKAT_" STR(ALGNAME) ".rsp";
+    fn_rsp = "PQCsignKAT_" STR(ALGNAME) "_zknox.rsp";
 #else
-    sprintf(fn_rsp, "zknox_PQCsignKAT_%d.rsp", CRYPTO_SECRETKEYBYTES);
+    sprintf(fn_rsp, "PQCsignKAT_%d_zknox.rsp", CRYPTO_SECRETKEYBYTES);
 #endif
     if ( (fp_rsp = fopen(fn_rsp, "w")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_rsp);

@@ -30,162 +30,141 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_falcon_encodings.sol
-///* Description: Decompression function of falcon verification
+///* FILE: ZKNOX_ethfalcon.sol
+///* Description: Compute ethereum friendly version of falcon verification
 /**
  *
  */
-import "./ZKNOX_falcon_utils.sol";
-//import {Test, console} from "forge-std/Test.sol";
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
 
-uint256 constant max_in_len = 666;
+import "../ZKNOX_common.sol";
+import "../ZKNOX_IVerifier.sol";
 
-// decompress signature starting from offset in buf
-function _decompress_sig(bytes memory buf, uint256 offset) pure returns (uint256[] memory) {
-    uint256[] memory x = new uint256[](512);
+import "../ZKNOX_falcon_utils.sol";
+import {ZKNOX_NTT} from "../ZKNOX_NTT.sol";
+import "./ZKNOX_falcon_core_old.sol";
 
-    uint32 acc = 0;
-    uint256 acc_len = 0;
-    uint256 v = offset;
+//choose the XOF to use here
+import "../ZKNOX_HashToPoint.sol";
 
-    for (uint256 u = 0; u < n; u++) {
-        uint256 s;
-        uint256 m;
+//import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+//import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-        /*
-		 * Get next eight bits: sign and low seven bits of the
-		 * absolute value.
-		 */
+/* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
+contract ZKNOX_ethfalcon is ISigVerifier {
+    ZKNOX_NTT ntt;
+    address public psirev;
+    address public psiInvrev;
+    bool EIP7885;
+    bool immutableMe;
+    uint256 err_flag; //a debug flag
+
+    function update(address i_psirev, address i_psiInvrev) public {
+        if (immutableMe == true) revert();
+        psirev = i_psirev;
+        psiInvrev = i_psiInvrev;
+        EIP7885 = false;
+        immutableMe = true;
+    }
+
+    function updateNTT(ZKNOX_NTT i_ntt) public {
+        if (immutableMe == true) revert();
+        ntt = i_ntt;
+        EIP7885 = true;
+        immutableMe = true;
+    }
+
+    function setflag(uint256 value) public {
+        err_flag = value;
+    }
+
+    struct CompactSignature {
+        bytes salt;
+        uint256[] s2; // compacted signature
+    }
+
+    function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool) {
+        if (ntth.length != falcon_S256) return false; //"Invalid public key length"
+        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+        if (signature.s2.length != falcon_S256) return false; //"Invalid salt length"
+
+        return true;
+    }
+
+    function verify(
+        bytes memory msgs,
+        CompactSignature memory signature,
+        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) public view returns (bool result) {
+        if (CheckParameters(signature, ntth) == false) return false;
+
+        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
+        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
+    }
+
+    function verifyTetration(
+        bytes memory msgs,
+        CompactSignature memory signature,
+        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) public view returns (bool result) {
+        if (CheckParameters(signature, ntth) == false) return false;
+        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs);
+        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
+    }
+
+    function verify_spec(
+        bytes memory msgs,
+        CompactSignature memory signature,
+        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) public view returns (bool result) {
+        if (CheckParameters(signature, ntth) == false) return false;
+
+        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
+        return falcon_core(signature.s2, ntth, hashed);
+    }
+
+    function verify(
+        bytes memory h, //a 32 bytes hash
+        bytes memory salt, // compacted signature salt part
+        uint256[] memory s2, // compacted signature s2 part
+        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
+    ) external view returns (bool result) {
+        // if (h.length != 32) return false;
+        if (salt.length != 40) {
+            revert("invalid salt length");
+            //return false;
+        } //CVETH-2025-080201: control salt length to avoid potential forge
+        if (s2.length != falcon_S256) {
+            revert("invalid s2 length");
+            //return false;
+        } //"Invalid salt length"
+        if (ntth.length != falcon_S256) {
+            revert("invalid ntth length");
+            //return false;
+        } //"Invalid public key length"
+
+        uint256[] memory hashed = hashToPointRIP(salt, h);
+
+        result = falcon_core(s2, ntth, hashed);
+        //if (result == false) revert("wrong sig");
+
+        return result;
+    }
+
+    function GetPublicKey(address _from) external view override returns (uint256[] memory Kpub) {
+        Kpub = new uint256[](32);
 
         assembly {
-            let temp := byte(0, mload(add(add(buf, 32), v)))
-            acc := or(shl(8, acc), temp)
-            v := add(v, 1)
-            let b := shr(acc_len, acc)
-            s := and(b, 128)
-            m := and(b, 127)
+            let offset := Kpub
 
-            for {} eq(0, 0) {} {
-                if eq(0, acc_len) {
-                    acc := or(shl(8, acc), byte(0, mload(add(add(buf, 32), v))))
-                    v := add(1, v)
-                    acc_len := 8
-                }
-                acc_len := sub(acc_len, 1)
+            for { let i := 0 } gt(1024, i) { i := add(i, 32) } {
+                //read the 32 words
+                offset := add(offset, 32)
 
-                if and(shr(acc_len, acc), 1) {
-                    // if (((acc >> acc_len) & 1) != 0)
-                    break
-                }
-                //if eq(0, and(1, shr(acc_len, acc)) )   {break}
-                m := add(m, 128) //m += 128;
-                if gt(m, 2047) {
-                    let ptr := mload(0x40) // Get free memory pointer
-                    // Store the error message "coeff to big" in memory
-                    mstore(ptr, 0x636f65666620746f206269670000000000000000000000000000000000000000) // "coeff to big" in hex
-                    revert(ptr, 12) // Revert with 12 bytes (length of "coeff to big")
-                }
+                extcodecopy(_from, offset, i, 32) //psi_rev[m+i])
             }
-        } //end void loop for
-
-        /*
-		 * "-0" is forbidden.
-		 */
-        //	if ( ((s==0) && (m==0)) ) {//TODO: replace
-        //		revert("incorrect zero encoding");
-        //	}
-
-        assembly {
-            let temp := m // x[u] = m;
-            if eq(0x80, s) {
-                //if (s == 0x80)
-                temp := sub(q, m) // x[u] = q - m;
-            }
-            mstore(add(add(x, 32), mul(32, u)), temp)
         }
-    } //end loop u
-
-    //console.log("last read sig:",uint8(buf[v]));
-    if ((v - offset) >= max_in_len) {
-        revert("too long");
+        return Kpub;
     }
-
-    return x;
-}
-
-//decompressing kpub, assuming first byte is 0x09
-function decompress_kpub(bytes memory buf, uint256 offset) pure returns (uint256[] memory) {
-    uint256[] memory x = new uint256[](512);
-    uint32 acc = 0;
-    uint256 acc_len = 0;
-    uint256 u = 0;
-    uint256 cpt = offset; //start with offset 1 to prune 0x09 header
-
-    while (u < n) {
-        acc = (acc << 8) | uint32(uint8(buf[cpt]));
-        cpt++;
-
-        acc_len += 8;
-        if (acc_len >= 14) {
-            uint32 w;
-
-            acc_len -= 14;
-            w = (acc >> acc_len) & 0x3FFF;
-            if (w >= 12289) {
-                revert("wrong coeff");
-            }
-            x[u] = uint256(w);
-            u++;
-        } //end if
-    } //end while
-    if ((acc & ((1 << acc_len) - 1)) != 0) {
-        revert();
-    }
-
-    //console.log("last read kpub", uint8(buf[cpt-1]));
-    return x;
-}
-
-/*
-	 * Decode NIST KAT made of
-     * the encoded public key:0x09+ public key compressed value
-     * the signature bundled with the message. Format is:
-	 *   signature length     slen encoded on 2 bytes, big-endian
-	 *   nonce                40 bytes
-	 *   message              mlen bytes
-	 *   signature            slen bytes
-	 */
-function decompress_KAT(bytes memory pk, bytes memory sm)
-    pure
-    returns (uint256[] memory h, uint256[] memory s2, bytes memory salt, bytes memory message)
-{
-    uint256 slen = (uint256(uint8(sm[0])) << 8) + uint256(uint8(sm[1]));
-    uint256 mlen = sm.length - slen - 42;
-
-    /*
-	 * Decode public key.
-	 */
-    if (pk[0] != 0x09) {
-        revert("wrong public key encoding");
-    }
-    h = decompress_kpub(pk, 1);
-
-    uint256 i;
-    salt = new bytes(40);
-
-    for (i = 0; i < 40; i++) {
-        salt[i] = sm[i + 2];
-    }
-    message = new bytes(mlen);
-    for (uint256 j = 0; j < mlen; j++) {
-        message[j] = sm[j + 42];
-    }
-
-    if (sm[2 + 40 + mlen] != 0x29) {
-        revert("wrong header sigbytes");
-    }
-
-    s2 = _decompress_sig(sm, 2 + 40 + mlen + 1);
-
-    return (h, s2, salt, message);
-}
+} //end of contract ZKNOX_falcon_compact

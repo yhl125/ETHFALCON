@@ -38,6 +38,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import {Test, console} from "forge-std/Test.sol";
+
 import {ZKNOX_NTT} from "./ZKNOX_NTT.sol";
 import "./ZKNOX_falcon_utils.sol";
 import "./ZKNOX_NTT_falcon.sol";
@@ -45,14 +47,10 @@ import "./ZKNOX_NTT_falcon.sol";
 //choose the XOF to use here
 import "./ZKNOX_HashToPoint.sol";
 
-contract ZKNOX_falcon_epervier_shorter {
+contract ZKNOX_epervier {
     ZKNOX_NTT ntt;
 
     uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;
-
-    constructor(ZKNOX_NTT i_ntt) {
-        ntt = i_ntt;
-    }
 
     struct Signature {
         bytes salt;
@@ -63,75 +61,6 @@ contract ZKNOX_falcon_epervier_shorter {
 
     function HashToAddress(bytes memory m) public pure returns (address) {
         return address(uint160(uint256(keccak256(m))));
-    }
-
-    /* A falcon with recovery implementation*/
-    function recover(bytes memory msgs, Signature memory signature) public view returns (address result) {
-        if (signature.salt.length != 40) revert("wrong salt length"); //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s1.length != 512) revert("Invalid s1 length"); //"Invalid s1 length"
-        if (signature.s2.length != 512) revert("Invalid s2 length"); //"Invalid s2 length"
-        // if (signature.hint.length != 512) revert("Invalid hint length"); //"Invalid salt length"
-
-        uint256 i;
-
-        // (s1,s2) must be short
-        uint256 norm = 0;
-        // As (σ1,σ2) are given with positive values, small negative values are actually large (close to q).
-        for (i = 0; i < n; i++) {
-            if (signature.s1[i] > qs1) {
-                norm += (q - signature.s1[i]) * (q - signature.s1[i]);
-            } else {
-                norm += signature.s1[i] * signature.s1[i];
-            }
-            if (signature.s2[i] > qs1) {
-                norm += (q - signature.s2[i]) * (q - signature.s2[i]);
-            } else {
-                norm += signature.s2[i] * signature.s2[i];
-            }
-        }
-
-        if (norm > sigBound) {
-            revert("norm too large");
-        }
-
-        uint256[] memory s2 = new uint256[](512);
-        for (i = 0; i < 512; i++) {
-            s2[i] = uint256(signature.s2[i]);
-        }
-
-        s2 = ntt.ZKNOX_NTTFW(s2, ntt.o_psirev()); //ntt(s2)
-
-        // recover s2.ntt().inverse() from the hint
-        uint256[512] memory prefix;
-        prefix[0] = s2[0];
-        for (i = 1; i < 512; i++) {
-            prefix[i] = mulmod(prefix[i - 1], s2[i], q);
-        }
-        uint256[512] memory s2_inverse_ntt;
-        s2_inverse_ntt[511] = signature.hint;
-        for (i = 0; i < 511; i++) {
-            s2_inverse_ntt[510 - i] = mulmod(s2_inverse_ntt[511 - i], s2[511 - i], q);
-        }
-        for (i = 1; i < 512; i++) {
-            s2_inverse_ntt[i] = mulmod(s2_inverse_ntt[i], prefix[i - 1], q);
-        }
-
-        //ntt(s2)*ntt(s2^-1)==ntt(1)?
-        for (i = 0; i < 512; i++) {
-            if (mulmod(s2[i], s2_inverse_ntt[i], q) != 1) revert("wrong hint");
-        }
-
-        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
-        for (i = 0; i < 512; i++) {
-            //hashToPoint-s1
-            hashed[i] = addmod(hashed[i], q - signature.s1[i], q);
-        }
-
-        for (i = 0; i < 512; i++) {
-            s2[i] = uint256(s2_inverse_ntt[i]);
-        }
-        uint256[] memory hashed_mul_s2_ntt = ntt.ZKNOX_VECMULMOD(ntt.ZKNOX_NTTFW(hashed, ntt.o_psirev()), s2, q);
-        return HashToAddress(abi.encodePacked(hashed_mul_s2_ntt));
     }
 
     //version using compact representation
@@ -206,8 +135,8 @@ contract ZKNOX_falcon_epervier_shorter {
         }
 
         //ntt(s2)*ntt(s2^-1)==ntt(1)?
-        norm = 0; //accumulate the booleand of testing condition
-        uint256[] memory hashed = hashToPointRIP(salt, msgs);
+        norm = 0; //accumulate the boolean   of testing condition
+        uint256[] memory hashed = hashToPointNIST(salt, msgs);
 
         assembly {
             for { let offset := 32 } gt(16416, offset) { offset := add(offset, 32) } {
@@ -220,7 +149,6 @@ contract ZKNOX_falcon_epervier_shorter {
         if (norm != 0) revert("wrong hint");
 
         uint256[] memory hashed_mul_s2_ntt = _ZKNOX_VECMULMOD(_ZKNOX_NTTFW_vectorized(hashed), s2_inverse_ntt);
-
         return HashToAddress(abi.encodePacked(hashed_mul_s2_ntt));
     }
 } //end of contract

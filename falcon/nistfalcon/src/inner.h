@@ -295,6 +295,13 @@ int Zf(is_short_half)(uint32_t sqn, const int16_t *s2, unsigned logn);
  */
 void Zf(to_ntt_monty)(uint16_t *h, unsigned logn);
 
+void Zf(to_ntt)(uint16_t *h, unsigned logn);
+
+/*
+ * Computes a hint prod(ntt(s2)) for a faster verification (in Solidity).
+ */
+uint16_t Zf(hint_epervier)(int16_t *s2, unsigned logn);
+
 /*
  * Internal signature verification code:
  *   c0[]      contains the hashed nonce+message
@@ -373,10 +380,18 @@ int Zf(count_nttzero)(const int16_t *sig, unsigned logn, uint8_t *tmp);
  *
  * tmp[] must have 16-bit alignment.
  */
-int Zf(verify_recover)(uint16_t *h,
+ int Zf(verify_recover)(uint16_t *h,
 	const uint16_t *c0, const int16_t *s1, const int16_t *s2,
 	unsigned logn, uint8_t *tmp);
 
+/*
+ * Like verify_recover but without the final intt
+*/
+int Zf(verify_recover_epervier)(uint16_t *h,
+	const uint16_t *c0, const int16_t *s1, const int16_t *s2,
+	unsigned logn, uint8_t *tmp);
+	
+	
 /* ==================================================================== */
 /*
  * Implementation of floating-point real numbers (fpr.h, fpr.c).

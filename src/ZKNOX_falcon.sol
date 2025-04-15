@@ -30,8 +30,8 @@
 ///* License: This software is licensed under MIT License
 ///* This Code may be reused including this header, license and copyright notice.
 ///* See LICENSE file at the root folder of the project.
-///* FILE: ZKNOX_ethfalcon.sol
-///* Description: Compute ethereum friendly version of falcon verification
+///* FILE: ZKNOX_falcon.sol
+///* Description: Compute NIST compliant falcon verification
 /**
  *
  */
@@ -47,9 +47,6 @@ import "./ZKNOX_falcon_core.sol";
 
 //choose the XOF to use here
 import "./ZKNOX_HashToPoint.sol";
-
-//import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-//import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
 contract ZKNOX_falcon is ISigVerifier {
@@ -93,38 +90,6 @@ contract ZKNOX_falcon is ISigVerifier {
     }
 
     function verify(
-        bytes memory msgs,
-        CompactSignature memory signature,
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view returns (bool result) {
-        if (CheckParameters(signature, ntth) == false) return false;
-
-        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
-        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
-    }
-
-    function verifyTetration(
-        bytes memory msgs,
-        CompactSignature memory signature,
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view returns (bool result) {
-        if (CheckParameters(signature, ntth) == false) return false;
-        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs);
-        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
-    }
-
-    function verify_spec(
-        bytes memory msgs,
-        CompactSignature memory signature,
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view returns (bool result) {
-        if (CheckParameters(signature, ntth) == false) return false;
-
-        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
-        return falcon_core_spec(psirev, psiInvrev, signature.s2, ntth, hashed);
-    }
-
-    function verify(
         bytes memory h, //a 32 bytes hash
         bytes memory salt, // compacted signature salt part
         uint256[] memory s2, // compacted signature s2 part
@@ -146,7 +111,7 @@ contract ZKNOX_falcon is ISigVerifier {
 
         uint256[] memory hashed = hashToPointNIST(salt, h);
 
-        result = falcon_core_spec(psirev, psiInvrev, s2, ntth, hashed);
+        result = falcon_core(s2, ntth, hashed);
         //if (result == false) revert("wrong sig");
 
         return result;

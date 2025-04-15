@@ -30,7 +30,6 @@
  */
 
 #include "inner.h"
-#include <stdio.h>
 
 /* see inner.h */
 size_t
@@ -513,12 +512,8 @@ Zf(comp_encode16)(
 	acc = 0;
 	acc_len = 0;
 	for (u = 0; u < n; u ++) {
-		if (x[u] >= 0) {
-			acc = (acc << 16) | x[u];
-		}
-		else {
-			acc = (acc << 16) | (12289+x[u]);
-		}
+		// append (positive representative of) x[u]
+		acc = (acc << 16) |  (x[u] + ((x[u] >> 31) & 12289));
 		acc_len += 16;
 		while (acc_len >= 8) {
 			acc_len -= 8;
@@ -619,7 +614,9 @@ Zf(comp_decode16)(
 	if (in_len > max_in_len) {
 		return 0;
 	}
+
 	buf = in;
+
 	acc = 0;
 	acc_len = 0;
 	u = 0;
@@ -634,13 +631,9 @@ Zf(comp_decode16)(
 			if (w >= 12289) {
 				return 0;
 			}
-			if (w > 1000) {
-				w = w - 12289;
-			}
+			// using the bound 2047 from the comments below
+			w -= 12289 & ~((w - 2047) >> 31);
 			x[u++] = w;
-			/*
-			HUNTING BUG HERE WITH `make and ./build/zknox_kat512int...
-			*/
 		}
 	}
 	if ((acc & (((uint32_t)1 << acc_len) - 1)) != 0) {

@@ -1,19 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {Script} from "../lib/forge-std/src/Script.sol";
-import {BaseScript} from "./BaseScript.sol";
-import "../src/ZKNOX_ethfalcon.sol";
+import {Script} from "../../lib/forge-std/src/Script.sol";
+import "../../src/ZKNOX_ethfalcon.sol";
+import "../../src/ZKNOX_falcon_deploy.sol";
 
-import {console} from "forge-std/Test.sol";
+import {console, Test} from "forge-std/Test.sol";
+
 //deploy the precomputed tables for psirev and psiInvrev
-
-contract Script_Deploy_Falcon is BaseScript {
+contract Script_Deploy_psirev is Test {
     // SPDX-License-Identifier: MIT
 
-    function run() external {
-        vm.startBroadcast();
-
+    function test_run() external {
         bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.14"));
 
         ZKNOX_ethfalcon ETHFALCON = new ZKNOX_ethfalcon{salt: salty}();
@@ -41,11 +39,6 @@ contract Script_Deploy_Falcon is BaseScript {
             "\x46\xb9\xdd\x2b\x0b\xa8\x8d\x13\x23\x3b\x3f\xeb\x74\x3e\xeb\x24\x3f\xcd\x52\xea\x62\xb8\x1b\x82\xb5\x0c\x27\x64\x6e\xd5\x76\x2f\xd7\x5d\xc4\xdd\xd8\xc0\xf2\x00";
 
         bool result = ETHFALCON.verify(message, sig.salt, sig.s2, pkc);
-
-        console.log("result:", result);
-
-        if (result == false) revert("verification failure");
-
-        vm.stopBroadcast();
+        assertEq(result, true);
     }
 }
