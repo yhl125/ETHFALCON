@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-
 import {BaseScript} from "./BaseScript.sol";
 import "../../src/ZKNOX_epervier.sol";
-
 
 import {console} from "forge-std/Test.sol";
 //deploy the precomputed tables for psirev and psiInvrev
@@ -15,13 +13,12 @@ contract Script_Deploy_epervier is BaseScript {
     function run() external {
         vm.startBroadcast();
 
-       bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.14"));
+        bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.14"));
         // forgefmt: disable-next-line
         address pk_0 = address(728199263750570446964354330903202655824594974439);
-         // public key expected
+        // public key expected
 
         ZKNOX_epervier epervier = new ZKNOX_epervier{salt: salty}();
-
 
         // signature s1
         // forgefmt: disable-next-line
@@ -50,7 +47,7 @@ contract Script_Deploy_epervier is BaseScript {
             "\x46\xb9\xdd\x2b\x0b\xa8\x8d\x13\x23\x3b\x3f\xeb\x74\x3e\xeb\x24\x3f\xcd\x52\xea\x62\xb8\x1b\x82\xb5\x0c\x27\x64\x6e\xd5\x76\x2f\xd7\x5d\xc4\xdd\xd8\xc0\xf2\x00";
         address recovered_pk_0;
         recovered_pk_0 = epervier.recover(message, salt, cs1, cs2, hint);
-      
+
         if (pk_0 != recovered_pk_0) revert("verification failure");
 
         vm.stopBroadcast();

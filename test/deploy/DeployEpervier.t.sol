@@ -12,12 +12,10 @@ contract Script_Deploy_psirev is Test {
 
     function test_run() external {
         bytes32 salty = keccak256(abi.encodePacked("ZKNOX_v0.14"));
-      
 
         ZKNOX_epervier epervier = new ZKNOX_epervier{salt: salty}();
 
-
-         // public key expected
+        // public key expected
         // forgefmt: disable-next-line
         address pk_0 = address(728199263750570446964354330903202655824594974439);
 
