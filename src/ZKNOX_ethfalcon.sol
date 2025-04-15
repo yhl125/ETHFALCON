@@ -121,7 +121,7 @@ contract ZKNOX_ethfalcon is ISigVerifier {
         if (CheckParameters(signature, ntth) == false) return false;
 
         uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
-        return falcon_core_spec(psirev, psiInvrev, signature.s2, ntth, hashed);
+        return falcon_core(signature.s2, ntth, hashed);
     }
 
     function verify(
@@ -146,7 +146,7 @@ contract ZKNOX_ethfalcon is ISigVerifier {
 
         uint256[] memory hashed = hashToPointRIP(salt, h);
 
-        result = falcon_core_spec(psirev, psiInvrev, s2, ntth, hashed);
+        result = falcon_core(s2, ntth, hashed);
         //if (result == false) revert("wrong sig");
 
         return result;

@@ -147,3 +147,19 @@ function falcon_core_spec(
 
     return falcon_normalize(s1, s2, hashed);
 }
+
+//core falcon verification function, compacted input, no external contract 
+function falcon_core(
+    uint256[] memory s2,
+    uint256[] memory ntth, // public key, compacted 16  coefficients of 16 bits per word
+    uint256[] memory hashed // result of hashToPoint(signature.salt, msgs, q, n);
+) view returns (bool result) {
+ if (hashed.length != 512) return false;
+    if (s2.length != 32) return false; //"Invalid signature length"
+
+    result = false;
+
+  uint256[] memory s1 = _ZKNOX_NTT_Expand(_ZKNOX_NTT_HALFMUL_Compact(s2, ntth)); //build on top of specific NTT
+
+    return falcon_normalize(s1, s2, hashed);
+}

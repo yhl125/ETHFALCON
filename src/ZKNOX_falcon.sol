@@ -92,37 +92,7 @@ contract ZKNOX_falcon is ISigVerifier {
         return true;
     }
 
-    function verify(
-        bytes memory msgs,
-        CompactSignature memory signature,
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view returns (bool result) {
-        if (CheckParameters(signature, ntth) == false) return false;
 
-        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
-        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
-    }
-
-    function verifyTetration(
-        bytes memory msgs,
-        CompactSignature memory signature,
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view returns (bool result) {
-        if (CheckParameters(signature, ntth) == false) return false;
-        uint256[] memory hashed = hashToPointTETRATION(signature.salt, msgs);
-        return falcon_core(ntt, signature.salt, signature.s2, ntth, hashed);
-    }
-
-    function verify_spec(
-        bytes memory msgs,
-        CompactSignature memory signature,
-        uint256[] memory ntth // public key, compacted representing coefficients over 16 bits
-    ) public view returns (bool result) {
-        if (CheckParameters(signature, ntth) == false) return false;
-
-        uint256[] memory hashed = hashToPointRIP(signature.salt, msgs);
-        return falcon_core_spec(psirev, psiInvrev, signature.s2, ntth, hashed);
-    }
 
     function verify(
         bytes memory h, //a 32 bytes hash
@@ -146,7 +116,7 @@ contract ZKNOX_falcon is ISigVerifier {
 
         uint256[] memory hashed = hashToPointNIST(salt, h);
 
-        result = falcon_core_spec(psirev, psiInvrev, s2, ntth, hashed);
+        result = falcon_core( s2, ntth, hashed);
         //if (result == false) revert("wrong sig");
 
         return result;
