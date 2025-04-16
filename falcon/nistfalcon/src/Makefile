@@ -21,7 +21,7 @@ OBJ3 = build/PQCgenKAT_sign_zknox.o build/katrng.o
 OBJ4 = build/PQCgenKAT_sign_epervier_zknox.o build/katrng.o
 
 HEAD1 = api.h fpr.h inner.h
-HEAD2 = api.h katrng.h
+HEAD2 = api.h ../KAT/katrng.h
 
 all: build build/kat512int build/kat512int_zknox build/kat512int_epervier_zknox
 
@@ -77,14 +77,14 @@ build/sign.o: sign.c $(HEAD1)
 build/vrfy.o: vrfy.c $(HEAD1)
 	$(CC) $(CFLAGS) -c -o build/vrfy.o vrfy.c
 
-build/PQCgenKAT_sign.o: PQCgenKAT_sign.c $(HEAD2)
-	$(CC) $(CFLAGS) -I . -DALGNAME=falcon512int -c -o build/PQCgenKAT_sign.o PQCgenKAT_sign.c
+build/PQCgenKAT_sign.o: ../KAT/PQCgenKAT_sign.c $(HEAD2)
+	$(CC) $(CFLAGS) -I . -DALGNAME=falcon512int -c -o build/PQCgenKAT_sign.o ../KAT/PQCgenKAT_sign.c
 
-build/PQCgenKAT_sign_zknox.o: PQCgenKAT_sign_zknox.c $(HEAD2)
-	$(CC) $(CFLAGS) -I . -DALGNAME=falcon512int -c -o build/PQCgenKAT_sign_zknox.o PQCgenKAT_sign_zknox.c
+build/PQCgenKAT_sign_zknox.o: ../KAT/PQCgenKAT_sign_zknox.c $(HEAD2)
+	$(CC) $(CFLAGS) -I . -DALGNAME=falcon512int -c -o build/PQCgenKAT_sign_zknox.o ../KAT/PQCgenKAT_sign_zknox.c
 	
-build/PQCgenKAT_sign_epervier_zknox.o: PQCgenKAT_sign_epervier_zknox.c $(HEAD2)
-	$(CC) $(CFLAGS) -I . -DALGNAME=falcon512int -c -o build/PQCgenKAT_sign_epervier_zknox.o PQCgenKAT_sign_epervier_zknox.c
+build/PQCgenKAT_sign_epervier_zknox.o: ../KAT/PQCgenKAT_sign_epervier_zknox.c $(HEAD2)
+	$(CC) $(CFLAGS) -I . -DALGNAME=falcon512int -c -o build/PQCgenKAT_sign_epervier_zknox.o ../KAT/PQCgenKAT_sign_epervier_zknox.c
 	
-build/katrng.o: katrng.c $(HEAD2)
-	$(CC) $(CFLAGS) -I . -c -o build/katrng.o katrng.c
+build/katrng.o: ../KAT/katrng.c $(HEAD2)
+	$(CC) $(CFLAGS) -I . -c -o build/katrng.o ../KAT/katrng.c
