@@ -21,7 +21,7 @@ source ./emsdk_env.sh
 
  ```bash
  make js
- node test_example.js
+ node test_falcon.js
  ```
 An example of use (key generation, sign and verify) is provided in test_example.js
 

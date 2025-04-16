@@ -83,6 +83,10 @@ Current deployment addresses:
 | FALCON     | Falcon NIST Legacy implementation      | [0x5dc45800383d30c2c4c8f7e948090b38b22025f9](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9) | [Holeski](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9), [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9), [Base Sepolia](https://sepolia.basescan.org/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9#code)| [Optimism](https://optimistic.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9#code), [L1 (mainnet)](https://etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9#code) | [c0d465794f67044ddd19f73c21acd9570e9e578b](https://github.com/ZKNoxHQ/ETHFALCON/commit/c0d465794f67044ddd19f73c21acd9570e9e578b) | 
 
 
+Warning: be sure to download the version linked to the proper commit. The library has currently some API's changes and latest sources are not deployed yet.
+All deployments with change notices are [here](./doc/deployments.md).
+
+
 ## CONCLUSION
 
 This repo provides a highly optimized version of FALCON. Order of magnitudes were gained compared to other implementations. In our search, we also devise a way to implement falcon with recovery without requiring the inverse NTT transformation (only forward).
