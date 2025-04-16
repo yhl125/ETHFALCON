@@ -1,8 +1,8 @@
 package main
 
 /*
-#cgo CFLAGS: -I${SRCDIR}/nistfalcon/src
-#cgo LDFLAGS: -L${SRCDIR}/nistfalcon/build 
+#cgo CFLAGS: -I${SRCDIR}/../nistfalcon/src
+#cgo LDFLAGS: -L${SRCDIR}/../nistfalcon/build 
 #cgo LDFLAGS: -lfalcon
 
 #include <stdlib.h>

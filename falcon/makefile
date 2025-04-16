@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 
 go:
+	rm go.mod
  #clean previous build
 	cd build;rm -f *.o *.a;
  #build C library
@@ -10,7 +11,10 @@ go:
 	ar rcs libfalcon.a *.o; \
 	mv *.o ../build;mv *.a ../build;
  #build and run go library
-	go run falcon.go
+	go mod init github.com/ZKNoxHQ/ETHFALCON/falcon;\
+	go mod tidy;\
+	cd test;go run test_falcon.go; go run test_falconmodule.go
+	echo "remember to type <go get github.com/ZKNoxHQ/ETHFALCON/falcon@latest> in go-ethereum after modification of the go.mod"
 
 js:
 #clean previous build
