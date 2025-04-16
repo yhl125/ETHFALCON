@@ -30,8 +30,9 @@ build:
 
 clean:
 	-rm -f build/kat512int build/kat512int_zknox build/kat512int_epervier_zknox $(OBJ1) $(OBJ2) $(OBJ3) $(OBJ4)
-	-rm -f *.rsp *.req
- 
+	find . -name '*.rsp' -delete
+	find . -name '*.req' -delete 
+	
 build/kat512int: $(OBJ1) $(OBJ2)
 	$(LD) $(LDFLAGS) -o build/kat512int $(OBJ1) $(OBJ2) $(LIBS)
 
