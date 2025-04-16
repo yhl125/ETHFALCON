@@ -1,4 +1,4 @@
-package falcon
+package main
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/nistfalcon/src
@@ -73,4 +73,30 @@ func VerifySignature(signature []byte, message []byte, pk []byte) (bool, error) 
 		return true, nil
 	}
 	return false, nil
+}
+
+
+func main() {
+	pk, sk, err := GenerateKeypair()
+	if err != nil {
+		fmt.Println("Keypair error:", err)
+		return
+	}
+	fmt.Printf("Public Key : %x\n", pk)
+	
+
+	message := []byte("Hello from ZKNOX")
+	signature, err := SignMessage(message, sk)
+	if err != nil {
+		fmt.Println("Signing error:", err)
+		return
+	}
+
+	valid, err := VerifySignature(signature, message, pk)
+	if err != nil {
+		fmt.Println("Verify error:", err)
+		return
+	}
+
+	fmt.Println("✅ Valid signature?", valid)
 }
