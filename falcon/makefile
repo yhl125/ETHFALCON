@@ -21,7 +21,7 @@ js:
 	cd build;rm -f *.o *.a;
  #build C library, first line is the path to your emsdk environment
 	. $(HOME)/github/emsdk/emsdk_env.sh && \
-	cd src;\
+	cd nistfalcon/src;\
 emcc \
   codec.c common.c epervier16.c fft.c fpr.c keygen.c katrng.c nist.c rng.c shake.c sign.c vrfy.c \
   -I. \
@@ -33,4 +33,3 @@ emcc \
   -s ALLOW_MEMORY_GROWTH=1 \
   -O3 \
   -o falcon.js;mv falcon.js  ../..; mv falcon.wasm ../..
-
