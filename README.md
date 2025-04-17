@@ -62,7 +62,7 @@ Use the following commands to generate, sign a message and verify it with the on
 # generate a signature
 ./sign_cli.py sign --privkey='private_key.pem' --data=546869732069732061207472616e73616374696f6e
 # verify onchain the  signature using address of contract specified below (ensure --version is compliant with address)
-./sign_cli.py verifyonchain --pubkey='public_key.pem' --data=546869732069732061207472616e73616374696f6e --signature='sig' --contractaddress='0xD088Ede58BD1736477d66d114D842bDE279A41Fa' --rpc='https://sepolia.optimism.io'
+./sign_cli.py verifyonchain --pubkey='public_key.pem' --data=546869732069732061207472616e73616374696f6e --signature='sig' --contractaddress='0xD088Ede58BD1736477d66d114D842bDE279A41Fa' --rpc='https://sepolia.optimism.io'w
 ```
 The contract address refers to the contract implementing FALCON in Solidity. This should output:
 ```
