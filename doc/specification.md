@@ -13,12 +13,12 @@ The repository implements several tweaked version of FALCON, optimized for diffe
   <td>FALCON</td>
   <td>NIST</td>
   <td>The original FALCON NIST submission</td>
-  <td> TBD (Missing SHAKE)</td>
+  <td> OK</td>
     </tr>
   <td>FALCONREC</td>
   <td>NIST</td>
   <td>The original FALCON NIST submission, recovery mode</td>
-  <td> TBD (Missing SHAKE)</td>
+  <td>OK</td>
   </tr>
   <td>FALCON-SOLIDITY</td>
   <td>Tetration </td>
