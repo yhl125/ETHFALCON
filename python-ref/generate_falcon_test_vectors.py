@@ -82,22 +82,18 @@ for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
 
         file.write("// signature s2\n")
         file.write("// forgefmt: disable-next-line\n")
-        file.write("uint256[32] memory s2 = {};\n".format(s2_compact))
-
-        file.write("ZKNOX_{}falcon.CompactSignature memory sig;\n".format(
-            'eth' if hash_type == 'RIP' else ''))
-        file.write("sig.s2=new uint256[](32);\n")
-
+        file.write("uint256[32] memory tmp_s2 = {};\n".format(s2_compact))
+        file.write("uint256[] memory s2 = new uint256[](32);\n")
         file.write("for (uint i = 0; i < 32; i++) {\n")
-        file.write("\tsig.s2[i] = s2[i];\n")
+        file.write("\ts2[i] = tmp_s2[i];\n")
         file.write("}\n")
 
         file.write("// message\n")
         file.write("bytes memory message  = \"{}\"; \n".format(message))
-        file.write("sig.salt = \"{}\"; \n".format(
+        file.write("bytes memory salt = \"{}\"; \n".format(
             "".join(f"\\x{b:02x}" for b in salt)))
         file.write(
-            "bool result = falcon.verify(message, sig.salt, sig.s2, pkc);\n")
+            "bool result = falcon.verify(message, salt, s2, pkc);\n")
         file.write("assertEq(true, result);")
         file.write("}\n")
     file.write("}\n")

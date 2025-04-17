@@ -52,13 +52,6 @@ contract ZKNOX_epervier {
 
     uint256 constant _ERR_INPUT_SIZE = 0xffffffff01;
 
-    struct Signature {
-        bytes salt;
-        uint256[512] s1;
-        uint256[512] s2;
-        uint256 hint; // a short hint for recomputing the inverse of s2 in NTT domain using batch inversion
-    }
-
     function HashToAddress(bytes memory m) public pure returns (address) {
         return address(uint160(uint256(keccak256(m))));
     }

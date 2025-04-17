@@ -53,15 +53,14 @@ import "./ZKNOX_HashToPoint.sol";
 
 /* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
 contract ZKNOX_ethfalcon is ISigVerifier {
-    struct CompactSignature {
-        bytes salt;
-        uint256[] s2; // compacted signature
-    }
-
-    function CheckParameters(CompactSignature memory signature, uint256[] memory ntth) internal pure returns (bool) {
+    function CheckParameters(bytes memory salt, uint256[] memory s2, uint256[] memory ntth)
+        internal
+        pure
+        returns (bool)
+    {
         if (ntth.length != falcon_S256) return false; //"Invalid public key length"
-        if (signature.salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
-        if (signature.s2.length != falcon_S256) return false; //"Invalid salt length"
+        if (salt.length != 40) return false; //CVETH-2025-080201: control salt length to avoid potential forge
+        if (s2.length != falcon_S256) return false; //"Invalid salt length"
 
         return true;
     }

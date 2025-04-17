@@ -20,3 +20,9 @@ python-ref/private_key.pem
 pyython-ref/myenv/
 /script/deploy_privateVerifier.sh
 /script/deploy_privateFalcon.sh
+
+# C built files
+falcon/nistfalcon/build/*.o
+# KAT files NIST
+falcon/nistfalcon/*.req
+falcon/nistfalcon/*.rsp
