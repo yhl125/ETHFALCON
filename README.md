@@ -76,11 +76,11 @@ More details [here](./doc/example.md).
 
 Current deployment addresses:
 
-| Function                   | Description               |address | testnets | mainnets | commit |
-|------------------------|---------------------|---------------------|---------------------|---------------------|----------------|
-| EPERVIER     | Epervier      | TBD | Holesky| | | 
-| ETHFALCON     | ETHFalcon implementation      | 0xC916569fcdf68CdD11229a98e9981664DBb79A2d | Holesky | [Optimism](https://optimistic.etherscan.io/address/0xC916569fcdf68CdD11229a98e9981664DBb79A2d) |[c0d465794f67044ddd19f73c21acd9570e9e578b](https://github.com/ZKNoxHQ/ETHFALCON/commit/c0d465794f67044ddd19f73c21acd9570e9e578b) | 
-| FALCON     | Falcon NIST Legacy implementation      | [0x5dc45800383d30c2c4c8f7e948090b38b22025f9](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9) | [Holeski](https://holesky.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9), [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9), [Base Sepolia](https://sepolia.basescan.org/address/0x5dC45800383D30c2C4C8f7e948090b38B22025f9#code)| [Optimism](https://optimistic.etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9#code), [L1 (mainnet)](https://etherscan.io/address/0x5dc45800383d30c2c4c8f7e948090b38b22025f9#code) | [c0d465794f67044ddd19f73c21acd9570e9e578b](https://github.com/ZKNoxHQ/ETHFALCON/commit/c0d465794f67044ddd19f73c21acd9570e9e578b) | 
+| Function                   | Description               |address | testnets |
+|------------------------|---------------------|---------------------|---------------------|
+| EPERVIER     | Epervier implementation     | 0x5ab1d6db02f48bad63cbef5d51c534A76aEB824B | [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0x5ab1d6db02f48bad63cbef5d51c534A76aEB824B) |
+| ETHFALCON     | ETHFalcon implementation      | 0x2F27b854B719921f03f30d1e5d0aE8e0aE7f96cA | [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0x2F27b854B719921f03f30d1e5d0aE8e0aE7f96cA) |
+| FALCON     | Falcon NIST Legacy implementation      | 0xD088Ede58BD1736477d66d114D842bDE279A41Fa | [Optimism (Sepolia)](https://sepolia-optimism.etherscan.io/address/0xD088Ede58BD1736477d66d114D842bDE279A41Fa)|
 
 
 Warning: be sure to download the version linked to the proper commit. The library has currently some API's changes and latest sources are not deployed yet.
