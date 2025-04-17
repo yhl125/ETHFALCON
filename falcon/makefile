@@ -13,7 +13,6 @@ go:
  #build and run go library
 	go mod init github.com/ZKNoxHQ/ETHFALCON/falcon;\
 	go mod tidy;\
-	cd test;go run test_falcon.go; go run test_falconmodule.go
 	echo "remember to type <go get github.com/ZKNoxHQ/ETHFALCON/falcon@latest> in go-ethereum after modification of the go.mod"
 
 js:
