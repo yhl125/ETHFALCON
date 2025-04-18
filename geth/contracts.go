@@ -37,6 +37,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/params"
 	"golang.org/x/crypto/ripemd160"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
 // PrecompiledContract is the basic interface for native Go contracts. The implementation
@@ -1185,39 +1186,57 @@ func kZGToVersionedHash(kzg kzg4844.Commitment) common.Hash {
 }
 
 type falconvrfy struct{}
- 
-func (c *falconvrfy) RequiredGas(input []byte) uint64 {
-    return uint64(1024)
-}
- 
-var (
-    errConstInvalidInputLength = errors.New("invalid input length")
-)
- 
-func (c *falconvrfy) Run(input []byte) ([]byte, error) {
-    // Only allow input up to four bytes (function signature)
-	const (
-		pubKeyLen = 896
-		sigLen    = 690
-	)
 
-	if len(input) < pubKeyLen+sigLen {
-		return nil, errConstInvalidInputLength
+func (c *falconvrfy) RequiredGas(input []byte) uint64 {
+	return 3000
+}
+
+func mustNewBytesType() abi.Type {
+	t, err := abi.NewType("bytes", "", nil)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
+
+func (f *falconvrfy) Run(input []byte) ([]byte, error) {
+	args := abi.Arguments{
+		{Type: mustNewBytesType()},
+		{Type: mustNewBytesType()},
+		{Type: mustNewBytesType()},
 	}
 
-	pub := input[:pubKeyLen]
-	sig := input[pubKeyLen : pubKeyLen+sigLen]
-	msg := input[pubKeyLen+sigLen:]
 
-	valid, err := falcon.VerifySignature(sig, msg, pub)
-    if err != nil {
-        return nil, err
-    }
+	fmt.Printf("🔍 Input  (hex): %x\n", input)
 
-    output := []byte{0}
-    if valid {
-        output[0] = 1
-    }
-    return output, nil
+	decoded, err := args.Unpack(input)
+	if (err != nil){
+		return nil, errors.New("invalid input ABI")
+	}
+	if (len(decoded) != 3 ){
+		return nil, errors.New("not decoded 3 arguments")
+	}
 
+	sig, ok1 := decoded[0].([]byte)
+	msg, ok2 := decoded[1].([]byte)
+	pub, ok3 := decoded[2].([]byte)
+
+	fmt.Printf("🔍 Signature  (hex): %x\n", sig)
+	fmt.Printf("🔍 Message    (hex): %x\n", msg)
+	fmt.Printf("🔍 Public Key (hex): %x\n", pub)
+
+	if !ok1 || !ok2 || !ok3 {
+		return nil, errors.New("invalid input values")
+	}
+
+	ok, err := falcon.VerifySignature(sig, msg, pub)
+	output := []byte{0}
+	if err != nil {
+		output[0] = 0
+	}
+	
+	if ok {
+		output[0] = 1
+	}
+	return common.LeftPadBytes(output, 32), nil
 }
