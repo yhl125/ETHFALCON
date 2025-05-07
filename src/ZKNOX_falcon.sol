@@ -89,6 +89,7 @@ contract ZKNOX_falcon is ISigVerifier {
         return true;
     }
 
+    //optimal verification from decompressed signature and NTT representation of the public key
     function verify(
         bytes memory h, //a 32 bytes hash
         bytes memory salt, // compacted signature salt part
@@ -117,6 +118,7 @@ contract ZKNOX_falcon is ISigVerifier {
         return result;
     }
 
+    //extract the ntt representation of the public key deployed at the _from address input
     function GetPublicKey(address _from) external view override returns (uint256[] memory Kpub) {
         Kpub = new uint256[](32);
 
