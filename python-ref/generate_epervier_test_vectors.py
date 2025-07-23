@@ -1,11 +1,11 @@
 from falcon_epervier import EpervierPublicKey, EpervierSecretKey, HEAD_LEN, SALT_LEN, decompress
+from keccak_prng import KeccakPRNG
 from polyntt.poly import Poly
 from polyntt.utils import inv_mod
-from common import q
+from common import falcon_compact, q
 from generate_falcon_test_vectors import list_of_messages
 from shake import SHAKE
 
-file = open("../test/ZKNOX_epervier.t.sol", 'w')
 n = 512
 # An example of secret key
 f = [0, -7, -2, -1, 0, 0, 1, -2, 0, -2, -3, 0, 1, 8, 3, 2, -3, -3, 2, -6, 0, -7, 0, -6, 0, 5, 0, 2, 7, 3, 3, -1, -4, -2, -4, -1, -1, 3, 1, 1, -1, -1, 6, -1, -3, 4, 4, -7, 6, -2, 6, 4, 1, 5, 5, -2, -6, -1, -1, 6, 2, 4, -2, -3, 0, 5, 8, 1, 6, -1, -5, -1, 3, 2, -2, -2, -1, 0, -2, 8, 4, 9, 1, 1, -4, 1, 0, 3, -1, 0, -4, 0, 0, -2, 0, -5, 3, 4, 1, 2, 6, 3, 0, -3, 3, -5, -2, 2, 4, 0, -2, 0, -3, 4, 1, -3, -1, -5, 1, -5, 0, -4, -4, 5, -6, 10, -1, -8, -2, 8, -7, 2, 0, 3, 2, -1, -3, -5, -2, -3, 6, -5, 1, 1, 2, -6, 2, -1, -6, -2, -8, -1, -1, -5, 0, -6, -6, 1, -7, 9, 0, 1, 9, 5, 2, 3, 2, 1, 2, 3, -1, -2, 2, 6, -3, 6, -1, 3, 0, 3, 1, 3, 2, -5, -4, -1, 0, -2, 1, 8, -5, 1, 1, -4, -2, 9, -4, 3, -2, -6, -1, -3, 2, 9, -3, 0, -6, -1, -1, -6, 4, -2, -1, -2, 3, 2, -2, 5, 8, -6, 3, -5, -1, -1, -2, -2, -3, 1, 5, -1, 4, -2, -3, 6, -2, 3, -9, 10, -3, -3, -7, -5, 3, -7, -5, 1, 0, -2, -3, -6, -10,
@@ -24,17 +24,19 @@ pk = EpervierPublicKey(n, sk.pk)
 shake = SHAKE.new(b'')
 shake.flip()
 
-header = """
+
+def header(is_eth):
+    return """
 // code generated using pythonref/generate_epervier_test_vectors.py.
 pragma solidity ^0.8.25;
 
-import {Test, console} from "forge-std/Test.sol";
+import {{Test, console}} from "forge-std/Test.sol";
 import "../../src/ZKNOX_NTT.sol";
-import "../../src/ZKNOX_epervier.sol";
+import "../../src/ZKNOX_{}epervier.sol";
 import "../../src/ZKNOX_falcon_utils.sol";
 
-contract ZKNOX_epervierTest is Test {
-    ZKNOX_epervier epervier;
+contract ZKNOX_epervierTest is Test {{
+    ZKNOX_{}epervier epervier;
 
     //exemple of stateless initialisation, no external contract provided
     ZKNOX_NTT ntt = new ZKNOX_NTT(address(0), address(0), 12289, 12265);
@@ -45,62 +47,73 @@ contract ZKNOX_epervierTest is Test {
     uint256[1024] psi_inv_rev = [uint256(1), 1479, 8246, 5146, 4134, 6553, 11567, 1305, 6429, 9094, 11077, 1646, 8668, 2545, 3504, 8747, 10938, 4978, 5777, 3328, 6461, 7266, 4591, 6561, 2744, 3006, 2975, 563, 949, 2625, 9650, 4821, 726, 4611, 1853, 140, 2768, 1635, 4255, 1177, 9923, 3051, 4896, 2963, 1000, 4320, 81, 9198, 2294, 1062, 3553, 7484, 8577, 3135, 2747, 7443, 1326, 7203, 9275, 3201, 790, 955, 1170, 9970, 5374, 9452, 12159, 4354, 9893, 7837, 3296, 8340, 5067, 10092, 12171, 9813, 6522, 11462, 3748, 953, 2525, 10908, 3584, 4177, 4989, 5331, 8011, 1673, 11745, 6498, 11950, 2468, 12280, 11267, 11809, 2842, 5911, 4890, 3932, 2731, 5542, 12144, 8830, 8652, 4231, 2548, 355, 8907, 3707, 1759, 5179, 3694, 2089, 5092, 9005, 9408, 9048, 11560, 3289, 10276, 10593, 10861, 11955, 9863, 5755, 7657, 7901, 11029, 11813, 8758, 7384, 8304, 10745, 2178, 11869, 5559, 12046, 9273, 11618, 3000, 3136, 5191, 3400, 2399, 4048, 2249, 2884, 1153, 9103, 6882, 2126, 10659, 8779, 6957, 9424, 2370, 2969, 3978, 2686, 3247, 10805, 4895, 2780, 7094, 9644, 8236, 2305, 5042, 7917, 10115, 4414, 2847, 3271, 8232, 10600, 8925, 1777, 10626, 4654, 1426, 9585, 6998, 7351, 8653, 7852, 3, 9140, 160, 4919, 113, 8374, 10123, 10377, 10911, 435, 4337, 9908, 5444, 4096, 11796, 9041, 1207, 7012, 11121, 4645, 404, 10146, 1065, 2422, 6039, 2187, 2566, 9302, 6267, 8643, 2437, 875, 3780, 1607, 4976, 4284, 7201, 7278, 11287, 545, 7270, 8585, 2678, 4143, 7575, 12047, 10752, 1440, 3763, 3066, 12262, 5084, 10657, 4885, 11272, 1045, 9430, 2481, 7277, 6591, 2912, 7428, 11935, 8511, 3833, 11516, 11899, 1067, 5101, 11847, 9888, 1254, 11316, 5435, 1359, 10367, 8410, 3998, 2033, 382, 11973, 3988, 11821, 6196, 8579, 6843, 6950, 1728, 11889, 6137, 7341, 3643, 5415, 5862, 6153, 56, 9090, 7083, 5529, 10302, 10587, 8724, 11635, 1018, 6364, 1041, 3514, 5574, 10316, 2344, 1278, 6974, 4075, 7373, 4324, 522, 10120, 3262, 7210, 1050, 4536, 6844, 8429, 2683, 11099, 3818, 6171, 3789, 147, 5456, 7840, 7540, 5537, 4789, 4467, 4624, 6212, 9026, 3600, 6221, 8687, 4080, 421, 605, 9987, 11785, 4213, 6403, 7507, 5594, 3029, 8077, 975, 8851, 2844, 1105, 12147, 5681, 8812, 6008, 885, 5009, 10333, 1003, 8757, 241, 58, 2127, 12138, 2839, 8332, 6383, 2505, 431, 10710, 9115, 52, 2766, 10966, 3336, 6055, 5874, 11612, 2049, 7377, 10968, 192, 3445, 7509, 7591, 7232, 11502, 3482, 11279, 5468, 3127, 4169, 2920, 5241, 5257, 8455, 5919, 4433, 5486, 3054, 1747, 3123, 2503, 2948, 6507, 1566, 64, 8633, 11606, 9830, 835, 6065, 3570, 8049, 10970, 3150, 11580, 8243, 10211, 11177, 7967, 10331, 11848, 11367, 1058, 4079, 6992, 6119, 8333, 10929, 1200, 5184, 2555, 6122, 10695, 1962, 5106, 6328, 9597, 168, 7991, 8960, 4049, 3728, 11130, 6299, 948, 1146, 1404, 11964, 2919, 3762, 8212, 4016, 11637, 6523, 6190, 11994, 10996, 4737, 4774, 6860, 453, 6381, 11871, 8517, 6956, 2031, 6413, 10008, 12133, 2767, 3969, 8298, 1805, 2882, 2051, 10335, 2447, 6147, 11713, 8326, 3529, 8855, 12071, 9381, 1843, 9928, 8174, 9259, 7535, 10431, 426, 3315, 9364, 11942, 3757, 1975, 11566, 12115, 10596, 3009, 9634, 5735, 5868, 2738, 7796, 3202, 2057, 6920, 6906, 1815, 11939, 10777, 5942, 1583, 1489, 2500, 10806, 6374, 11026, 12240, 8778, 5478, 1178, 9513, 11124, 9714, 3408, 1942, 2674, 10077, 3338, 9013, 6505, 10897, 11034, 11783, 12096, 9489, 6092, 2231, 923, 1038, 4167, 6204, 392, 2185, 425, 1836, 10669, 375, 11912, 7711, 7126, 7681, 7287, 20, 2151, 10767, 4119, 8946, 11951, 3947, 2455, 5690, 3654, 9395, 10545, 1314, 7350, 7174, 11041, 9847, 6492, 3959, 2148, 6330, 1945, 1029, 1325, 5724, 3624, 1892, 8945, 6691, 7790, 6617, 1737, 622, 6680, 11653, 3982, 2947, 4235, 8464, 8761, 4913, 7954, 3393, 2291, 8914, 7383, 6825, 512, 7619, 7735, 11295, 2900, 239, 5189, 6195, 10485, 10886, 7021, 12143, 1687, 406, 2600, 11232, 7584, 9168, 7814, 5246, 3017, 1236, 2360, 364, 7073, 3028, 11063, 5518, 4251, 7550, 2054, 2483, 3042, 1344, 11826, 3407, 3981, 1468, 6780, 12085, 5219, 1409, 9600, 4605, 8151, 12109, 12221, 10029, 4566, 6453, 1535, 9089, 12229, 9572, 5232, 8347, 8682, 10962, 448, 11275, 7508, 7365, 5845, 5588, 412, 7187, 3056, 9761, 7326, 8545, 10032, 4505, 6613, 10872, 9202, 5835, 7406, 3975, 12077, 5966, 9175, 2769, 8400, 11710, 5596, 5987, 1131, 1445, 11164, 7429, 5734, 1176, 6781, 1275, 3765, 1518, 4176, 7226, 6636, 8022, 9828, 10014, 8144, 1756, 8328, 3534, 7725, 8794, 6463, 10224, 3238, 8581, 8840, 11153, 3171, 7800, 9363, 10463, 11825, 1928, 8024, 8611, 11197, 7080, 3205, 8930, 346, 7885, 2068, 10900, 4840, 6162, 8257, 9126, 125, 540, 10763, 4222, 612, 8051, 8062, 3368, 3589, 11572, 2982, 10916, 4103, 9860, 1721, 1536, 7228, 11071, 438, 8774, 5993, 3278, 4209, 6877, 5416, 10125, 2110, 11573, 11475, 416, 9839, 1705, 4727, 11081, 10423, 5211, 1908, 7751, 3448, 11946, 8957, 12150, 2532, 8972, 1481, 2957, 9349, 2046, 10588, 3466, 7592, 8711, 9663, 11759, 11511, 4504, 3758, 3454, 7899, 8071, 2276, 11307, 2593, 879, 8, 11832, 4523, 4301, 8494, 3268, 6513, 10440, 1901, 9687, 7171, 502, 6063, 8496, 3846, 10716, 6263, 9360, 6320, 7640, 10608, 8468, 466, 1030, 150, 648, 8000, 9982, 5650, 12119, 2301, 11415, 5808, 21, 2535, 1120, 9855, 791, 9462, 9416, 11194, 2643, 3045, 5781, 7911, 1241, 4094, 8838, 1842, 8449, 12217, 4113, 7937, 2828, 9577, 7455, 4665, 5406, 3020, 5673, 3669, 7002, 11345, 4770, 6125, 1882, 11249, 10254, 5410, 1251, 1790, 5275, 3815, 1734, 10939, 6457, 4423, 3869, 10595, 1530, 10080, 1763, 9173, 12100, 11010, 865, 9617, 5170, 7315, 4565, 5078, 1783, 9270, 8095, 2840, 9811, 10421, 2253, 6878, 9559, 7469, 11129, 9195, 7771, 751, 4719, 11379, 5900, 7806, 5703, 10783, 9224, 10891, 9199, 11463, 7246, 8787, 6500, 1658, 6671, 5386, 2622, 510, 4661, 10345, 450, 6921, 11711, 8481, 8619, 9916, 4987, 12226, 5135, 8929, 7605, 4510, 9652, 2946, 6828, 1927, 11274, 365, 11408, 5039, 5547, 2485, 904, 1371, 24, 11675, 1280, 2334, 11066, 1590, 4411, 1891, 7186, 10734, 10487, 417, 2293, 9951, 7596, 3418, 4443, 6151, 3469, 5082, 7699, 682, 980, 7087, 11445, 5207, 8239, 8016, 9068, 9694, 8452, 7000, 5662, 567, 2941, 3769, 7434, 293, 3232, 10883, 9656, 6940, 2945, 9282, 1265, 3480, 10118, 5530, 6685, 8190, 8345, 2832, 10268, 3572, 11007, 8360, 1706, 7559, 9060, 6919, 8753, 8536, 3941, 6643, 6086, 6105, 9169, 8136, 2213, 3805, 11522, 11520, 5526, 12239, 12073, 4360, 9004, 7235, 9135, 8566, 11444, 10353, 12282];
 
     //stateful initialisation
-    function setUp() public {
-        epervier = new ZKNOX_epervier();
-    }"""
-file.write(header)
+    function setUp() public {{
+        epervier = new ZKNOX_{}epervier();
+    }}""".format(is_eth, is_eth, is_eth)
 
-for (i, message) in enumerate(list_of_messages):
-    sig = sk.sign(message.encode(), randombytes=shake.read, xof=SHAKE)
-    salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
-    enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
-    s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
-    mid = len(s)//2
-    s = [elt % q for elt in s]
-    s1, s2 = s[:mid], s[mid:]
-    s2_ntt = Poly(s2, q).ntt()
-    hint = 1
-    for j in range(sk.n):
-        hint = (hint * s2_ntt[j]) % q
-    hint = inv_mod(hint, q) % q
-    # s2_inv_ntt = Poly(s2, q).inverse().ntt()
-    pk_recover = pk.recover(message.encode(), sig, xof=SHAKE)
-    assert sk.pk == pk_recover
 
-    file.write("function testVector{}() public view {{\n".format(i))
-    file.write("// public key\n")
-    file.write("// forgefmt: disable-next-line\n")
-    file.write("address pk_{} = address({});\n\n".format(
-        i,
-        sk.pk
-    ))
+for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
+    file = open(
+        "../test/ZKNOX_{}epervier.t.sol".format('eth' if hash_type == 'RIP' else ''), 'w')
 
-    file.write("// signature s1\n")
-    file.write("// forgefmt: disable-next-line\n")
-    file.write("uint[512] memory tmp_s1 = [uint({}), {}];\n\n".format(
-        s1[0], ','.join(map(str, s1[1:]))))
-    file.write("// signature s2\n")
-    file.write("// forgefmt: disable-next-line\n")
-    file.write("uint[512] memory tmp_s2 = [uint({}), {}];\n\n".format(
-        s2[0], ','.join(map(str, s2[1:]))))
-    file.write("uint256[] memory s1 = new uint256[](512);\n")
-    file.write("uint256[] memory s2 = new uint256[](512);\n")
-    file.write("for (uint i = 0; i < 512; i++) {\n")
-    file.write("\ts1[i] = tmp_s1[i];\n")
-    file.write("\ts2[i] = tmp_s2[i];\n")
+    file.write(header('eth' if hash_type == 'RIP' else ''))
+
+    for (i, message) in enumerate(list_of_messages):
+        sig = sk.sign(message.encode(),
+                      randombytes=shake.read, xof=XOF)
+
+        salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
+        enc_s = sig[HEAD_LEN + SALT_LEN:-sk.n*3]
+        s = decompress(enc_s, sk.sig_bytelen*2 - HEAD_LEN - SALT_LEN, sk.n*2)
+        mid = len(s)//2
+        s = [elt % q for elt in s]
+        s1, s2 = s[:mid], s[mid:]
+        s2_ntt = Poly(s2, q).ntt()
+        hint = 1
+        for j in range(sk.n):
+            hint = (hint * s2_ntt[j]) % q
+        hint = inv_mod(hint, q) % q
+        # s2_inv_ntt = Poly(s2, q).inverse().ntt()
+        pk_recover = pk.recover(message.encode(), sig, xof=XOF)
+        assert sk.pk == pk_recover
+
+        s1_compact = falcon_compact(s1)
+        s2_compact = falcon_compact(s2)
+        pk_compact = falcon_compact(Poly(sk.h, q).ntt())
+
+        file.write("function testVector{}() public view {{\n".format(i))
+        file.write("// public key\n")
+        file.write("// forgefmt: disable-next-line\n")
+        file.write("address pk = address({});\n\n".format(
+            sk.pk
+        ))
+
+        file.write("// signature s1\n")
+        file.write("// forgefmt: disable-next-line\n")
+        file.write("uint256[32] memory tmp_s1 = {};\n".format(s1_compact))
+        file.write("uint256[] memory cs1 = new uint256[](32);\n")
+        file.write("for (uint i = 0; i < 32; i++) {\n")
+        file.write("\tcs1[i] = tmp_s1[i];\n")
+        file.write("}\n")
+
+        file.write("// signature s2\n")
+        file.write("// forgefmt: disable-next-line\n")
+        file.write("uint256[32] memory tmp_s2 = {};\n".format(s2_compact))
+        file.write("uint256[] memory cs2 = new uint256[](32);\n")
+        file.write("for (uint i = 0; i < 32; i++) {\n")
+        file.write("\tcs2[i] = tmp_s2[i];\n")
+        file.write("}\n")
+
+        file.write("// hint\n")
+        file.write("uint256 hint = {};\n".format(hint))
+
+        file.write("// message\n")
+        file.write("bytes memory message  = \"{}\"; \n".format(message))
+        file.write("bytes memory salt = \"{}\"; \n".format(
+            "".join(f"\\x{b:02x}" for b in salt)))
+        file.write("address recovered_pk;\n")
+        file.write(
+            "recovered_pk = epervier.recover(message, salt, cs1, cs2, hint);\n".format(i))
+        file.write("assertEq(pk, recovered_pk);\n")
+        file.write("}\n")
     file.write("}\n")
-    file.write("uint256[] memory cs1 = _ZKNOX_NTT_Compact(s1);\n")
-    file.write("uint256[] memory cs2 = _ZKNOX_NTT_Compact(s2);\n")
-    file.write("// short hint\n")
-    file.write("uint256 hint = {};\n".format(hint))
-
-    file.write("// message\n")
-    file.write("bytes memory message  = \"{}\"; \n".format(message))
-    file.write("bytes memory salt = \"{}\"; \n".format(
-        "".join(f"\\x{b:02x}" for b in salt)))
-    file.write("address recovered_pk_{};\n".format(i))
-    file.write(
-        "recovered_pk_{} = epervier.recover(message, salt, cs1, cs2, hint);\n".format(i))
-    file.write("assertEq(pk_{}, recovered_pk_{});\n".format(i, i))
-    file.write("}\n")
-file.write("}\n")
