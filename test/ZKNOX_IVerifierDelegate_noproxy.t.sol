@@ -156,6 +156,7 @@ contract SignDelegationTest is Test {
         // As Bob, execute the transaction via Alice's temporarily assigned contract.
         vm.stopBroadcast();
 
+        vm.setNonce(ALICE_ADDRESS, 0);
         vm.broadcast(BOB_PK);
         vm.attachDelegation(signedDelegation);
         bytes memory code = address(ALICE_ADDRESS).code; //this shall be ef0100, followed by adress
