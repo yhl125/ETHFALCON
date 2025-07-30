@@ -1,3 +1,3 @@
-module github.com/ZKNoxHQ/ETHFALCON/falcon
+module github.com/yhl125/ETHFALCON/falcon
 
-go 1.24.2
+go 1.24.4

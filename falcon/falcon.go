@@ -2,13 +2,13 @@ package falcon
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/nistfalcon/src
-#cgo LDFLAGS: -L${SRCDIR}/nistfalcon/build 
-#cgo LDFLAGS: -lfalcon
+#cgo LDFLAGS: -L${SRCDIR}/nistfalcon/build -lfalcon
 
 #include <stdlib.h>
 #include "api.h"
 
 // Wrapper for crypto_sign_keypair, crypto_sign, crypto_sign_open
+// Auto-detects current architecture for build
 
 */
 import "C"
@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	PublicKeySize  = 897  // Adjust if api.h specifies differently
-	SecretKeySize  = 1281 // Adjust if api.h specifies differently
-	SignatureSize  = 1330 // Falcon signature size
+	PublicKeySize = 897  // Adjust if api.h specifies differently
+	SecretKeySize = 1281 // Adjust if api.h specifies differently
+	SignatureSize = 1330 // Falcon signature size
 )
 
 // GenerateKeypair generates a public/private keypair
