@@ -155,3 +155,12 @@ We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For hardw
 - PRNG_Keccak is a construction that generates the desired output only using keccak (EVM friendly) 
 - Defining H as H=ntt(keccak(c) remove to use Inverse NTT, this reduces the surface of hardware implementation. -->
 
+
+
+### The Keccak-CTR PRNG
+<img width="1098" height="815" alt="Capture d’écran 2025-08-04 à 16 39 44" src="https://github.com/user-attachments/assets/b98a94d9-f930-4856-b9bc-c4e221af1091" />
+
+The keccak-CTR PRNG is a minimalistic keccak in CTR mode, where:
+- the state is initialized has keccak(message,salt)
+- the i-th output block is keccak(state,i), where i is encoding on 1 byte
+- each 16-bit chunk output is taken from MSB to LSB in the output chain, with rejection of each chunk greater or equal to 12289.
