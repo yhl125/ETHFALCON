@@ -158,7 +158,8 @@ We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For hardw
 
 
 ### The Keccak-CTR PRNG
-<img width="1098" height="815" alt="Capture d’écran 2025-08-04 à 16 39 44" src="https://github.com/user-attachments/assets/b98a94d9-f930-4856-b9bc-c4e221af1091" />
+
+<img width="2200" height="1626" alt="image" src="https://github.com/user-attachments/assets/108d9bdb-02c7-4ab1-be54-46bd3ed2f534" />
 
 The keccak-CTR PRNG is a minimalistic keccak in CTR mode, where:
 - the state is initialized has keccak(message,salt)
