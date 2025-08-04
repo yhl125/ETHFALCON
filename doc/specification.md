@@ -164,4 +164,5 @@ We claim that the interest of EPERVIER goes beyond Ethereum ecosystem. For hardw
 The keccak-CTR PRNG is a minimalistic keccak in CTR mode, where:
 - the state is initialized has keccak(message,salt)
 - the i-th output block is keccak(state,i), where i is encoding on 1 byte
-- each 16-bit chunk output is taken from MSB to LSB in the output chain, with rejection of each chunk greater or equal to 12289.
+- each 16-bit chunk output is taken from MSB to LSB in the output chain, with rejection of each chunk greater or equal to 61445.
+- if lesser than 61445, the chunk is reduced modulo q (12289)
