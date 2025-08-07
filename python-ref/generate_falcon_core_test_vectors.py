@@ -77,6 +77,7 @@ for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
 
         file.write("function testVector{}() public view {{\n".format(i))
         file.write("// public key\n")
+        file.write("// uncompressed pk = {}\n".format(sk.h))
         file.write("// forgefmt: disable-next-line\n")
         file.write("uint256[32] memory tmp_pkc = {};\n".format(pk_compact))
         file.write("uint256[] memory pkc = new uint[](32);\n")
@@ -85,6 +86,7 @@ for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
         file.write("}\n")
 
         file.write("// signature s2\n")
+        file.write("// uncompressed s2 = {}\n".format(s2))
         file.write("// forgefmt: disable-next-line\n")
         file.write("uint256[32] memory tmp_s2 = {};\n".format(s2_compact))
         file.write("uint256[] memory s2 = new uint256[](32);\n")
@@ -95,6 +97,7 @@ for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
         file.write("// message = \"{}\"\n".format(message))
         file.write(
             "// salt = \"{}\"\n".format("".join(f"\\x{b:02x}" for b in salt)))
+
         file.write("// hash to point\n")
         file.write("// forgefmt: disable-next-line\n")
         file.write("uint256[512] memory _hashed = [uint256({}), {};\n".format(
