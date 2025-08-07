@@ -71,7 +71,7 @@ for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
 
         file.write("function testVector{}() public view {{\n".format(i))
         file.write("// public key\n")
-        file.write("// uncompressed pk = {}\n".format(sk.h))
+        file.write("// uncompressed pk = {}\n".format(Poly(sk.h, q).ntt()))
         file.write("// forgefmt: disable-next-line\n")
         file.write("uint256[32] memory tmp_pkc = {};\n".format(pk_compact))
         file.write("uint256[] memory pkc = new uint[](32);\n")
