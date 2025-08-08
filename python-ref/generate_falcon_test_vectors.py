@@ -83,7 +83,7 @@ for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST'), (Blake2sPRNG, 'ZK
         pk_compact = falcon_compact(Poly(sk.h, q).ntt())
 
         file.write("function testVector{}() public view {{\n".format(i))
-        file.write("// public key\n")
+        file.write("// public key = {}\n".format(Poly(sk.h, q).ntt()))
         file.write("// forgefmt: disable-next-line\n")
         file.write("uint256[32] memory tmp_pkc = {};\n".format(pk_compact))
         file.write("uint256[] memory pkc = new uint[](32);\n")
@@ -91,7 +91,7 @@ for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST'), (Blake2sPRNG, 'ZK
         file.write("\tpkc[i] = tmp_pkc[i];\n")
         file.write("}\n")
 
-        file.write("// signature s2\n")
+        file.write("// signature s2 = {}\n".format(s2))
         file.write("// forgefmt: disable-next-line\n")
         file.write("uint256[32] memory tmp_s2 = {};\n".format(s2_compact))
         file.write("uint256[] memory s2 = new uint256[](32);\n")
