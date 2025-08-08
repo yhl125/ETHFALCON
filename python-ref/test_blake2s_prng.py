@@ -2,22 +2,6 @@ import unittest
 from blake2s_prng import Blake2sPRNG
 
 
-def print_in_words(hex_str):
-    # Conversion to words for Cairo format
-    b = bytes.fromhex(hex_str)
-    words = []
-    for i in range(0, len(b), 4):
-        # Extract 4 bytes chunk
-        chunk = b[i:i+4]
-        # Interpret as little-endian uint32
-        word = int.from_bytes(chunk, 'little')
-        words.append(word)
-    print("[")
-    for word in words:
-        print('\t{},'.format(word))
-    print("],")
-
-
 class testBlake2sPRNG(unittest.TestCase):
 
     def shortDescription(self):
@@ -89,10 +73,3 @@ class testBlake2sPRNG(unittest.TestCase):
         prng2.update(b"Danette")
         prng2.flip()
         self.assertEqual(prng1.read(2) + prng1.read(2), prng2.read(4))
-
-    def test_debug(self):
-        prng = Blake2sPRNG()
-        prng.update(
-            0x46b9dd2b0ba88d13233b3feb743eeb243fcd52ea.to_bytes(20, 'little'))
-        prng.flip()
-        print_in_words(prng.read(32).hex())

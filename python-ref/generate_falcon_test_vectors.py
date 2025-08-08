@@ -1,6 +1,7 @@
 from falcon import HEAD_LEN, SALT_LEN, decompress, SecretKey, PublicKey
 from common import falcon_compact, q
 from keccak_prng import KeccakPRNG
+from blake2s_prng import Blake2sPRNG
 from polyntt.poly import Poly
 from shake import SHAKE
 
@@ -53,11 +54,17 @@ contract ZKNOX_FalconTest is Test {{
 """.format(is_eth, is_eth, is_eth)
 
 
+# , (Blake2sPRNG, 'ZK')]:
 for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
     file = open(
         "../test/ZKNOX_{}falcon.t.sol".format('eth' if hash_type == 'RIP' else ''), 'w')
 
-    file.write(header('eth' if hash_type == 'RIP' else ''))
+    if hash_type == 'RIP':
+        file.write(header('eth'))
+    elif hash_type == 'ZK':
+        file.write(header('zk'))
+    else:
+        file.write(header(''))
 
     for (i, message) in enumerate(list_of_messages):
         sig = sk.sign(message.encode(),
