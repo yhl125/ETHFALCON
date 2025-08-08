@@ -54,10 +54,14 @@ contract ZKNOX_FalconTest is Test {{
 """.format(is_eth, is_eth, is_eth)
 
 
-# , (Blake2sPRNG, 'ZK')]:
-for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
-    file = open(
-        "../test/ZKNOX_{}falcon.t.sol".format('eth' if hash_type == 'RIP' else ''), 'w')
+for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST'), (Blake2sPRNG, 'ZK')]:
+    if hash_type == 'ZK':
+        # file with .t instead of .t.sol for now.
+        file = open(
+            "../test/ZKNOX_zkfalcon.t", 'w')
+    else:
+        file = open(
+            "../test/ZKNOX_{}falcon.t.sol".format('eth' if hash_type == 'RIP' else ''), 'w')
 
     if hash_type == 'RIP':
         file.write(header('eth'))
