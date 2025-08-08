@@ -32,8 +32,9 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 32; i++) {
             s2[i] = tmp_s2[i];
         }
-        // message
-        bytes memory message = "My name is Renaud from ZKNOX!!!!";
+        // message = "My name is Renaud from ZKNOX!!!!"
+        bytes memory message =
+            "\x4d\x79\x20\x6e\x61\x6d\x65\x20\x69\x73\x20\x52\x65\x6e\x61\x75\x64\x20\x66\x72\x6f\x6d\x20\x5a\x4b\x4e\x4f\x58\x21\x21\x21\x21";
         bytes memory salt =
             "\x46\xb9\xdd\x2b\x0b\xa8\x8d\x13\x23\x3b\x3f\xeb\x74\x3e\xeb\x24\x3f\xcd\x52\xea\x62\xb8\x1b\x82\xb5\x0c\x27\x64\x6e\xd5\x76\x2f\xd7\x5d\xc4\xdd\xd8\xc0\xf2\x00";
         bool result = falcon.verify(message, salt, s2, pkc);
@@ -55,8 +56,9 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 32; i++) {
             s2[i] = tmp_s2[i];
         }
-        // message
-        bytes memory message = "My name is Simon also from ZKNOX";
+        // message = "My name is Simon also from ZKNOX"
+        bytes memory message =
+            "\x4d\x79\x20\x6e\x61\x6d\x65\x20\x69\x73\x20\x53\x69\x6d\x6f\x6e\x20\x61\x6c\x73\x6f\x20\x66\x72\x6f\x6d\x20\x5a\x4b\x4e\x4f\x58";
         bytes memory salt =
             "\x34\x9e\xc7\x55\x46\xf5\x8f\xb7\xc2\x77\x5c\x38\x46\x2c\x50\x10\xd8\x46\xc1\x85\xc1\x51\x11\xe5\x95\x52\x2a\x6b\xcd\x16\xcf\x86\xf3\xd1\x22\x10\x9e\x3b\x1f\xdd";
         bool result = falcon.verify(message, salt, s2, pkc);
@@ -78,8 +80,9 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 32; i++) {
             s2[i] = tmp_s2[i];
         }
-        // message
-        bytes memory message = "My name is Nicolas from ZKNOXtoo";
+        // message = "My name is Nicolas from ZKNOXtoo"
+        bytes memory message =
+            "\x4d\x79\x20\x6e\x61\x6d\x65\x20\x69\x73\x20\x4e\x69\x63\x6f\x6c\x61\x73\x20\x66\x72\x6f\x6d\x20\x5a\x4b\x4e\x4f\x58\x74\x6f\x6f";
         bytes memory salt =
             "\xaa\xae\x31\x4e\xd9\x08\x3d\xab\x4b\x09\x9f\x8e\x30\x0f\x01\xb8\x65\x0f\x1f\x4b\x1d\x8f\xcf\x3f\x3c\xb5\x3f\xb8\xe9\xeb\x2e\xa2\x03\xbd\xc9\x70\xf5\x0a\xe5\x54";
         bool result = falcon.verify(message, salt, s2, pkc);
@@ -101,8 +104,9 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 32; i++) {
             s2[i] = tmp_s2[i];
         }
-        // message
-        bytes memory message = "We are ZKNox, you already know!!";
+        // message = "We are ZKNox, you already know!!"
+        bytes memory message =
+            "\x57\x65\x20\x61\x72\x65\x20\x5a\x4b\x4e\x6f\x78\x2c\x20\x79\x6f\x75\x20\x61\x6c\x72\x65\x61\x64\x79\x20\x6b\x6e\x6f\x77\x21\x21";
         bytes memory salt =
             "\xf9\xa6\x6d\x13\x68\xb2\x08\xe2\x1f\x7c\x10\xd0\x4a\x3d\xbd\x4e\x36\x06\x33\xe5\xdb\x4b\x60\x26\x01\xc1\x4c\xea\x73\x7d\xb3\xdc\xf7\x22\x63\x2c\xc7\x78\x51\xcb";
         bool result = falcon.verify(message, salt, s2, pkc);
@@ -124,8 +128,9 @@ contract ZKNOX_FalconTest is Test {
         for (uint256 i = 0; i < 32; i++) {
             s2[i] = tmp_s2[i];
         }
-        // message
-        bytes memory message = "Practical security on the chain.";
+        // message = "Practical security on the chain."
+        bytes memory message =
+            "\x50\x72\x61\x63\x74\x69\x63\x61\x6c\x20\x73\x65\x63\x75\x72\x69\x74\x79\x20\x6f\x6e\x20\x74\x68\x65\x20\x63\x68\x61\x69\x6e\x2e";
         bytes memory salt =
             "\x14\x30\x45\xd7\x91\xcc\x85\xef\xf5\xb2\x19\x32\xf2\x38\x61\xbc\xf2\x3a\x52\xb5\xda\x67\xea\xf7\xba\xae\x0f\x5f\xb1\x36\x9d\xb7\x8f\x3a\xc4\x5f\x8c\x4a\xc5\x67";
         bool result = falcon.verify(message, salt, s2, pkc);

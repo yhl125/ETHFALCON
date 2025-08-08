@@ -99,8 +99,9 @@ for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST'), (Blake2sPRNG, 'ZK
         file.write("\ts2[i] = tmp_s2[i];\n")
         file.write("}\n")
 
-        file.write("// message\n")
-        file.write("bytes memory message  = \"{}\"; \n".format(message))
+        file.write("// message = \"{}\"\n".format(message))
+        file.write("bytes memory message  = \"{}\"; \n".format(
+            "".join(f"\\x{b:02x}" for b in message.encode())))
         file.write("bytes memory salt = \"{}\"; \n".format(
             "".join(f"\\x{b:02x}" for b in salt)))
         file.write(
