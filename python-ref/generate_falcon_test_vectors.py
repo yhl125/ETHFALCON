@@ -5,10 +5,10 @@ from polyntt.poly import Poly
 from shake import SHAKE
 
 list_of_messages = [
-    "My name is Renaud",
-    "My name is Simon",
-    "My name is Nicolas",
-    "We are ZKNox",
+    "My name is Renaud from ZKNOX!!!!",
+    "My name is Simon also from ZKNOX",
+    "My name is Nicolas from ZKNOXtoo",
+    "We are ZKNox, you already know!!",
     "Practical security on the chain."  # 32 bytes message for RIP tests
 ]
 n = 512
