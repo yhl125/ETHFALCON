@@ -53,7 +53,7 @@ contract ZKNOX_Verifier {
     uint256 public nonce;
 
     constructor() {}
-    
+
     //input are AlgoIdentifier, Signature verification address, publickey storing contract
     function initialize(uint256 iAlgoID, address iCore, address iPublicKey) external {
         require(CoreAddress == address(0), "already initialized");
@@ -78,7 +78,7 @@ contract ZKNOX_Verifier {
         require(authorizedPublicKey != address(0), "authorizedPublicKey null");
 
         nttpk = Core.GetPublicKey(authorizedPublicKey);
-        require(nttpk[0]!=0, "wrong extraction");
+        require(nttpk[0] != 0, "wrong extraction");
         //require(Core.verify(abi.encodePacked(digest), salt, s2, nttpk), "Invalid signature");
 
         (bool success,) = to.call{value: val}(data);
@@ -107,4 +107,4 @@ contract ZKNOX_Verifier {
         return (CoreAddress, authorizedPublicKey);
     }
     //receive() external payable {}
-} //end contract
+}
