@@ -30,16 +30,20 @@ This section describes the mathematical encodings used in ZKNOX implementation a
 ### Polynomial representation:
 
 
-#### Compacted polynomials 
-
-Polynomials in FALCON512 are polynomial of degree 511 defined over $F_{12289}$. As such they are represented by packing 16 coefficients of 16 bits by word, thus a polynomial $P=a_0+a_1X+...+a_{511}X^{511}$ is encoded as the uin256 array $$A=[a0+2^{16}a_1+ ...+2^{16\times 15}a_{15}, ..., a_{240}+ ...+2^{16\times 15}a_{255}]$$
-
-
 #### Expanded polynomials 
 
-Expanded polynomials are array sorted from lowest to highest degree, thus a polynomial $P=a_0+a_1X+...+a_{511}X^{511}$ is encoded as the array $$A=[a0, ..., a_{255}]$$
+Expanded polynomials are arrays sorted from lowest to highest degree, thus a polynomial $P=a_0+a_1X+...+a_{511}X^{511}$ is encoded as the array $$A=[a0, ..., a_{511}]$$
 
-Conversion from and to compact/expanded polynomials are performed by _ZKNOX_NTT_Expand and _ZKNOX_NTT_Compact. On chain external functions use compacted representation to reduce call data cost.
+#### Compacted polynomials 
+
+Polynomials in FALCON512 are polynomial of degree 511 defined over $F_{12289}$. As such they are represented by packing 16 coefficients of 16 bits by word, thus a polynomial $P=a_0+a_1X+...+a_{511}X^{511}$ is encoded as the uin256 array $$A=[a0+2^{16}a_1+ ...+2^{16\times 15}a_{15}, ..., a_{240}+ ...+2^{16\times 15}a_{511}]$$
+
+Conversion from and to compact/expanded polynomials are performed by ```_ZKNOX_NTT_Expand``` and ```_ZKNOX_NTT_Compact```. On chain external functions use compacted representation to reduce call data cost.
+
+#### Compressed polynomials
+
+Compressed polynomials uses a custom RLE encoding defined in  [Algorithm 17](https://falcon-sign.info/falcon.pdf) of FALCON specification. 
+Decompression of polynomials is performed by ```_ZKNOX_NTT_Decompress```.
 
 #### NIST KATS
 
@@ -52,7 +56,7 @@ NIST KAT are made of
 	 *   message              mlen bytes
 	 *   signature            slen bytes
 
-Conversion from NIST KATS to ZKNOX encodings are performed in ZKNOX_falcon_encodings.sol.
+Conversion from NIST KATS to ZKNOX encodings are performed by  ```decompress_KAT. ```
 
 
 ## INSTALLATION
