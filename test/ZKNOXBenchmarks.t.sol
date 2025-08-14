@@ -126,13 +126,13 @@ contract Benchmark is Test {
 
         uint256[] memory cs2;
         bytes memory salt;
-        bytes memory msg;
+        bytes memory m;
 
         uint256 gasStart = gasleft();
-        (kpub, s2, salt, msg) = decompress_KAT(pk, sm);
+        (kpub, s2, salt, m) = decompress_KAT(pk, sm);
         uint256[] memory ntth = _ZKNOX_NTT_Compact(_ZKNOX_NTTFW_vectorized(kpub));
         cs2 = _ZKNOX_NTT_Compact(s2);
-        bool result = falcon.verify(msg, salt, cs2, ntth);
+        bool result = falcon.verify(m, salt, cs2, ntth);
         uint256 gasUsed = gasStart - gasleft();
         console.log("Verify NIST compliant cost:", gasUsed);
         assertEq(true, result);
