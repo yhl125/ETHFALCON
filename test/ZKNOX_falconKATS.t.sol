@@ -49,7 +49,6 @@ contract FalconKATS_Test is Test {
         (kpub, s2, salt, message) = decompress_KAT(pk, sm);
 
         uint256[] memory ntth = _ZKNOX_NTT_Compact(_ZKNOX_NTTFW_vectorized(kpub));
-
     }
 
     //kat vector 0 from NIST round3 submission
