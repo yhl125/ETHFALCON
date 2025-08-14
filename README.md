@@ -86,7 +86,8 @@ The repo contains a solidity verifier and a python signer.
 | ZKNOX_epervier.verify       | Recover EVM friendly      | 1.9 M | :white_check_mark:|
 
 
-More details for both solidity code and python are available [here](./doc/benchmarks.md).
+More benchmark details for both solidity code and python  available [here](./doc/benchmarks.md).
+Those are measured on compacted polynomial representation. For decompressed/kats, add 600K to benchmarks.
 
 ## EXAMPLE
 
