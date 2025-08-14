@@ -38,6 +38,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+/// @title ZKNOX_NTT
+/// @notice A contract to compute NTT and polynomial multiplications for DILITHIUM/FALCON signatures
+
+/// @custom:experimental This library is not audited yet, do not use in production.
+
 contract ZKNOX_NTT {
     /**
      *

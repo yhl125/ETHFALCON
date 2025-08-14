@@ -48,7 +48,6 @@ import "./ZKNOX_falcon_core.sol";
 //choose the XOF to use here
 import "./ZKNOX_HashToPoint.sol";
 
-
 /// @title ZKNOX_ethfalcon
 /// @notice A contract to verify ETHFALCON signatures
 /// @dev ETHFALCON is FALCON with a Keccak-CTR PRNG instead of shake for gas cost efficiency.
@@ -68,13 +67,13 @@ contract ZKNOX_ethfalcon is ISigVerifier {
         return true;
     }
 
-/// @notice Compute the  ethfalcon verification function
+    /// @notice Compute the  ethfalcon verification function
 
-/// @param h the hash of message to be signed, expected length is 32 bytes
-/// @param salt the message to be signed, expected length is 40 bytes
-/// @param s2 second part of the signature in Compacted representation (see IO part of README for encodings specification), expected length is 32 uint256
-/// @param ntth public key in the ntt domain, compacted 16  coefficients of 16 bits per word
-/// @return result boolean result of the verification
+    /// @param h the hash of message to be signed, expected length is 32 bytes
+    /// @param salt the message to be signed, expected length is 40 bytes
+    /// @param s2 second part of the signature in Compacted representation (see IO part of README for encodings specification), expected length is 32 uint256
+    /// @param ntth public key in the ntt domain, compacted 16  coefficients of 16 bits per word
+    /// @return result boolean result of the verification
     function verify(
         bytes memory h, //a 32 bytes hash
         bytes memory salt, // compacted signature salt part
