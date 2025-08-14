@@ -27,7 +27,7 @@ Detailed specification is [here](./doc/specification.md).
 
 This section describes the mathematical encodings used in ZKNOX implementation and NIST.
 
-### Polynomial representation:
+### Polynomials representations:
 
 
 #### Expanded polynomials 
@@ -39,6 +39,13 @@ Expanded polynomials are arrays sorted from lowest to highest degree, thus a pol
 Polynomials in FALCON512 are polynomial of degree 511 defined over $F_{12289}$. As such they are represented by packing 16 coefficients of 16 bits by word, thus a polynomial $P=a_0+a_1X+...+a_{511}X^{511}$ is encoded as the uin256 array $$A=[a0+2^{16}a_1+ ...+2^{16\times 15}a_{15}, ..., a_{240}+ ...+2^{16\times 15}a_{511}]$$
 
 Conversion from and to compact/expanded polynomials are performed by ```_ZKNOX_NTT_Expand``` and ```_ZKNOX_NTT_Compact```. On chain external functions use compacted representation to reduce call data cost.
+
+##### NTT and standard representation
+
+The NTT (frequency) domain is used to speed up polynomial multiplication. Switching to and from the NTT domain is performed using ```_ZKNOX_NTTFW``` and ```_ZKNOX_NTTINV```. Those operation are the most expensive, thus the verification functions takes the public key in its NTT representation.
+
+
+
 
 #### Compressed polynomials
 
@@ -107,7 +114,9 @@ The contract address refers to the contract implementing FALCON in Solidity. Thi
 ```
 More details [here](./doc/example.md).
 
-
+https://ethresear.ch/t/lattice-based-signature-aggregation/22282
+https://github.com/leanEthereum/leanSpec/pull/9
+https://github.com/leanEthereum/leanMultisig/tree/main/crates/leanVm
 
 ## DEPLOYMENTS
 
@@ -122,8 +131,6 @@ Current deployment addresses:
 
 Warning: be sure to download the version linked to the proper commit. The library has currently some API's changes and latest sources are not deployed yet.
 All deployments with change notices are [here](./doc/deployments.md).
-
-
 
 
 ## 7702 DELEGATION

@@ -96,7 +96,12 @@ function falcon_normalize(
     return result;
 }
 
-//core falcon verification function, compacted input, no external contract
+/// @notice Compute the core falcon verification function, compacted input
+/// @param s2 second part of the signature in Compacted representation (see IO part of README for encodings specification)
+/// @param ntth public key in the ntt domain, compacted 16  coefficients of 16 bits per word
+/// @param hashed result of hashToPoint(signature.salt, msgs, q, n);
+/// @return result boolean result of the verification
+
 function falcon_core(
     uint256[] memory s2,
     uint256[] memory ntth, // public key, compacted 16  coefficients of 16 bits per word
