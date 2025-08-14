@@ -44,7 +44,7 @@ import "./ZKNOX_falcon_utils.sol";
 uint256 constant max_in_len = 666;
 
 //decompress signature starting from offset in buf
-//compared to _ZKNOX_NTT_Decompress, extra testing conditions are set if norm gonna blow 
+//compared to _ZKNOX_NTT_Decompress, extra testing conditions are set if norm gonna blow
 //because of a too high coefficient
 function _decompress_sig(bytes memory buf, uint256 offset) pure returns (uint256[] memory) {
     uint256[] memory x = new uint256[](512);
@@ -118,7 +118,6 @@ function _decompress_sig(bytes memory buf, uint256 offset) pure returns (uint256
     return x;
 }
 
-
 /*
 	 * Decode NIST KAT made of
      * the encoded public key:0x09+ public key compressed value
@@ -141,7 +140,7 @@ function decompress_KAT(bytes memory pk, bytes memory sm)
     if (pk[0] != 0x09) {
         revert("wrong public key encoding");
     }
-    h = _ZKNOX_NTT_Decompress(pk, 1);//decompressing kpub, assuming first byte is 0x09, so offset=1
+    h = _ZKNOX_NTT_Decompress(pk, 1); //decompressing kpub, assuming first byte is 0x09, so offset=1
 
     uint256 i;
     salt = new bytes(40);

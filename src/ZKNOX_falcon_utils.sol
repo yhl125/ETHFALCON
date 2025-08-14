@@ -57,7 +57,6 @@ uint256 constant q = 12289;
 uint256 constant qs1 = 6144; // q >> 1;
 uint256 constant kq = 61445;
 
-
 function Swap(uint256[] memory Pol) pure returns (uint256[] memory Mirror) {
     Mirror = new uint256[](512);
     for (uint256 i = 0; i < 512; i++) {
@@ -111,8 +110,7 @@ function _ZKNOX_NTT_Expand(uint256[] memory a) pure returns (uint256[] memory b)
     return b;
 }
 
-
-//decompress a polynomial starting at offset byte of buf 
+//decompress a polynomial starting at offset byte of buf
 function _ZKNOX_NTT_Decompress(bytes memory buf, uint256 offset) pure returns (uint256[] memory) {
     uint256[] memory x = new uint256[](512);
     uint32 acc = 0;
