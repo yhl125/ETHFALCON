@@ -1,3 +1,3 @@
 module github.com/yhl125/ETHFALCON/falcon
 
-go 1.24.4
+go 1.25.0
