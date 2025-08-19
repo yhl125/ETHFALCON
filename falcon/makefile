@@ -17,6 +17,8 @@ endif
 # Set GCC flags based on OS
 ifeq ($(OS),Darwin)
     GCC_FLAGS := -arch $(GCC_ARCH)
+else ifeq ($(OS),Linux)
+    GCC_FLAGS := -m64
 else
     GCC_FLAGS := 
 endif
