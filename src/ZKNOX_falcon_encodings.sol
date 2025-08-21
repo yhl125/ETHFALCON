@@ -35,12 +35,17 @@
 /**
  *
  */
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
+
 import "./ZKNOX_falcon_utils.sol";
 //import {Test, console} from "forge-std/Test.sol";
 
 uint256 constant max_in_len = 666;
 
-// decompress signature starting from offset in buf
+//decompress signature starting from offset in buf
+//compared to _ZKNOX_NTT_Decompress, extra testing conditions are set if norm gonna blow
+//because of a too high coefficient
 function _decompress_sig(bytes memory buf, uint256 offset) pure returns (uint256[] memory) {
     uint256[] memory x = new uint256[](512);
 
@@ -113,39 +118,6 @@ function _decompress_sig(bytes memory buf, uint256 offset) pure returns (uint256
     return x;
 }
 
-//decompressing kpub, assuming first byte is 0x09
-function decompress_kpub(bytes memory buf, uint256 offset) pure returns (uint256[] memory) {
-    uint256[] memory x = new uint256[](512);
-    uint32 acc = 0;
-    uint256 acc_len = 0;
-    uint256 u = 0;
-    uint256 cpt = offset; //start with offset 1 to prune 0x09 header
-
-    while (u < n) {
-        acc = (acc << 8) | uint32(uint8(buf[cpt]));
-        cpt++;
-
-        acc_len += 8;
-        if (acc_len >= 14) {
-            uint32 w;
-
-            acc_len -= 14;
-            w = (acc >> acc_len) & 0x3FFF;
-            if (w >= 12289) {
-                revert("wrong coeff");
-            }
-            x[u] = uint256(w);
-            u++;
-        } //end if
-    } //end while
-    if ((acc & ((1 << acc_len) - 1)) != 0) {
-        revert();
-    }
-
-    //console.log("last read kpub", uint8(buf[cpt-1]));
-    return x;
-}
-
 /*
 	 * Decode NIST KAT made of
      * the encoded public key:0x09+ public key compressed value
@@ -168,7 +140,7 @@ function decompress_KAT(bytes memory pk, bytes memory sm)
     if (pk[0] != 0x09) {
         revert("wrong public key encoding");
     }
-    h = decompress_kpub(pk, 1);
+    h = _ZKNOX_NTT_Decompress(pk, 1); //decompressing kpub, assuming first byte is 0x09, so offset=1
 
     uint256 i;
     salt = new bytes(40);

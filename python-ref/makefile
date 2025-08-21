@@ -20,6 +20,9 @@ bench:
 test_keccak_prng:
 	$(PYTHON) -m unittest test_keccak_prng -v
 
+test_blake2s_prng:
+	$(PYTHON) -m unittest test_blake2s_prng -v
+
 test_keccak:
 	$(PYTHON) -m unittest test_keccak -v
  
@@ -47,6 +50,7 @@ generate_test_vectors:
 	$(PYTHON) -m generate_deprecated_falcon_test_vectors -v
 	$(PYTHON) -m generate_deprecated_falcon_recovery_test_vectors -v
 	$(PYTHON) -m generate_deprecated_falcon_epervier_test_vectors -v
+	$(PYTHON) -m generate_falcon_core_test_vectors -v
 	forge fmt
 
 generate_hash_test_vectors:

@@ -48,10 +48,12 @@ import "./ZKNOX_falcon_core.sol";
 //choose the XOF to use here
 import "./ZKNOX_HashToPoint.sol";
 
-//import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-//import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+/// @title ZKNOX_ethfalcon
+/// @notice A contract to verify ETHFALCON signatures
+/// @dev ETHFALCON is FALCON with a Keccak-CTR PRNG instead of shake for gas cost efficiency.
 
-/* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
+/// @custom:experimental This library is not audited yet, do not use in production.
+
 contract ZKNOX_ethfalcon is ISigVerifier {
     function CheckParameters(bytes memory salt, uint256[] memory s2, uint256[] memory ntth)
         internal
@@ -65,6 +67,13 @@ contract ZKNOX_ethfalcon is ISigVerifier {
         return true;
     }
 
+    /// @notice Compute the  ethfalcon verification function
+
+    /// @param h the hash of message to be signed, expected length is 32 bytes
+    /// @param salt the message to be signed, expected length is 40 bytes
+    /// @param s2 second part of the signature in Compacted representation (see IO part of README for encodings specification), expected length is 32 uint256
+    /// @param ntth public key in the ntt domain, compacted 16  coefficients of 16 bits per word
+    /// @return result boolean result of the verification
     function verify(
         bytes memory h, //a 32 bytes hash
         bytes memory salt, // compacted signature salt part

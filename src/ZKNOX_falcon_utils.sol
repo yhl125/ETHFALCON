@@ -64,6 +64,7 @@ function Swap(uint256[] memory Pol) pure returns (uint256[] memory Mirror) {
     }
 }
 
+//return the compacted version of an expanded polynomial
 function _ZKNOX_NTT_Compact(uint256[] memory a) pure returns (uint256[] memory b) {
     b = new uint256[](32);
 
@@ -80,6 +81,7 @@ function _ZKNOX_NTT_Compact(uint256[] memory a) pure returns (uint256[] memory b
     return b;
 }
 
+//return the expanded version of a compacted polynomial
 function _ZKNOX_NTT_Expand(uint256[] memory a) pure returns (uint256[] memory b) {
     b = new uint256[](512);
 
@@ -106,4 +108,37 @@ function _ZKNOX_NTT_Expand(uint256[] memory a) pure returns (uint256[] memory b)
     }
 
     return b;
+}
+
+//decompress a polynomial starting at offset byte of buf
+function _ZKNOX_NTT_Decompress(bytes memory buf, uint256 offset) pure returns (uint256[] memory) {
+    uint256[] memory x = new uint256[](512);
+    uint32 acc = 0;
+    uint256 acc_len = 0;
+    uint256 u = 0;
+    uint256 cpt = offset; //start with offset 1 to prune 0x09 header
+
+    while (u < n) {
+        acc = (acc << 8) | uint32(uint8(buf[cpt]));
+        cpt++;
+
+        acc_len += 8;
+        if (acc_len >= 14) {
+            uint32 w;
+
+            acc_len -= 14;
+            w = (acc >> acc_len) & 0x3FFF;
+            if (w >= 12289) {
+                revert("wrong coeff");
+            }
+            x[u] = uint256(w);
+            u++;
+        } //end if
+    } //end while
+    if ((acc & ((1 << acc_len) - 1)) != 0) {
+        revert();
+    }
+
+    //console.log("last read kpub", uint8(buf[cpt-1]));
+    return x;
 }

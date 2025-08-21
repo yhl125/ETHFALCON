@@ -1,7 +1,8 @@
-from falcon import SecretKey
-from shake import SHAKE
+from falcon import HEAD_LEN, SALT_LEN, decompress, SecretKey, PublicKey, hash_to_point
+from common import falcon_compact, q
 from keccak_prng import KeccakPRNG
-from blake2s_prng import Blake2sPRNG
+from polyntt.poly import Poly
+from shake import SHAKE
 from generate_falcon_test_vectors import list_of_messages
 
 n = 512
@@ -16,52 +17,93 @@ G = [-10, 12, -13, -20, 7, 32, -17, 31, -61, -3, 23, -65, 28, -61, -22, 56, 33, 
      67, -27, -35, -6, 26, 13, -12, 24, 35, -21, 24, -16, 16, 10, 47, -14, 3, -5, 2, 3, -26, 0, -29, 4, 21, -17, -16, -20, 7, -44, -34, 26, 2, 6, -8, -17, 17, -14, 7, -5, 6, -33, 13, 6, 35, 21, -42, 3, 5, 8, 23, 27, -10, -40, 4, -20, 9, -31, -40, 14, 9, 45, -12, -32, 4, 7, 15, 25, 7, 9, 23, 4, 33, -35, 47, 2, 30, -22, 8, -38, -28, 62, -16, 13, -4, 5, 16, 34, -8, 44, 26, -45, 27, -42, 26, 33, -22, -25, 0, -3, -29, 6, 18, 11, 4, 9, -20, -9, 1, 14, -8, -6, -34, -11, -26, -2, -10, 35, -1, -24, 17, 4, 3, 76, -18, -13, 4, 19, 4, -41, 8, -17, -31, -4, -27, 24, -14, -1, 41, -7, -38, 27, 24, 12, 1, -25, 22, 10, -28, 25, 7, 29, -19, 9, 20, 5, -17, -24, 38, 0, 18, -23, 6, -30, -9, -38, -21, -32, 16, -5, 16, 1, -24, -17, 17, 34, -39, -25, -16, 26, 13, -18, -11, -8, -46, 27, 14, -27, -22, -22, -1, -41, -5, 11, -2, 57, 1, -16, -30, 25, 46, -20, 2, 9, 25, -30, 18, 39, -9, -53, 30, 14, 24, -22, 29, -8, 0, -18, 22, -2, -11, -35, -12, 24, 9, -20, -17, -39, 2, -3, -36, 31, -23, -4, 22, -40, 4, 0, 23, 26, -7, -8, 12, -31, -32, -10, -18, 24, 17, 0, 63, -29, 67, 44, 3, 13, 35, 11, -36]
 
 sk = SecretKey(n, [f, g, F, G])
+pk = PublicKey(n, sk.h)
 
 # for a deterministic signature
 shake = SHAKE.new(b'')
 shake.flip()
 
-for XOF in [KeccakPRNG, SHAKE, Blake2sPRNG]:
-    if XOF == KeccakPRNG:
-        hash_type = "RIP"
-    elif XOF == SHAKE:
-        hash_type = "NIST"
-    elif XOF == Blake2sPRNG:
-        hash_type = "ZK"
 
-    if hash_type == "ZK":
-        # we don't generate a sol file for now as we do not have Blake2s in solidty.
-        file = open("../test/ZKNOXHashToPointZKVectors.t", 'w')
-    else:
-        file = open("../test/ZKNOXHashToPoint" +
-                    hash_type + "Vectors.t.sol", 'w')
+def header(is_eth):
+    return """
+// code generated using pythonref/generate_falcon_test_vectors.py.
+pragma solidity ^0.8.25;
 
-    header = """
-    // code generated using pythonref/generate_hashtopoint_test_vectors.py.
-    pragma solidity ^0.8.25;
+import {{Test, console}} from "forge-std/Test.sol";
+import "../src/ZKNOX_NTT.sol";
+import "../src/ZKNOX_falcon_utils.sol";
+import "../src/ZKNOX_{}falcon.sol";
+import "../src/ZKNOX_falcon_core.sol";
+import "../src/ZKNOX_falcon_deploy.sol";
 
-    import {Test, console} from "forge-std/Test.sol";
-    """
-    header += "import \"../src/ZKNOX_HashToPoint.sol\";\n"
-    header += "contract HashToPoint{}Test is Test {{\n".format(hash_type)
-    file.write(header)
+contract ZKNOX_FalconTest is Test {{
+    ZKNOX_{}falcon falcon;
+
+    //stateful initialisation
+    function setUp() public {{
+        bytes32 salt = keccak256(abi.encodePacked("ZKnox"));
+
+        falcon = new ZKNOX_{}falcon();
+    }}
+""".format(is_eth, is_eth, is_eth)
+
+
+for (XOF, hash_type) in [(KeccakPRNG, 'RIP'), (SHAKE, 'NIST')]:
+    file = open(
+        "../test/ZKNOX_{}falcon_core.t.sol".format('eth' if hash_type == 'RIP' else ''), 'w')
+
+    file.write(header('eth' if hash_type == 'RIP' else ''))
 
     for (i, message) in enumerate(list_of_messages):
-        salt = shake.read(40)
-        hash = sk.hash_to_point(sk.n, message.encode(), salt, xof=XOF)
+        sig = sk.sign(message.encode(),
+                      randombytes=shake.read, xof=XOF)
+        salt = sig[HEAD_LEN:HEAD_LEN + SALT_LEN]
 
-        file.write("\tfunction testVector{}() public pure {{\n".format(i))
-        file.write("\t\tbytes memory salt = \"{}\"; \n".format(
-            "".join(f"\\x{b:02x}" for b in salt)))
-        file.write("\t\tbytes memory message = \"{}\";\n".format(
-            "".join(f"\\x{b:02x}" for b in message.encode())))
-        file.write("\t\t// forgefmt: disable-next-line\n")
+        h2p = hash_to_point(512, message.encode(), salt, xof=XOF)
 
-        file.write("\t\tuint256[512] memory expected_hash = [uint256({}), {}];\n".format(
-            hash[0], ','.join(map(str, hash[1:]))))
+        enc_s = sig[HEAD_LEN + SALT_LEN:]
+        s2 = decompress(enc_s, sk.sig_bytelen - HEAD_LEN - SALT_LEN, sk.n)
+        s2 = [elt % q for elt in s2]
+        assert pk.verify(message.encode(), sig, xof=XOF)
+
+        s2_compact = falcon_compact(s2)
+        pk_compact = falcon_compact(Poly(sk.h, q).ntt())
+
+        file.write("function testVector{}() public view {{\n".format(i))
+        file.write("// public key\n")
+        file.write("// uncompressed pk = {}\n".format(Poly(sk.h, q).ntt()))
+        file.write("// forgefmt: disable-next-line\n")
+        file.write("uint256[32] memory tmp_pkc = {};\n".format(pk_compact))
+        file.write("uint256[] memory pkc = new uint[](32);\n")
+        file.write("for (uint256 i = 0; i < 32; i++) {\n")
+        file.write("\tpkc[i] = tmp_pkc[i];\n")
+        file.write("}\n")
+
+        file.write("// signature s2\n")
+        file.write("// uncompressed s2 = {}\n".format(s2))
+        file.write("// forgefmt: disable-next-line\n")
+        file.write("uint256[32] memory tmp_s2 = {};\n".format(s2_compact))
+        file.write("uint256[] memory s2 = new uint256[](32);\n")
+        file.write("for (uint i = 0; i < 32; i++) {\n")
+        file.write("\ts2[i] = tmp_s2[i];\n")
+        file.write("}\n")
+
         file.write(
-            "\t\tuint256[] memory hash = hashToPoint{}(salt, message);\n".format(hash_type))
+            "// message = \"{}\"\n".format("".join(f"\\x{b:02x}" for b in message.encode())))
         file.write(
-            "\t\tfor (uint256 i = 0 ; i < n ; i ++ ) { assertEq(hash[i], expected_hash[i]); }\n")
-        file.write("\t}\n\n")
-    file.write("}")
+            "// salt = \"{}\"\n".format("".join(f"\\x{b:02x}" for b in salt)))
+
+        file.write("// hash to point\n")
+        file.write("// forgefmt: disable-next-line\n")
+        file.write("uint256[512] memory _hashed = [uint256({}), {};\n".format(
+            h2p[0], str(h2p[1:])[1:]))
+        file.write("uint256[] memory hashed = new uint256[](512);\n")
+        file.write("for (uint i = 0; i < 512; i++) {\n")
+        file.write("\thashed[i] = _hashed[i];\n")
+        file.write("}\n")
+
+        file.write(
+            "bool result = falcon_core(s2, pkc, hashed);\n")
+        file.write("assertEq(true, result);")
+        file.write("}\n")
+    file.write("}\n")

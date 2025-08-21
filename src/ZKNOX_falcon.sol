@@ -48,7 +48,12 @@ import "./ZKNOX_falcon_core.sol";
 //choose the XOF to use here
 import "./ZKNOX_HashToPoint.sol";
 
-/* the contract shall be initialized with a valid precomputation of psi_rev and psi_invrev contracts provided to the input ntt contract*/
+/// @title ZKNOX_falcon
+/// @notice A contract to verify FALCON signatures
+/// @dev The format of function is compacted, not compressed, for KATS verification look at dedicated ZKNOX_falconKATS.sol
+
+/// @custom:experimental This library is not audited yet, do not use in production.
+
 contract ZKNOX_falcon is ISigVerifier {
     ZKNOX_NTT ntt;
     address public psirev;
@@ -89,7 +94,14 @@ contract ZKNOX_falcon is ISigVerifier {
         return true;
     }
 
-    //optimal verification from decompressed signature and NTT representation of the public key
+    /// @notice Compute the  falcon NIST verification function
+
+    /// @param h the hash of message to be signed, expected length is 32 bytes
+    /// @param salt the message to be signed, expected length is 40 bytes
+    /// @param s2 second part of the signature in Compacted representation (see IO part of README for encodings specification), expected length is 32 uint256
+    /// @param ntth public key in the ntt domain, compacted 16  coefficients of 16 bits per word
+    /// @return result boolean result of the verification
+
     function verify(
         bytes memory h, //a 32 bytes hash
         bytes memory salt, // compacted signature salt part

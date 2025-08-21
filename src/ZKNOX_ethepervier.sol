@@ -47,6 +47,11 @@ import "./ZKNOX_NTT_falcon.sol";
 //choose the XOF to use here
 import "./ZKNOX_HashToPoint.sol";
 
+/// @title ZKNOX_ethepervier
+/// @notice A contract to verify FALCON signatures with public key recovery
+/// @dev Keccak PRNG replaces shake to reduce gas cost
+
+/// @custom:experimental This library is not audited yet, do not use in production.
 contract ZKNOX_ethepervier {
     ZKNOX_NTT ntt;
 
@@ -56,7 +61,13 @@ contract ZKNOX_ethepervier {
         return address(uint160(uint256(keccak256(m))));
     }
 
-    //version using compact representation
+    /// @notice Compute the  ethfalcon recover function
+
+    /// @param msgs the message to be signed
+    /// @param salt the message to be signed, expected length is 40 bytes
+    /// @param cs1 first part of the signature in Compacted representation (see IO part of README for encodings specification), expected length is 32 uint256
+    /// @param cs2 second part of the signature in Compacted representation (see IO part of README for encodings specification), expected length is 32 uint256
+    /// @return result the address recovered
     function recover(bytes memory msgs, bytes memory salt, uint256[] memory cs1, uint256[] memory cs2, uint256 hint)
         public
         pure

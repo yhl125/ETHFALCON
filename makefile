@@ -11,8 +11,8 @@ install_signer:
 
 install_verifier:
 	foundryup
-	forge install OpenZeppelin/openzeppelin-contracts-upgradeable --no-commit
-	forge install OpenZeppelin/openzeppelin-contracts --no-commit
+	forge install OpenZeppelin/openzeppelin-contracts-upgradeable
+	forge install OpenZeppelin/openzeppelin-contracts
 
 # GENERATION OF TEST VECTORS
 
@@ -52,3 +52,7 @@ test_onchain:
 	$(PYTHON) python-ref/sign_cli.py verifyonchain --pubkey='public_key.pem' --data=89ab --signature='sig' --contractaddress='0x5ab1d6db02f48bad63cbef5d51c534A76aEB824B' --rpc='https://sepolia.optimism.io'
 
 	
+# BENCH
+
+bench:
+	forge test -j$(CORES) test/ZKNOXBenchmarks.t.sol -vv | grep -A1 "Logs" | grep -v "Logs" | grep -v "\-\-"
